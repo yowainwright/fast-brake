@@ -1,2 +1,2 @@
 
-pnpm run pre-commit
+bun run pre-commit
