@@ -1,7 +1,7 @@
 {
   "name": "brakefast",
   "version": "0.0.1",
-  "description": "A tool to help manage and optimize build performance by analyzing and caching build dependencies 🚀 ⚡",
+  "description": "Fast ES feature detection with zero runtime dependencies",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "type": "module",
@@ -15,25 +15,26 @@
   "files": [
     "dist"
   ],
-  "bin": {
-    "brakefast": "./dist/index.js"
-  },
   "scripts": {
+    "generate": "bun generator/generate-schema.ts",
     "build": "turbo run build-dist",
     "build-dist": "bun run clean-dist && tsup src/index.ts --format esm,cjs --dts --minify",
     "clean-dist": "rimraf dist",
     "commit": "git-cz",
     "commit-msg": "commitlint --edit $1",
     "dev": "bun run --cwd site dev",
-    "lint": "turbo run lint-src",
-    "lint-fix": "eslint",
-    "lint-src": "eslint",
+    "lint": "oxlint src test",
+    "lint-fix": "oxlint src test --fix",
+    "lint-src": "oxlint src",
     "pre-commit": "lint-staged --quiet && bun run test",
     "prepare": "is-ci || husky install",
     "prepublishOnly": "bun run test && bun run build",
     "preview": "bun run --cwd site preview",
     "release": "release-it",
-    "test": "bun test",
+    "test": "bun test src/*.test.ts test/index.test.ts --timeout 5000",
+    "test:e2e": "bun test test/e2e.test.ts --timeout 5000",
+    "test-e2e": "bun test test/e2e.test.ts --timeout 5000",
+    "benchmark": "bun test/benchmark.ts",
     "typecheck": "turbo run typecheck-src",
     "typecheck-src": "tsc --noEmit",
     "update": "codependence --update && bun run update-site-deps",
@@ -51,7 +52,22 @@
     "dependencies",
     "build-tools",
     "typescript",
-    "cli"
+    "cli",
+    "es",
+    "ecmascript",
+    "feature-detection",
+    "compatibility",
+    "lint",
+    "es5",
+    "es6",
+    "es2015",
+    "es2016",
+    "es2017",
+    "es2018",
+    "es2019",
+    "es2020",
+    "es2021",
+    "es2022"
   ],
   "author": "Jeff Wainwright <https:jeffry.in> (yowainwright@gmail.com)",
   "license": "MIT",
@@ -62,13 +78,6 @@
   "workspaces": [
     "site"
   ],
-  "dependencies": {
-    "commander": "14.0.0",
-    "fast-glob": "3.3.3",
-    "gradient-string": "^3.0.0",
-    "ora": "^8.1.0",
-    "p-limit": "^6.1.0"
-  },
   "devDependencies": {
     "@commitlint/cli": "19.8.1",
     "@commitlint/config-conventional": "19.8.1",
@@ -83,6 +92,7 @@
     "husky": "9.1.7",
     "is-ci": "^4.1.0",
     "lint-staged": "16.1.2",
+    "oxlint": "^1.11.2",
     "path-exists-cli": "^2.0.0",
     "prettier": "3.6.2",
     "release-it": "19.0.4",
@@ -103,19 +113,7 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
-      "eslint --fix"
-    ]
-  },
-  "eslintConfig": {
-    "root": true,
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint"
-    ],
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "prettier"
+      "oxlint --fix"
     ]
   },
   "release-it": {

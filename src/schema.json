@@ -1,0 +1,1092 @@
+{
+  "features": [
+    {
+      "name": "javascript.statements.async_function",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/async_function",
+      "description": "`async function` statement"
+    },
+    {
+      "name": "javascript.statements.async_generator_function",
+      "category": "statements",
+      "esVersion": "es2017",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/async_function*",
+      "description": "`async function*` statement"
+    },
+    {
+      "name": "javascript.statements.await_using",
+      "category": "statements",
+      "esVersion": "es2022",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/await_using",
+      "description": "`await using` declaration"
+    },
+    {
+      "name": "javascript.statements.block",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/block"
+    },
+    {
+      "name": "javascript.statements.break",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/break"
+    },
+    {
+      "name": "javascript.statements.class",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/class"
+    },
+    {
+      "name": "javascript.statements.const",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/const"
+    },
+    {
+      "name": "javascript.statements.continue",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/continue"
+    },
+    {
+      "name": "javascript.statements.debugger",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/debugger"
+    },
+    {
+      "name": "javascript.statements.do_while",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/do...while",
+      "description": "`do...while`"
+    },
+    {
+      "name": "javascript.statements.empty",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/Empty",
+      "description": "Empty statement (`;`)"
+    },
+    {
+      "name": "javascript.statements.export",
+      "category": "statements",
+      "esVersion": "es2016",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export"
+    },
+    {
+      "name": "javascript.statements.export.arbitrary_module_namespace_identifier_names",
+      "category": "statements",
+      "esVersion": "es2021",
+      "pattern": null,
+      "description": "Arbitrary module namespace identifier names"
+    },
+    {
+      "name": "javascript.statements.export.default",
+      "category": "statements",
+      "esVersion": "es2016",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export",
+      "description": "`default` keyword with `export`"
+    },
+    {
+      "name": "javascript.statements.export.namespace",
+      "category": "statements",
+      "esVersion": "es2018",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export",
+      "description": "`export * as namespace`"
+    },
+    {
+      "name": "javascript.statements.for",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for"
+    },
+    {
+      "name": "javascript.statements.for_await_of",
+      "category": "statements",
+      "esVersion": "es2017",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for-await...of",
+      "description": "`for await...of`"
+    },
+    {
+      "name": "javascript.statements.for_in",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for...in",
+      "description": "`for...in`"
+    },
+    {
+      "name": "javascript.statements.for_of",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for...of",
+      "description": "`for...of`"
+    },
+    {
+      "name": "javascript.statements.for_of.async_iterators",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "async iterators"
+    },
+    {
+      "name": "javascript.statements.for_of.closing_iterators",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "Closing iterators"
+    },
+    {
+      "name": "javascript.statements.function",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function",
+      "description": "`function` statement"
+    },
+    {
+      "name": "javascript.statements.function.trailing_comma_in_parameters",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "Trailing comma in parameters"
+    },
+    {
+      "name": "javascript.statements.generator_function",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function*",
+      "description": "`function*` statement"
+    },
+    {
+      "name": "javascript.statements.generator_function.IteratorResult_object",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "`IteratorResult` object instead of throwing"
+    },
+    {
+      "name": "javascript.statements.generator_function.not_constructable_with_new",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "Not constructable with `new` (ES2016)"
+    },
+    {
+      "name": "javascript.statements.generator_function.trailing_comma_in_parameters",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "Trailing comma in parameters"
+    },
+    {
+      "name": "javascript.statements.if_else",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/if...else",
+      "description": "`if...else`"
+    },
+    {
+      "name": "javascript.statements.import",
+      "category": "statements",
+      "esVersion": "es2016",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/import"
+    },
+    {
+      "name": "javascript.statements.import.worker_support",
+      "category": "statements",
+      "esVersion": "es2020",
+      "pattern": null,
+      "description": "Available in workers"
+    },
+    {
+      "name": "javascript.statements.import.arbitrary_module_namespace_identifier_names",
+      "category": "statements",
+      "esVersion": "es2021",
+      "pattern": null,
+      "description": "Arbitrary module namespace identifier names"
+    },
+    {
+      "name": "javascript.statements.import.import_assertions",
+      "category": "statements",
+      "esVersion": "es2021",
+      "pattern": null,
+      "description": "Import attributes with `assert` syntax (formerly import assertions)"
+    },
+    {
+      "name": "javascript.statements.import.import_assertions.type_css",
+      "category": "statements",
+      "esVersion": "es2021",
+      "pattern": null,
+      "description": "`assert {type: 'css'}`"
+    },
+    {
+      "name": "javascript.statements.import.import_assertions.type_json",
+      "category": "statements",
+      "esVersion": "es2021",
+      "pattern": null,
+      "description": "`assert {type: 'json'}`"
+    },
+    {
+      "name": "javascript.statements.import.import_attributes",
+      "category": "statements",
+      "esVersion": "es2022",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/import/with",
+      "description": "Import attributes (`with` syntax)"
+    },
+    {
+      "name": "javascript.statements.import.import_attributes.type_css",
+      "category": "statements",
+      "esVersion": "es2022",
+      "pattern": null,
+      "description": "`with {type: 'css'}`"
+    },
+    {
+      "name": "javascript.statements.import.import_attributes.type_json",
+      "category": "statements",
+      "esVersion": "es2022",
+      "pattern": null,
+      "description": "`with {type: 'json'}`"
+    },
+    {
+      "name": "javascript.statements.import.service_worker_support",
+      "category": "statements",
+      "esVersion": "es2021",
+      "pattern": null,
+      "description": "Available in service workers"
+    },
+    {
+      "name": "javascript.statements.import.worklet_support",
+      "category": "statements",
+      "esVersion": "es2022",
+      "pattern": null,
+      "description": "Available in worklets"
+    },
+    {
+      "name": "javascript.statements.label",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/label"
+    },
+    {
+      "name": "javascript.statements.let",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/let"
+    },
+    {
+      "name": "javascript.statements.return",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/return"
+    },
+    {
+      "name": "javascript.statements.switch",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/switch"
+    },
+    {
+      "name": "javascript.statements.throw",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/throw"
+    },
+    {
+      "name": "javascript.statements.try_catch",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/try...catch",
+      "description": "`try...catch`"
+    },
+    {
+      "name": "javascript.statements.try_catch.optional_catch_binding",
+      "category": "statements",
+      "esVersion": "es2017",
+      "pattern": null,
+      "description": "Optional catch binding"
+    },
+    {
+      "name": "javascript.statements.using",
+      "category": "statements",
+      "esVersion": "es2022",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/using",
+      "description": "`using` declaration"
+    },
+    {
+      "name": "javascript.statements.var",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/var"
+    },
+    {
+      "name": "javascript.statements.while",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/while"
+    },
+    {
+      "name": "javascript.statements.with",
+      "category": "statements",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/with"
+    },
+    {
+      "name": "javascript.grammar.array_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/Array#array_literal_notation",
+      "description": "Array literals (`[1, 2, 3]`)"
+    },
+    {
+      "name": "javascript.grammar.binary_numeric_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#binary",
+      "description": "Binary numeric literals (`0b`)"
+    },
+    {
+      "name": "javascript.grammar.boolean_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#boolean_literal",
+      "description": "Boolean literals (`true`/`false`)"
+    },
+    {
+      "name": "javascript.grammar.decimal_numeric_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#decimal",
+      "description": "Decimal numeric literals (`1234567890`)"
+    },
+    {
+      "name": "javascript.grammar.hashbang_comments",
+      "category": "grammar",
+      "esVersion": "es2019",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#hashbang_comments",
+      "description": "Hashbang (`#!`) comment syntax"
+    },
+    {
+      "name": "javascript.grammar.hexadecimal_escape_sequences",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#hexadecimal_escape_sequences",
+      "description": "Hexadecimal escape sequences (`'\\xA9'`)"
+    },
+    {
+      "name": "javascript.grammar.hexadecimal_numeric_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#hexadecimal",
+      "description": "Hexadecimal numeric literals (`0xAF`)"
+    },
+    {
+      "name": "javascript.grammar.null_literal",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#null_literal",
+      "description": "Null literal (`null`)"
+    },
+    {
+      "name": "javascript.grammar.numeric_separators",
+      "category": "grammar",
+      "esVersion": "es2019",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#numeric_separators",
+      "description": "Numeric separators (`1_000_000_000_000`)"
+    },
+    {
+      "name": "javascript.grammar.octal_numeric_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#octal",
+      "description": "Octal numeric literals (`0o`)"
+    },
+    {
+      "name": "javascript.grammar.regular_expression_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#regular_expression_literals",
+      "description": "Regular expression literals (`/ab+c/g`)"
+    },
+    {
+      "name": "javascript.grammar.string_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#string_literals",
+      "description": "String literals (`'Hello world'`)"
+    },
+    {
+      "name": "javascript.grammar.unicode_escape_sequences",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#unicode_escape_sequences",
+      "description": "Unicode escape sequences (`'\\u00A9'`)"
+    },
+    {
+      "name": "javascript.grammar.unicode_point_escapes",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#unicode_code_point_escapes",
+      "description": "Unicode point escapes (`\\u{}`)"
+    },
+    {
+      "name": "javascript.grammar.shorthand_object_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "Shorthand notation for object literals"
+    },
+    {
+      "name": "javascript.grammar.template_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Template_literals",
+      "description": "Template literals"
+    },
+    {
+      "name": "javascript.grammar.template_literals.template_literal_revision",
+      "category": "grammar",
+      "esVersion": "es2017",
+      "pattern": null,
+      "description": "Escape sequences allowed in tagged template literals"
+    },
+    {
+      "name": "javascript.grammar.trailing_commas",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Trailing_commas",
+      "description": "Trailing commas"
+    },
+    {
+      "name": "javascript.grammar.trailing_commas.trailing_commas_in_dynamic_import",
+      "category": "grammar",
+      "esVersion": "es2021",
+      "pattern": null,
+      "description": "Trailing comma in dynamic import"
+    },
+    {
+      "name": "javascript.grammar.trailing_commas.trailing_commas_in_functions",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "Trailing comma in function parameters"
+    },
+    {
+      "name": "javascript.grammar.trailing_commas.trailing_commas_in_object_literals",
+      "category": "grammar",
+      "esVersion": "es5",
+      "pattern": null,
+      "description": "Trailing comma in object literals"
+    }
+  ],
+  "featuresByVersion": {
+    "es5": [
+      {
+        "name": "javascript.statements.async_function",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/async_function",
+        "description": "`async function` statement"
+      },
+      {
+        "name": "javascript.statements.block",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/block"
+      },
+      {
+        "name": "javascript.statements.break",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/break"
+      },
+      {
+        "name": "javascript.statements.class",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/class"
+      },
+      {
+        "name": "javascript.statements.const",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/const"
+      },
+      {
+        "name": "javascript.statements.continue",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/continue"
+      },
+      {
+        "name": "javascript.statements.debugger",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/debugger"
+      },
+      {
+        "name": "javascript.statements.do_while",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/do...while",
+        "description": "`do...while`"
+      },
+      {
+        "name": "javascript.statements.empty",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/Empty",
+        "description": "Empty statement (`;`)"
+      },
+      {
+        "name": "javascript.statements.for",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for"
+      },
+      {
+        "name": "javascript.statements.for_in",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for...in",
+        "description": "`for...in`"
+      },
+      {
+        "name": "javascript.statements.for_of",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for...of",
+        "description": "`for...of`"
+      },
+      {
+        "name": "javascript.statements.for_of.async_iterators",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "async iterators"
+      },
+      {
+        "name": "javascript.statements.for_of.closing_iterators",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "Closing iterators"
+      },
+      {
+        "name": "javascript.statements.function",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function",
+        "description": "`function` statement"
+      },
+      {
+        "name": "javascript.statements.function.trailing_comma_in_parameters",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "Trailing comma in parameters"
+      },
+      {
+        "name": "javascript.statements.generator_function",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function*",
+        "description": "`function*` statement"
+      },
+      {
+        "name": "javascript.statements.generator_function.IteratorResult_object",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "`IteratorResult` object instead of throwing"
+      },
+      {
+        "name": "javascript.statements.generator_function.not_constructable_with_new",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "Not constructable with `new` (ES2016)"
+      },
+      {
+        "name": "javascript.statements.generator_function.trailing_comma_in_parameters",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "Trailing comma in parameters"
+      },
+      {
+        "name": "javascript.statements.if_else",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/if...else",
+        "description": "`if...else`"
+      },
+      {
+        "name": "javascript.statements.label",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/label"
+      },
+      {
+        "name": "javascript.statements.let",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/let"
+      },
+      {
+        "name": "javascript.statements.return",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/return"
+      },
+      {
+        "name": "javascript.statements.switch",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/switch"
+      },
+      {
+        "name": "javascript.statements.throw",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/throw"
+      },
+      {
+        "name": "javascript.statements.try_catch",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/try...catch",
+        "description": "`try...catch`"
+      },
+      {
+        "name": "javascript.statements.var",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/var"
+      },
+      {
+        "name": "javascript.statements.while",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/while"
+      },
+      {
+        "name": "javascript.statements.with",
+        "category": "statements",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/with"
+      },
+      {
+        "name": "javascript.grammar.array_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/Array#array_literal_notation",
+        "description": "Array literals (`[1, 2, 3]`)"
+      },
+      {
+        "name": "javascript.grammar.binary_numeric_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#binary",
+        "description": "Binary numeric literals (`0b`)"
+      },
+      {
+        "name": "javascript.grammar.boolean_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#boolean_literal",
+        "description": "Boolean literals (`true`/`false`)"
+      },
+      {
+        "name": "javascript.grammar.decimal_numeric_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#decimal",
+        "description": "Decimal numeric literals (`1234567890`)"
+      },
+      {
+        "name": "javascript.grammar.hexadecimal_escape_sequences",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#hexadecimal_escape_sequences",
+        "description": "Hexadecimal escape sequences (`'\\xA9'`)"
+      },
+      {
+        "name": "javascript.grammar.hexadecimal_numeric_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#hexadecimal",
+        "description": "Hexadecimal numeric literals (`0xAF`)"
+      },
+      {
+        "name": "javascript.grammar.null_literal",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#null_literal",
+        "description": "Null literal (`null`)"
+      },
+      {
+        "name": "javascript.grammar.octal_numeric_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#octal",
+        "description": "Octal numeric literals (`0o`)"
+      },
+      {
+        "name": "javascript.grammar.regular_expression_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#regular_expression_literals",
+        "description": "Regular expression literals (`/ab+c/g`)"
+      },
+      {
+        "name": "javascript.grammar.string_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#string_literals",
+        "description": "String literals (`'Hello world'`)"
+      },
+      {
+        "name": "javascript.grammar.unicode_escape_sequences",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#unicode_escape_sequences",
+        "description": "Unicode escape sequences (`'\\u00A9'`)"
+      },
+      {
+        "name": "javascript.grammar.unicode_point_escapes",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#unicode_code_point_escapes",
+        "description": "Unicode point escapes (`\\u{}`)"
+      },
+      {
+        "name": "javascript.grammar.shorthand_object_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "Shorthand notation for object literals"
+      },
+      {
+        "name": "javascript.grammar.template_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Template_literals",
+        "description": "Template literals"
+      },
+      {
+        "name": "javascript.grammar.trailing_commas",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Trailing_commas",
+        "description": "Trailing commas"
+      },
+      {
+        "name": "javascript.grammar.trailing_commas.trailing_commas_in_functions",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "Trailing comma in function parameters"
+      },
+      {
+        "name": "javascript.grammar.trailing_commas.trailing_commas_in_object_literals",
+        "category": "grammar",
+        "esVersion": "es5",
+        "pattern": null,
+        "description": "Trailing comma in object literals"
+      }
+    ],
+    "es2017": [
+      {
+        "name": "javascript.statements.async_generator_function",
+        "category": "statements",
+        "esVersion": "es2017",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/async_function*",
+        "description": "`async function*` statement"
+      },
+      {
+        "name": "javascript.statements.for_await_of",
+        "category": "statements",
+        "esVersion": "es2017",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for-await...of",
+        "description": "`for await...of`"
+      },
+      {
+        "name": "javascript.statements.try_catch.optional_catch_binding",
+        "category": "statements",
+        "esVersion": "es2017",
+        "pattern": null,
+        "description": "Optional catch binding"
+      },
+      {
+        "name": "javascript.grammar.template_literals.template_literal_revision",
+        "category": "grammar",
+        "esVersion": "es2017",
+        "pattern": null,
+        "description": "Escape sequences allowed in tagged template literals"
+      }
+    ],
+    "es2022": [
+      {
+        "name": "javascript.statements.await_using",
+        "category": "statements",
+        "esVersion": "es2022",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/await_using",
+        "description": "`await using` declaration"
+      },
+      {
+        "name": "javascript.statements.import.import_attributes",
+        "category": "statements",
+        "esVersion": "es2022",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/import/with",
+        "description": "Import attributes (`with` syntax)"
+      },
+      {
+        "name": "javascript.statements.import.import_attributes.type_css",
+        "category": "statements",
+        "esVersion": "es2022",
+        "pattern": null,
+        "description": "`with {type: 'css'}`"
+      },
+      {
+        "name": "javascript.statements.import.import_attributes.type_json",
+        "category": "statements",
+        "esVersion": "es2022",
+        "pattern": null,
+        "description": "`with {type: 'json'}`"
+      },
+      {
+        "name": "javascript.statements.import.worklet_support",
+        "category": "statements",
+        "esVersion": "es2022",
+        "pattern": null,
+        "description": "Available in worklets"
+      },
+      {
+        "name": "javascript.statements.using",
+        "category": "statements",
+        "esVersion": "es2022",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/using",
+        "description": "`using` declaration"
+      }
+    ],
+    "es2016": [
+      {
+        "name": "javascript.statements.export",
+        "category": "statements",
+        "esVersion": "es2016",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export"
+      },
+      {
+        "name": "javascript.statements.export.default",
+        "category": "statements",
+        "esVersion": "es2016",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export",
+        "description": "`default` keyword with `export`"
+      },
+      {
+        "name": "javascript.statements.import",
+        "category": "statements",
+        "esVersion": "es2016",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/import"
+      }
+    ],
+    "es2021": [
+      {
+        "name": "javascript.statements.export.arbitrary_module_namespace_identifier_names",
+        "category": "statements",
+        "esVersion": "es2021",
+        "pattern": null,
+        "description": "Arbitrary module namespace identifier names"
+      },
+      {
+        "name": "javascript.statements.import.arbitrary_module_namespace_identifier_names",
+        "category": "statements",
+        "esVersion": "es2021",
+        "pattern": null,
+        "description": "Arbitrary module namespace identifier names"
+      },
+      {
+        "name": "javascript.statements.import.import_assertions",
+        "category": "statements",
+        "esVersion": "es2021",
+        "pattern": null,
+        "description": "Import attributes with `assert` syntax (formerly import assertions)"
+      },
+      {
+        "name": "javascript.statements.import.import_assertions.type_css",
+        "category": "statements",
+        "esVersion": "es2021",
+        "pattern": null,
+        "description": "`assert {type: 'css'}`"
+      },
+      {
+        "name": "javascript.statements.import.import_assertions.type_json",
+        "category": "statements",
+        "esVersion": "es2021",
+        "pattern": null,
+        "description": "`assert {type: 'json'}`"
+      },
+      {
+        "name": "javascript.statements.import.service_worker_support",
+        "category": "statements",
+        "esVersion": "es2021",
+        "pattern": null,
+        "description": "Available in service workers"
+      },
+      {
+        "name": "javascript.grammar.trailing_commas.trailing_commas_in_dynamic_import",
+        "category": "grammar",
+        "esVersion": "es2021",
+        "pattern": null,
+        "description": "Trailing comma in dynamic import"
+      }
+    ],
+    "es2018": [
+      {
+        "name": "javascript.statements.export.namespace",
+        "category": "statements",
+        "esVersion": "es2018",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export",
+        "description": "`export * as namespace`"
+      }
+    ],
+    "es2020": [
+      {
+        "name": "javascript.statements.import.worker_support",
+        "category": "statements",
+        "esVersion": "es2020",
+        "pattern": null,
+        "description": "Available in workers"
+      }
+    ],
+    "es2019": [
+      {
+        "name": "javascript.grammar.hashbang_comments",
+        "category": "grammar",
+        "esVersion": "es2019",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#hashbang_comments",
+        "description": "Hashbang (`#!`) comment syntax"
+      },
+      {
+        "name": "javascript.grammar.numeric_separators",
+        "category": "grammar",
+        "esVersion": "es2019",
+        "pattern": null,
+        "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Lexical_grammar#numeric_separators",
+        "description": "Numeric separators (`1_000_000_000_000`)"
+      }
+    ]
+  },
+  "patternsByVersion": {},
+  "esVersions": [
+    "es5",
+    "es2015",
+    "es2016",
+    "es2017",
+    "es2018",
+    "es2019",
+    "es2020",
+    "es2021",
+    "es2022"
+  ]
+}
