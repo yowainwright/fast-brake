@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Published brakefast version to test (leave empty for latest on npm)'
+        description: 'Published fast-brake version to test (leave empty for latest on npm)'
         required: false
         type: string
 
@@ -27,17 +27,17 @@ jobs:
             VERSION="${{ inputs.version }}"
           else
             # Get the latest published version from npm
-            VERSION=$(npm view brakefast version)
+            VERSION=$(npm view fast-brake version)
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Testing brakefast version: $VERSION"
+          echo "Testing fast-brake version: $VERSION"
 
       - name: Wait for NPM Package Availability
         run: |
-          echo "Waiting for brakefast@${{ steps.version.outputs.version }} to be available on npm..."
+          echo "Waiting for fast-brake@${{ steps.version.outputs.version }} to be available on npm..."
           for i in {1..30}; do
-            if npm view brakefast@${{ steps.version.outputs.version }} version >/dev/null 2>&1; then
-              echo "✅ Package brakefast@${{ steps.version.outputs.version }} is available on npm"
+            if npm view fast-brake@${{ steps.version.outputs.version }} version >/dev/null 2>&1; then
+              echo "✅ Package fast-brake@${{ steps.version.outputs.version }} is available on npm"
               break
             fi
             echo "⏳ Attempt $i/30: Package not yet available, waiting 30 seconds..."
@@ -55,10 +55,10 @@ jobs:
 
           WORKDIR /app
 
-          # Install the specific version of brakefast from npm
+          # Install the specific version of fast-brake from npm
           ARG BRAKEFAST_VERSION
-          RUN echo "Installing brakefast@${BRAKEFAST_VERSION}" && \
-              npm install -g brakefast@${BRAKEFAST_VERSION}
+          RUN echo "Installing fast-brake@${BRAKEFAST_VERSION}" && \
+              npm install -g fast-brake@${BRAKEFAST_VERSION}
 
           # Set up test environment
           RUN mkdir -p packages/app packages/utils packages/shared e2e/fixtures/patches
