@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 # [Brakefast](https://jeffry.in/brakefast/)
+=======
+# fast-brake
+>>>>>>> Stashed changes
 
 ![Typed with TypeScript](https://flat.badgen.net/badge/icon/Typed?icon=typescript&label&labelColor=blue&color=555555)
 [![npm version](https://badge.fury.io/js/brakefast.svg)](https://badge.fury.io/js/brakefast)
@@ -29,6 +33,7 @@ After working with various build tools and dependency management systems, **_it'
 With Brakefast CLI, you can run the `brakefast analyze` command and get insights like this:
 
 ```bash
+<<<<<<< Updated upstream
 🚀 ⚡ Brakefast: Build Performance Analysis
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -45,13 +50,26 @@ With Brakefast CLI, you can run the `brakefast analyze` command and get insights
   • Consider incremental TypeScript compilation
   • Enable webpack persistent caching
   • Exclude test files from production builds
+=======
+bun add fast-brake
+# or
+npm install fast-brake
+>>>>>>> Stashed changes
 ```
 
 But there's more!
 
+<<<<<<< Updated upstream
 Brakefast will automatically cache build artifacts and dependencies, and provide intelligent recommendations for optimizing your build configuration.
 
 ### ✨ Key Features
+=======
+```javascript
+import { fast-brake, detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Throws if code uses features incompatible with ES5
+fast-brake('const x = () => {}', { target: 'es5' });
+>>>>>>> Stashed changes
 
 **Intelligent Caching**: Automatically detects and caches build artifacts based on dependency changes:
 
@@ -69,7 +87,12 @@ Brakefast will automatically cache build artifacts and dependencies, and provide
 
 **Performance Analysis**: Get detailed insights into your build performance with timing breakdowns and bottleneck identification.
 
+<<<<<<< Updated upstream
 **Smart Recommendations**: Receive actionable suggestions to improve build times based on your specific project configuration.
+=======
+### `fast-brake(code, options)`
+Analyzes code and throws if incompatible features are found.
+>>>>>>> Stashed changes
 
 There's more to come with Brakefast! By integrating Brakefast into your development workflow, you can significantly improve build performance and developer productivity!
 

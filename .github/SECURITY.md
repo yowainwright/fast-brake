@@ -10,4 +10,4 @@ This project is currently slowly iterating towards a v1 release!
 
 ## Reporting a Vulnerability
 
-To report a Vulnerability, submit an [issue](https://github.com/yowainwright/brakefast/issues) or [pull request](https://github.com/yowainwright/brakefast/pulls)!
+To report a Vulnerability, submit an [issue](https://github.com/yowainwright/fast-brake/issues) or [pull request](https://github.com/yowainwright/fast-brake/pulls)!

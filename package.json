@@ -1,7 +1,13 @@
 {
+<<<<<<< Updated upstream
   "name": "brakefast",
   "version": "0.0.1",
   "description": "A tool to help manage and optimize build performance by analyzing and caching build dependencies 🚀 ⚡",
+=======
+  "name": "fast-brake",
+  "version": "0.0.0",
+  "description": "Fast ES feature detection with zero runtime dependencies",
+>>>>>>> Stashed changes
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "type": "module",
@@ -41,7 +47,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yowainwright/brakefast.git"
+    "url": "git+https://github.com/yowainwright/fast-brake.git"
   },
   "keywords": [
     "build",
@@ -56,9 +62,9 @@
   "author": "Jeff Wainwright <https:jeffry.in> (yowainwright@gmail.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yowainwright/brakefast/issues"
+    "url": "https://github.com/yowainwright/fast-brake/issues"
   },
-  "homepage": "https://jeffry.in/brakefast/",
+  "homepage": "https://jeffry.in/fast-brake/",
   "workspaces": [
     "site"
   ],
