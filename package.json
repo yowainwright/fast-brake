@@ -1,6 +1,6 @@
 {
-  "name": "brakefast",
-  "version": "0.0.1",
+  "name": "fast-brake",
+  "version": "0.0.0",
   "description": "Fast ES feature detection with zero runtime dependencies",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -42,7 +42,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yowainwright/brakefast.git"
+    "url": "git+https://github.com/yowainwright/fast-brake.git"
   },
   "keywords": [
     "build",
@@ -72,9 +72,9 @@
   "author": "Jeff Wainwright <https:jeffry.in> (yowainwright@gmail.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yowainwright/brakefast/issues"
+    "url": "https://github.com/yowainwright/fast-brake/issues"
   },
-  "homepage": "https://jeffry.in/brakefast/",
+  "homepage": "https://jeffry.in/fast-brake/",
   "workspaces": [
     "site"
   ],
