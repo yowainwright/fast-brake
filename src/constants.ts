@@ -1,8 +1,8 @@
-<<<<<<< Updated upstream
+// Constants for ES feature detection
+
 export const IS_DEBUGGING = process.env.DEBUG === "true" || false;
 
-export const LOG_PREFIX = "🚀 ⚡ Brakefast:";
-=======
+export const LOG_PREFIX = "🚀 ⚡ Fast-Brake:";
 
 export const ES_VERSIONS = {
   es5: { chrome: 5, firefox: 4, safari: 5 },
@@ -88,7 +88,9 @@ export const FEATURE_PATTERNS: Record<string, RegExp> = {
   'top_level_await': /^[^{]*\bawait\s/m
 };
 
+// Quick detection patterns compiled at startup
 export const QUICK_PATTERNS: Record<string, RegExp> = {
+  // ES2015 (ES6)
   arrow_functions: /=>/,
   template_literals: /`/,
   classes: /\bclass\s+[a-zA-Z_$]/,
@@ -98,26 +100,33 @@ export const QUICK_PATTERNS: Record<string, RegExp> = {
   destructuring: /(?:const|let|var)\s*[[{]/,
   default_params: /function[^(]*\([^)]*=[^)]*\)/,
   
+  // ES2016
   exponentiation: /\*\*/,
   
+  // ES2017
   async_await: /\b(?:async\s+function|async\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>|await\s)/,
   
+  // ES2018
   async_iteration: /\bfor\s+await\s*\(/,
-  rest_spread_properties: /\{[^}]*\.\.\.[^.]/,
+  rest_spread_properties: /\{[^}]*\.\.\.[^.]/,  // Object rest/spread only
   
+  // ES2019
   array_flat: /\.(?:flat|flatMap)\s*\(/,
   
+  // ES2020
   optional_chaining: /\?\./,
   nullish_coalescing: /\?\?/,
   bigint: /\b\d+n\b/,
   promise_allSettled: /Promise\.allSettled\s*\(/,
   globalThis: /\bglobalThis\b/,
   
+  // ES2021
   logical_assignment: /(?:\|\|=|&&=|\?\?=)/,
   numeric_separators: /\b\d+_\d+/,
   string_replaceAll: /\.replaceAll\s*\(/,
   promise_any: /Promise\.any\s*\(/,
   
+  // ES2022
   class_fields: /#[a-zA-Z_$]/,
   private_fields: /#[a-zA-Z_$]/,
   static_blocks: /\bstatic\s*\{/,
@@ -126,6 +135,7 @@ export const QUICK_PATTERNS: Record<string, RegExp> = {
   top_level_await: /^[^{]*\bawait\s/m
 };
 
+// ES version requirements for each feature
 export const FEATURE_VERSIONS: Record<string, string> = {
   arrow_functions: 'es2015',
   template_literals: 'es2015',
@@ -156,4 +166,3 @@ export const FEATURE_VERSIONS: Record<string, string> = {
   object_hasOwn: 'es2022',
   top_level_await: 'es2022'
 };
->>>>>>> Stashed changes

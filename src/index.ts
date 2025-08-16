@@ -1,13 +1,9 @@
-<<<<<<< Updated upstream
-#!/usr/bin/env node
-import { program } from "./program";
-
-program;
-=======
-
+// Main API for fast-brake ES feature detection
 import { getDetector, detect as detectFeatures, check as checkFeatures, getMinimumVersion } from './detector';
 import type { DetectionOptions, DetectedFeature } from './detector';
-export function fast-brake(code: string, options: DetectionOptions): void {
+
+// Main function - throws on incompatible features
+export function fastBrake(code: string, options: DetectionOptions): void {
   const detector = getDetector();
   const detected = detector.detect(code, options);
   const targetIndex = getVersionIndex(options.target);
@@ -26,6 +22,8 @@ export function fast-brake(code: string, options: DetectionOptions): void {
     }
   }
 }
+
+// Detect - returns array of detected features
 export function detect(code: string, options?: Partial<DetectionOptions>): DetectedFeature[] {
   const opts: DetectionOptions = {
     target: options?.target || 'esnext',
@@ -34,6 +32,8 @@ export function detect(code: string, options?: Partial<DetectionOptions>): Detec
   };
   return detectFeatures(code, opts);
 }
+
+// Check - returns boolean
 export function check(code: string, options: DetectionOptions): boolean {
   try {
     return checkFeatures(code, options);
@@ -41,13 +41,20 @@ export function check(code: string, options: DetectionOptions): boolean {
     return false;
   }
 }
+
+// Get minimum ES version required
 export function getMinimumESVersion(code: string, options?: { quick?: boolean }): string {
   return getMinimumVersion(code, options);
 }
+
+// Helper function
 function getVersionIndex(version: string): number {
   const versions = ['es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022', 'esnext'];
   return versions.indexOf(version);
 }
+
+// Export types
 export type { DetectionOptions, DetectedFeature } from './detector';
-export default fast-brake;
->>>>>>> Stashed changes
+
+// Default export
+export default fastBrake;

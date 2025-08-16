@@ -15,7 +15,7 @@ const files = readdirSync(fixturesDir)
     size: statSync(join(fixturesDir, f)).size
   }));
 
-console.log('🚀 Brakefast Performance Benchmark\n');
+console.log('🚀 Fast-Brake Performance Benchmark\n');
 console.log('Files:', files.map(f => f.name).join(', '));
 console.log('-----------------------------------\n');
 
