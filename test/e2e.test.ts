@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'bun:test';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { fast-brake, detect, check, getMinimumESVersion } from '../src/index';
+import { fastBrake, detect, check, getMinimumESVersion } from '../src/index';
 
 // Load all test fixtures
 const fixturesDir = join(__dirname, 'fixtures');
@@ -112,11 +112,11 @@ describe('E2E Tests', () => {
       const es2020 = fixtures.find(f => f.name === 'es2020.js')!;
       
       expect(() => {
-        fast-brake(es2020.content, { target: 'es5' });
+        fastBrake(es2020.content, { target: 'es5' });
       }).toThrow();
       
       try {
-        fast-brake(es2020.content, { target: 'es5' });
+        fastBrake(es2020.content, { target: 'es5' });
       } catch (error: any) {
         expect(error.message).toContain('ES feature');
         expect(error.message).toContain('requires');

@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'bun:test';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { fast-brake, detect, check, getMinimumESVersion } from '../src/index';
+import { fastBrake, detect, check, getMinimumESVersion } from '../src/index';
 
 const fixtures = {
   es5: readFileSync(join(__dirname, 'fixtures/es5.js'), 'utf-8'),
@@ -14,7 +14,7 @@ const fixtures = {
 describe('fast-brake', () => {
   describe('ES5 compatibility', () => {
     test('should pass ES5 code with ES5 target', () => {
-      expect(() => fast-brake(fixtures.es5, { target: 'es5' })).not.toThrow();
+      expect(() => fastBrake(fixtures.es5, { target: 'es5' })).not.toThrow();
     });
     
     test('should detect no ES6+ features in ES5 code', () => {
@@ -26,11 +26,11 @@ describe('fast-brake', () => {
   
   describe('ES2015 detection', () => {
     test('should fail ES2015 code with ES5 target', () => {
-      expect(() => fast-brake(fixtures.es2015, { target: 'es5' })).toThrow();
+      expect(() => fastBrake(fixtures.es2015, { target: 'es5' })).toThrow();
     });
     
     test('should pass ES2015 code with ES2015 target', () => {
-      expect(() => fast-brake(fixtures.es2015, { target: 'es2015' })).not.toThrow();
+      expect(() => fastBrake(fixtures.es2015, { target: 'es2015' })).not.toThrow();
     });
     
     test('should detect ES2015 features', () => {
@@ -142,7 +142,7 @@ describe('fast-brake', () => {
   describe('Error handling', () => {
     test('should throw with feature details', () => {
       try {
-        fast-brake('const x = 10', { target: 'es5', throwOnFirst: true });
+        fastBrake('const x = 10', { target: 'es5', throwOnFirst: true });
         expect(true).toBe(false); // Should not reach here
       } catch (error: any) {
         expect(error.message).toContain('let_const');

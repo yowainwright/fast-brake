@@ -1,3 +1,6 @@
+// Minimal tokenizer for accurate ES feature detection
+// Tracks state to avoid false positives in strings/comments
+
 import { TokenState } from './types';
 import type { Token } from './types';
 export { TokenState } from './types';
@@ -43,15 +46,15 @@ export class Tokenizer {
 
   private scanString(quote: string): string {
     const start = this.pos;
-    this.advance();
+    this.advance(); // skip opening quote
     
     while (this.pos < this.code.length) {
       const char = this.peek();
       if (char === '\\') {
-        this.advance();
-        this.advance();
+        this.advance(); // skip escape
+        this.advance(); // skip escaped char
       } else if (char === quote) {
-        this.advance();
+        this.advance(); // skip closing quote
         break;
       } else {
         this.advance();
@@ -63,7 +66,7 @@ export class Tokenizer {
 
   private scanTemplate(): string {
     const start = this.pos;
-    this.advance();
+    this.advance(); // skip opening backtick
     
     while (this.pos < this.code.length) {
       const char = this.peek();
@@ -71,9 +74,9 @@ export class Tokenizer {
         this.advance();
         this.advance();
       } else if (char === '$' && this.peek(1) === '{') {
-
-        this.advance();
-        this.advance();
+        // Template expression - need to balance braces
+        this.advance(); // $
+        this.advance(); // {
         let depth = 1;
         while (depth > 0 && this.pos < this.code.length) {
           const c = this.advance();
@@ -101,13 +104,13 @@ export class Tokenizer {
 
   private scanBlockComment(): string {
     const start = this.pos;
-    this.advance();
-    this.advance();
+    this.advance(); // skip /
+    this.advance(); // skip *
     
     while (this.pos < this.code.length) {
       if (this.peek() === '*' && this.peek(1) === '/') {
-        this.advance();
-        this.advance();
+        this.advance(); // skip *
+        this.advance(); // skip /
         break;
       }
       this.advance();
@@ -118,7 +121,7 @@ export class Tokenizer {
 
   private scanRegex(): string {
     const start = this.pos;
-    this.advance();
+    this.advance(); // skip opening /
     
     let inClass = false;
     while (this.pos < this.code.length) {
@@ -134,7 +137,7 @@ export class Tokenizer {
         this.advance();
       } else if (char === '/' && !inClass) {
         this.advance();
-
+        // Scan regex flags
         while (this.pos < this.code.length && /[gimsuvy]/.test(this.peek())) {
           this.advance();
         }
@@ -148,7 +151,7 @@ export class Tokenizer {
   }
 
   private isRegexContext(): boolean {
-
+    // Simple heuristic: regex likely after =, (, [, {, ,, ;, !, :, &, |, ^, ~, ?, return
     const prevTokens = this.tokens.slice(-2);
     if (prevTokens.length === 0) return true;
     
@@ -169,7 +172,7 @@ export class Tokenizer {
   private scanNumber(): string {
     const start = this.pos;
     
-
+    // Handle hex, octal, binary
     if (this.peek() === '0') {
       const next = this.peek(1);
       if (next === 'x' || next === 'X') {
@@ -196,12 +199,12 @@ export class Tokenizer {
       }
     }
     
-
+    // Regular number
     while (this.pos < this.code.length && /[0-9_]/.test(this.peek())) {
       this.advance();
     }
     
-
+    // Decimal part
     if (this.peek() === '.' && /[0-9]/.test(this.peek(1))) {
       this.advance();
       while (this.pos < this.code.length && /[0-9_]/.test(this.peek())) {
@@ -209,7 +212,7 @@ export class Tokenizer {
       }
     }
     
-
+    // Exponent
     if ((this.peek() === 'e' || this.peek() === 'E')) {
       this.advance();
       if (this.peek() === '+' || this.peek() === '-') {
@@ -220,7 +223,7 @@ export class Tokenizer {
       }
     }
     
-
+    // BigInt suffix
     if (this.peek() === 'n') {
       this.advance();
     }
@@ -234,7 +237,7 @@ export class Tokenizer {
     const next = this.peek(1);
     const next2 = this.peek(2);
     
-
+    // Three-character operators
     if ((char === '>' && next === '>' && next2 === '>') ||
         (char === '<' && next === '<' && next2 === '=') ||
         (char === '>' && next === '>' && next2 === '=') ||
@@ -249,7 +252,7 @@ export class Tokenizer {
       this.advance();
       this.advance();
     }
-
+    // Two-character operators
     else if ((char === '=' && next === '>') ||
              (char === '+' && next === '+') ||
              (char === '-' && next === '-') ||
@@ -275,7 +278,7 @@ export class Tokenizer {
       this.advance();
       this.advance();
     }
-
+    // Single-character operators
     else {
       this.advance();
     }
@@ -297,7 +300,7 @@ export class Tokenizer {
       let type = 'unknown';
       let value = '';
       
-
+      // Comments
       if (char === '/' && next === '/') {
         type = 'comment';
         value = this.scanLineComment();
@@ -305,7 +308,7 @@ export class Tokenizer {
         type = 'comment';
         value = this.scanBlockComment();
       }
-
+      // Strings
       else if (char === '"') {
         type = 'string';
         value = this.scanString('"');
@@ -313,32 +316,32 @@ export class Tokenizer {
         type = 'string';
         value = this.scanString("'");
       }
-
+      // Template literals
       else if (char === '`') {
         type = 'template';
         value = this.scanTemplate();
       }
-
+      // Numbers
       else if (/[0-9]/.test(char)) {
         type = 'number';
         value = this.scanNumber();
       }
-
+      // Identifiers and keywords
       else if (/[a-zA-Z_$]/.test(char)) {
         type = 'identifier';
         value = this.scanIdentifier();
         
-
+        // Check if it's a keyword
         if (isKeyword(value)) {
           type = 'keyword';
         }
       }
-
+      // Regex (heuristic-based)
       else if (char === '/' && this.isRegexContext()) {
         type = 'regex';
         value = this.scanRegex();
       }
-
+      // Operators and punctuation
       else {
         type = 'operator';
         value = this.scanOperator();
@@ -358,7 +361,7 @@ export class Tokenizer {
   }
 
   getCodeTokens(): Token[] {
-
+    // Return only non-comment, non-string tokens for analysis
     return this.tokens.filter(t => 
       t.type !== 'comment' && 
       t.type !== 'string' && 
@@ -366,6 +369,8 @@ export class Tokenizer {
     );
   }
 }
+
+// ES keywords
 function isKeyword(word: string): boolean {
   const keywords = new Set([
     'async', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue',

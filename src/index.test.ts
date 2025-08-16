@@ -1,23 +1,23 @@
 import { test, expect, describe } from 'bun:test';
-import { fast-brake, detect, check, getMinimumESVersion } from './index';
+import { fastBrake, detect, check, getMinimumESVersion } from './index';
 import type { DetectionOptions, DetectedFeature } from './types';
 
 describe('fast-brake main API', () => {
-  describe('fast-brake function', () => {
+  describe('fastBrake function', () => {
     test('should not throw for compatible ES5 code', () => {
       const code = 'function test() { return 42; }';
-      expect(() => fast-brake(code, { target: 'es5' })).not.toThrow();
+      expect(() => fastBrake(code, { target: 'es5' })).not.toThrow();
     });
 
     test('should throw for incompatible code', () => {
       const code = 'const arrow = () => {}';
-      expect(() => fast-brake(code, { target: 'es5' })).toThrow();
+      expect(() => fastBrake(code, { target: 'es5' })).toThrow();
     });
 
     test('should throw with detailed error message', () => {
       const code = 'const arrow = () => {}';
       try {
-        fast-brake(code, { target: 'es5' });
+        fastBrake(code, { target: 'es5' });
         expect(true).toBe(false); // Should not reach here
       } catch (error: any) {
         expect(error.message).toContain('es5');
@@ -30,7 +30,7 @@ describe('fast-brake main API', () => {
     test('should include line and column in error', () => {
       const code = '\n\n  const arrow = () => {}';
       try {
-        fast-brake(code, { target: 'es5' });
+        fastBrake(code, { target: 'es5' });
         expect(true).toBe(false);
       } catch (error: any) {
         expect(error.message).toContain('line');
@@ -41,7 +41,7 @@ describe('fast-brake main API', () => {
     test('should include snippet in error', () => {
       const code = 'const arrow = () => {}';
       try {
-        fast-brake(code, { target: 'es5' });
+        fastBrake(code, { target: 'es5' });
         expect(true).toBe(false);
       } catch (error: any) {
         expect(error.message).toContain('const arrow = () => {}');
@@ -51,7 +51,7 @@ describe('fast-brake main API', () => {
     test('should respect throwOnFirst option', () => {
       const code = 'const a = () => {}; const b = async () => {};';
       try {
-        fast-brake(code, { target: 'es5', throwOnFirst: true });
+        fastBrake(code, { target: 'es5', throwOnFirst: true });
         expect(true).toBe(false);
       } catch (error: any) {
         expect(error.message).toContain('requires');
@@ -62,7 +62,7 @@ describe('fast-brake main API', () => {
 
     test('should work with quick mode', () => {
       const code = 'const arrow = () => {}';
-      expect(() => fast-brake(code, { target: 'es5', quick: true })).toThrow();
+      expect(() => fastBrake(code, { target: 'es5', quick: true })).toThrow();
     });
   });
 
@@ -309,7 +309,7 @@ describe('fast-brake main API', () => {
   describe('default export', () => {
     test('should have default export', async () => {
       const module = await import('./index');
-      expect(module.default).toBe(fast-brake);
+      expect(module.default).toBe(fastBrake);
     });
   });
 
