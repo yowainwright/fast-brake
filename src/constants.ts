@@ -1,5 +1,9 @@
 // Constants for ES feature detection
 
+export const IS_DEBUGGING = process.env.DEBUG === "true" || false;
+
+export const LOG_PREFIX = "🚀 ⚡ Fast-Brake:";
+
 export const ES_VERSIONS = {
   es5: { chrome: 5, firefox: 4, safari: 5 },
   es2015: { chrome: 51, firefox: 54, safari: 10 },

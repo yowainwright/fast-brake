@@ -1,9 +1,9 @@
-// Main API for brakefast ES feature detection
+// Main API for fast-brake ES feature detection
 import { getDetector, detect as detectFeatures, check as checkFeatures, getMinimumVersion } from './detector';
 import type { DetectionOptions, DetectedFeature } from './detector';
 
 // Main function - throws on incompatible features
-export function brakefast(code: string, options: DetectionOptions): void {
+export function fastBrake(code: string, options: DetectionOptions): void {
   const detector = getDetector();
   const detected = detector.detect(code, options);
   const targetIndex = getVersionIndex(options.target);
@@ -57,4 +57,4 @@ function getVersionIndex(version: string): number {
 export type { DetectionOptions, DetectedFeature } from './detector';
 
 // Default export
-export default brakefast;
+export default fastBrake;

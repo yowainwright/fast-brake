@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Benchmark brakefast against requirements
+// Benchmark fast-brake against requirements
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import { detect, getMinimumESVersion } from '../src/index';
@@ -15,7 +15,7 @@ const files = readdirSync(fixturesDir)
     size: statSync(join(fixturesDir, f)).size
   }));
 
-console.log('🚀 Brakefast Performance Benchmark\n');
+console.log('🚀 Fast-Brake Performance Benchmark\n');
 console.log('Files:', files.map(f => f.name).join(', '));
 console.log('-----------------------------------\n');
 

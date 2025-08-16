@@ -1,4 +1,4 @@
-# brakefast
+# fast-brake
 
 Fast ES feature detection with zero runtime dependencies. Analyzes JavaScript code to detect ECMAScript features and verify compatibility with target ES versions.
 
@@ -14,15 +14,15 @@ Fast ES feature detection with zero runtime dependencies. Analyzes JavaScript co
 ## Installation
 
 ```bash
-bun add brakefast
+bun add fast-brake
 # or
-npm install brakefast
+npm install fast-brake
 ```
 
 ## Usage
 
 ```javascript
-import { brakefast, detect, check, getMinimumESVersion } from 'brakefast';
+import { brakefast, detect, check, getMinimumESVersion } from 'fast-brake';
 
 // Throws if code uses features incompatible with ES5
 brakefast('const x = () => {}', { target: 'es5' });
