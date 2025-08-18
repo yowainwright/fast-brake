@@ -1,68 +1,624 @@
 ---
-title: Setup
-description: "Quick and easy setup guide for Pastoralist CLI"
+title: Setup & Installation
+description: "Quick and easy setup guide for fast-brake ES feature detection"
 ---
 
-<section>
+## Quick Start
 
-## Getting Started
+Get up and running with fast-brake in under 2 minutes:
 
-1. Install Pastoralist globally:
-   ```bash
-   bun add -g pastoralist
-   ```
-
-2. Run it in your project:
-   ```bash
-   pastoralist
-   ```
-
-3. That's it! Pastoralist will automatically:
-   - Scan for overrides and resolutions
-   - Check for updates
-   - Update your package.json
-   - Track everything in the appendix
-
-## Setup
-
-Okay! Hopefully the breakdowns above were clear enough on why you might want to use Pastoralist!
-Please submit a [pull request](https://github.com/yowainwright/pastoralist/pulls) or [issue](https://github.com/yowainwright/pastoralist/issues) if it wasn't!
-
-Now for the super simple setup!
-
-1. Install
+### 1. Installation
 
 ```bash
-bun add pastoralist --dev
-# pastoralist does not expect to be a dependency! It's a tool!!!
+npm install fast-brake
+# or
+yarn add fast-brake
+# or
+bun add fast-brake
 ```
 
-2. run
+### 2. Basic Usage
 
+```javascript
+import { fastBrake, detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Check if code is compatible with ES5
+const isES5Compatible = check('const x = () => {}', { target: 'es5' });
+console.log(isES5Compatible); // false
+
+// Get minimum ES version required
+const minVersion = getMinimumESVersion('const x = () => {}');
+console.log(minVersion); // 'es2015'
+
+// Detect all ES features
+const features = detect('const x = () => {}');
+console.log(features);
+// [{ name: 'arrow_functions', version: 'es2015', line: 1, column: 11 }]
+```
+
+### 3. That's it!
+
+fast-brake works out of the box with zero configuration. No setup files, no complex configuration - just install and use.
+
+## Installation Options
+
+### Package Managers
+
+**npm:**
 ```bash
-pastoralist
-# => That's it! Check out your package.json
-# Pastoralist will automatically detect and track:
-# - Overrides and resolutions
-# - Patches (from patch-package and similar tools)
-# - All dependency types (dependencies, devDependencies, peerDependencies)
+npm install fast-brake
+npm install --save-dev fast-brake  # For build tools
 ```
 
-3. (recommended) add Pastoralist to a postInstall script
+**Yarn:**
+```bash
+yarn add fast-brake
+yarn add --dev fast-brake  # For build tools
+```
 
-```js
-// package.json
+**pnpm:**
+```bash
+pnpm add fast-brake
+pnpm add -D fast-brake  # For build tools
+```
+
+**Bun:**
+```bash
+bun add fast-brake
+bun add --dev fast-brake  # For build tools
+```
+
+### CDN Usage (Browser)
+
+```html
+<!-- ES Modules -->
+<script type="module">
+  import { detect } from 'https://esm.sh/fast-brake';
+  
+  const features = detect('const x = () => {}');
+  console.log(features);
+</script>
+
+<!-- UMD (Global) -->
+<script src="https://unpkg.com/fast-brake/dist/index.umd.js"></script>
+<script>
+  const features = FastBrake.detect('const x = () => {}');
+  console.log(features);
+</script>
+```
+
+## Environment Setup
+
+### Node.js Requirements
+
+- **Node.js**: 14.0.0 or higher
+- **TypeScript**: 4.0.0 or higher (optional)
+
+### Browser Support
+
+fast-brake works in all modern browsers:
+- Chrome 60+
+- Firefox 55+
+- Safari 12+
+- Edge 79+
+
+## Integration Examples
+
+### Build Tools
+
+#### Webpack Integration
+
+```javascript
+// webpack.config.js
+const { check } = require('fast-brake');
+
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                ['@babel/preset-env', {
+                  targets: 'es5'
+                }]
+              ]
+            }
+          },
+          {
+            loader: 'fast-brake-loader',
+            options: {
+              target: 'es5',
+              mode: 'full'
+            }
+          }
+        ]
+      }
+    ]
+  }
+};
+
+// Custom loader (webpack-loader/fast-brake-loader.js)
+const { check, detect } = require('fast-brake');
+
+module.exports = function(source) {
+  const options = this.getOptions();
+  const target = options.target || 'es5';
+  const mode = options.mode || 'full';
+  
+  const isCompatible = check(source, { 
+    target, 
+    quick: mode === 'quick' 
+  });
+  
+  if (!isCompatible) {
+    const features = detect(source, { target, quick: mode === 'quick' });
+    const incompatible = features.filter(f => 
+      getVersionIndex(f.version) > getVersionIndex(target)
+    );
+    
+    this.emitWarning(new Error(
+      `File contains incompatible ES features: ${
+        incompatible.map(f => f.name).join(', ')
+      }`
+    ));
+  }
+  
+  return source;
+};
+```
+
+#### Vite Integration
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite';
+import { detect } from 'fast-brake';
+
+export default defineConfig({
+  plugins: [
+    {
+      name: 'fast-brake',
+      transform(code, id) {
+        if (id.endsWith('.js') || id.endsWith('.ts')) {
+          const features = detect(code, { target: 'es2018' });
+          const incompatible = features.filter(f => 
+            getVersionIndex(f.version) > getVersionIndex('es2018')
+          );
+          
+          if (incompatible.length > 0) {
+            console.warn(`${id} contains modern ES features:`, 
+              incompatible.map(f => f.name));
+          }
+        }
+        return null; // Don't transform, just analyze
+      }
+    }
+  ]
+});
+```
+
+#### Rollup Integration
+
+```javascript
+// rollup.config.js
+import { detect } from 'fast-brake';
+
+function fastBrakePlugin(options = {}) {
+  return {
+    name: 'fast-brake',
+    transform(code, id) {
+      const target = options.target || 'es5';
+      const features = detect(code, { target });
+      
+      const incompatible = features.filter(f => 
+        getVersionIndex(f.version) > getVersionIndex(target)
+      );
+      
+      if (incompatible.length > 0) {
+        this.warn(`${id}: Incompatible features - ${
+          incompatible.map(f => f.name).join(', ')
+        }`);
+      }
+    }
+  };
+}
+
+export default {
+  plugins: [
+    fastBrakePlugin({ target: 'es2018' })
+  ]
+};
+```
+
+### Linting Integration
+
+#### ESLint Plugin
+
+```javascript
+// .eslintrc.js
+module.exports = {
+  plugins: ['fast-brake'],
+  rules: {
+    'fast-brake/es-version': ['error', { target: 'es2018' }]
+  }
+};
+
+// eslint-plugin-fast-brake/index.js
+const { detect } = require('fast-brake');
+
+module.exports = {
+  rules: {
+    'es-version': {
+      create(context) {
+        const target = context.options[0]?.target || 'es5';
+        
+        return {
+          Program(node) {
+            const sourceCode = context.getSourceCode();
+            const text = sourceCode.getText();
+            
+            const features = detect(text, { target });
+            const incompatible = features.filter(f => 
+              getVersionIndex(f.version) > getVersionIndex(target)
+            );
+            
+            incompatible.forEach(feature => {
+              context.report({
+                node,
+                message: `ES feature "${feature.name}" requires ${feature.version} but target is ${target}`,
+                loc: {
+                  line: feature.line,
+                  column: feature.column
+                }
+              });
+            });
+          }
+        };
+      }
+    }
+  }
+};
+```
+
+### CI/CD Integration
+
+#### GitHub Actions
+
+```yaml
+# .github/workflows/es-compatibility.yml
+name: ES Compatibility Check
+
+on: [push, pull_request]
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check ES compatibility
+        run: |
+          node -e "
+            const { fastBrake } = require('fast-brake');
+            const fs = require('fs');
+            const path = require('path');
+            
+            const srcDir = 'src';
+            const target = process.env.ES_TARGET || 'es2018';
+            let hasErrors = false;
+            
+            function checkDirectory(dir) {
+              const files = fs.readdirSync(dir, { withFileTypes: true });
+              
+              for (const file of files) {
+                const filePath = path.join(dir, file.name);
+                
+                if (file.isDirectory()) {
+                  checkDirectory(filePath);
+                } else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
+                  try {
+                    const code = fs.readFileSync(filePath, 'utf-8');
+                    fastBrake(code, { target });
+                    console.log('✅', filePath);
+                  } catch (error) {
+                    console.error('❌', filePath + ':', error.message);
+                    hasErrors = true;
+                  }
+                }
+              }
+            }
+            
+            checkDirectory(srcDir);
+            
+            if (hasErrors) {
+              console.error('\n❌ ES compatibility check failed');
+              process.exit(1);
+            } else {
+              console.log('\n✅ All files are compatible with', target);
+            }
+          "
+        env:
+          ES_TARGET: es2018
+```
+
+#### Jenkins Pipeline
+
+```groovy
+// Jenkinsfile
+pipeline {
+    agent any
+    
+    stages {
+        stage('Install') {
+            steps {
+                sh 'npm ci'
+            }
+        }
+        
+        stage('ES Compatibility') {
+            steps {
+                script {
+                    def result = sh(
+                        script: '''
+                            node -e "
+                                const { check } = require('fast-brake');
+                                const fs = require('fs');
+                                const glob = require('glob');
+                                
+                                const files = glob.sync('src/**/*.{js,ts}');
+                                let compatible = true;
+                                
+                                files.forEach(file => {
+                                    const code = fs.readFileSync(file, 'utf-8');
+                                    if (!check(code, { target: 'es2018' })) {
+                                        console.error('Incompatible:', file);
+                                        compatible = false;
+                                    }
+                                });
+                                
+                                process.exit(compatible ? 0 : 1);
+                            "
+                        ''',
+                        returnStatus: true
+                    )
+                    
+                    if (result != 0) {
+                        error('ES compatibility check failed')
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### Testing Integration
+
+#### Jest Setup
+
+```javascript
+// jest.config.js
+module.exports = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js']
+};
+
+// jest.setup.js
+const { detect } = require('fast-brake');
+
+// Custom Jest matcher
+expect.extend({
+  toBeESCompatible(code, target = 'es5') {
+    const features = detect(code, { target });
+    const incompatible = features.filter(f => 
+      getVersionIndex(f.version) > getVersionIndex(target)
+    );
+    
+    const pass = incompatible.length === 0;
+    
+    return {
+      pass,
+      message: () => pass
+        ? `Expected code to NOT be ${target} compatible`
+        : `Expected code to be ${target} compatible, but found: ${
+            incompatible.map(f => f.name).join(', ')
+          }`
+    };
+  }
+});
+
+// Usage in tests
+test('generated code should be ES5 compatible', () => {
+  const generatedCode = transpileToES5(sourceCode);
+  expect(generatedCode).toBeESCompatible('es5');
+});
+```
+
+#### Vitest Setup
+
+```javascript
+// vitest.config.js
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    setupFiles: ['./vitest.setup.js']
+  }
+});
+
+// vitest.setup.js
+import { expect } from 'vitest';
+import { check } from 'fast-brake';
+
+expect.extend({
+  toBeESCompatible(code, target) {
+    const isCompatible = check(code, { target });
+    
+    return {
+      pass: isCompatible,
+      message: () => isCompatible
+        ? `Expected code to NOT be ${target} compatible`
+        : `Expected code to be ${target} compatible`
+    };
+  }
+});
+```
+
+## Configuration
+
+### TypeScript Configuration
+
+```typescript
+// types/fast-brake.d.ts (if needed)
+declare module 'fast-brake' {
+  export interface DetectedFeature {
+    name: string;
+    version: string;
+    line?: number;
+    column?: number;
+    snippet?: string;
+  }
+  
+  export interface DetectionOptions {
+    target: string;
+    quick?: boolean;
+    throwOnFirst?: boolean;
+  }
+  
+  export function fastBrake(code: string, options: DetectionOptions): void;
+  export function detect(code: string, options?: Partial<DetectionOptions>): DetectedFeature[];
+  export function check(code: string, options: DetectionOptions): boolean;
+  export function getMinimumESVersion(code: string, options?: { quick?: boolean }): string;
+}
+```
+
+### Package.json Scripts
+
+```json
 {
   "scripts": {
-    "postinstall": "pastoralist"
+    "check-es5": "node scripts/check-compatibility.js es5",
+    "check-es2018": "node scripts/check-compatibility.js es2018",
+    "analyze-features": "node scripts/analyze-features.js",
+    "prebuild": "npm run check-es2018"
   }
 }
 ```
 
-In the near future, Pastoralist will fully support a config file but this is it for now!
+```javascript
+// scripts/check-compatibility.js
+const { fastBrake } = require('fast-brake');
+const fs = require('fs');
+const glob = require('glob');
 
-Read on to understand what is going on under the hood of Pastoralist!
+const target = process.argv[2] || 'es5';
+const files = glob.sync('src/**/*.{js,ts}');
 
----
+let hasErrors = false;
 
-</section>
+console.log(`🔍 Checking ${files.length} files for ${target} compatibility...`);
+
+files.forEach(file => {
+  try {
+    const code = fs.readFileSync(file, 'utf-8');
+    fastBrake(code, { target });
+    console.log(`✅ ${file}`);
+  } catch (error) {
+    console.error(`❌ ${file}: ${error.message}`);
+    hasErrors = true;
+  }
+});
+
+if (hasErrors) {
+  console.error(`\n❌ Compatibility check failed for ${target}`);
+  process.exit(1);
+} else {
+  console.log(`\n✅ All files are ${target} compatible`);
+}
+```
+
+## Development Setup
+
+### Local Development
+
+```bash
+# Clone and setup for contributing
+git clone https://github.com/yowainwright/fast-brake.git
+cd fast-brake
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Run benchmarks
+npm run benchmark
+
+# Build
+npm run build
+```
+
+### Testing Your Integration
+
+```javascript
+// test-integration.js
+const { detect, check, getMinimumESVersion } = require('fast-brake');
+
+// Test basic functionality
+console.log('Testing fast-brake integration...');
+
+const testCode = `
+  const arrow = () => {};
+  class MyClass {
+    #private = 'secret';
+  }
+`;
+
+console.log('Features:', detect(testCode));
+console.log('ES5 compatible:', check(testCode, { target: 'es5' }));
+console.log('Minimum version:', getMinimumESVersion(testCode));
+
+console.log('✅ Integration test passed!');
+```
+
+## Next Steps
+
+Once you have fast-brake installed and working:
+
+1. **Explore the API** - Check out the [API Reference](/api-reference) for detailed documentation
+2. **Understand the Architecture** - Learn about the two-phase detection system in [Architecture](/architecture)
+3. **Advanced Usage** - Discover power-user features in [Advanced Features](/advanced-features)
+4. **Get Help** - Visit [Troubleshooting](/troubleshooting) if you run into issues
+
+## Quick Reference
+
+```javascript
+import { fastBrake, detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Throw on incompatible features
+fastBrake(code, { target: 'es5' });
+
+// Detect all features
+const features = detect(code, { quick: false }); // default mode
+
+// Check compatibility
+const isCompatible = check(code, { target: 'es2018' });
+
+// Get minimum version
+const minVersion = getMinimumESVersion(code);
+```
+
+That's it! You're ready to start using fast-brake for blazing-fast ES feature detection.

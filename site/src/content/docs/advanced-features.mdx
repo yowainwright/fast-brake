@@ -1,336 +1,699 @@
 ---
 title: Advanced Features
-description: Deep dive into pastoralist's advanced capabilities
+description: Deep dive into fast-brake's advanced capabilities, tokenizer internals, performance tuning, and extensibility
 ---
 
-Pastoralist includes several advanced features that make dependency override management more powerful and maintainable.
+fast-brake provides advanced features for power users who need fine-grained control over ES feature detection, performance optimization, and custom integrations.
 
-## Patch Support
+## Tokenizer Deep Dive
 
-Pastoralist automatically detects and tracks patches created by tools like `patch-package`.
+The tokenizer is the heart of fast-brake's accuracy. Understanding its internals helps you optimize performance and troubleshoot edge cases.
 
-### How It Works
+### Token Types and Structure
 
-When you have patches in your `patches/` directory:
-
-```
-patches/
-├── lodash+4.17.21.patch
-├── express+4.18.0.patch
-└── react+18.2.0.patch
-```
-
-Pastoralist will track them in the appendix:
-
-```json
-{
-  "pastoralist": {
-    "appendix": {
-      "lodash@4.17.21": {
-        "dependents": {
-          "my-app": "lodash@^4.17.0"
-        },
-        "patches": ["patches/lodash+4.17.21.patch"]
-      }
-    }
-  }
+```typescript
+interface Token {
+  type: string;        // 'keyword', 'identifier', 'operator', 'string', etc.
+  value: string;       // The actual token text
+  start: number;       // Start position in source
+  end: number;         // End position in source
+  line: number;        // Line number (1-based)
+  column: number;      // Column number (1-based)
 }
 ```
 
-### Benefits
+### State Management
 
-- **Visibility**: See which overrides have patches applied
-- **Cleanup Detection**: Get notified about unused patches
-- **Documentation**: Understand why patches exist alongside overrides
+The tokenizer tracks context to avoid false positives:
 
-### Unused Patch Detection
-
-When a dependency is removed, pastoralist alerts you:
-
-```
-🐑 Found 2 potentially unused patch files:
-  - patches/old-package+1.0.0.patch
-  - patches/removed-dep+2.0.0.patch
-Consider removing these patches if the packages are no longer used.
-```
-
-## PeerDependencies Support
-
-Pastoralist now considers `peerDependencies` when tracking override usage.
-
-### Example
-
-```json
-{
-  "peerDependencies": {
-    "react": "^17.0.0 || ^18.0.0"
-  },
-  "overrides": {
-    "react": "18.2.0"
-  }
+```typescript
+enum TokenState {
+  NORMAL = 0,          // Regular code
+  STRING_SINGLE = 1,   // Inside 'single quotes'
+  STRING_DOUBLE = 2,   // Inside "double quotes"
+  TEMPLATE = 3,        // Inside `template literals`
+  COMMENT_LINE = 4,    // Inside // line comments
+  COMMENT_BLOCK = 5,   // Inside /* block comments */
+  REGEX = 6           // Inside /regex/ patterns
 }
 ```
 
-The appendix will reflect peer dependency requirements:
-
-```json
-{
-  "pastoralist": {
-    "appendix": {
-      "react@18.2.0": {
-        "dependents": {
-          "my-component": "react@^17.0.0 || ^18.0.0"
-        }
-      }
-    }
-  }
-}
-```
-
-## Smart Cleanup
-
-Pastoralist intelligently removes overrides that are no longer needed.
-
-### Automatic Removal
-
-When a dependency is updated and no longer needs an override:
-
-**Before:**
-```json
-{
-  "dependencies": {
-    "lodash": "^4.17.0"
-  },
-  "overrides": {
-    "lodash": "4.17.21"
-  }
-}
-```
-
-**After updating lodash to 4.17.21:**
-```json
-{
-  "dependencies": {
-    "lodash": "^4.17.21"
-  },
-  "overrides": {}
-}
-```
-
-### Transitive Dependency Tracking
-
-Pastoralist tracks overrides needed by transitive dependencies:
-
-```json
-{
-  "pastoralist": {
-    "appendix": {
-      "minimist@1.2.8": {
-        "dependents": {
-          "mkdirp": "minimist@^1.2.6",
-          "optimist": "minimist@~1.2.0"
-        }
-      }
-    }
-  }
-}
-```
-
-## Fuzzy Version Matching
-
-Pastoralist intelligently matches version ranges to determine if overrides are needed.
-
-### How It Works
-
-Given these dependencies:
-```json
-{
-  "dependencies": {
-    "express": "^4.18.0"
-  }
-}
-```
-
-And this override:
-```json
-{
-  "overrides": {
-    "express": "4.18.2"
-  }
-}
-```
-
-Pastoralist understands that `^4.18.0` could resolve to `4.18.2` naturally, so the override might not be necessary unless it's fixing a specific issue.
-
-## Appendix Preservation
-
-The appendix is preserved even when overrides are temporarily removed, maintaining historical context.
-
-### Example Scenario
-
-1. **Initial state**: Override with appendix
-2. **Dependency removed**: Override removed, appendix preserved
-3. **Dependency re-added**: Override can be restored with context
-
-This helps teams understand the history of override decisions.
-
-## Multi-Format Support
-
-While pastoralist uses npm's `overrides` format, it understands conversions from:
-
-- **Yarn 1.x**: `resolutions`
-- **pnpm**: `pnpm.overrides`
-- **Yarn Berry**: `resolutions` with different syntax
-
-### Conversion Example
-
-From Yarn:
-```json
-{
-  "resolutions": {
-    "package-a": "1.0.0",
-    "**/package-b": "2.0.0"
-  }
-}
-```
-
-To npm (what pastoralist uses):
-```json
-{
-  "overrides": {
-    "package-a": "1.0.0",
-    "package-b": "2.0.0"
-  }
-}
-```
-
-## Performance Optimizations
-
-### Caching
-
-Pastoralist caches dependency trees during execution to avoid repeated file system reads.
-
-### Parallel Processing
-
-When using `--depPaths`, multiple package.json files are processed efficiently.
-
-### Minimal File Writes
-
-Package.json is only rewritten if changes are detected, preserving timestamps and reducing unnecessary git changes.
-
-## Debug Mode Insights
-
-Debug mode (`--debug`) provides detailed information:
-
-```
-🐑 pastoralist checking herd...
-[DEBUG] Reading package.json from /path/to/package.json
-[DEBUG] Found 3 overrides
-[DEBUG] Analyzing dependency tree...
-[DEBUG] lodash@4.17.21 required by:
-  - express@4.18.0 (wants lodash@^4.17.0)
-  - custom-utils@1.0.0 (wants lodash@~4.17.0)
-[DEBUG] Writing updated package.json
-✅ pastoralist the herd is safe!
-```
-
-## Integration with Other Tools
-
-### patch-package
-
-Pastoralist complements `patch-package` by tracking which overrides have associated patches:
-
-```bash
-# Apply a patch
-npx patch-package lodash
-
-# Run pastoralist to update tracking
-npx pastoralist
-```
-
-### npm-check-updates
-
-Use with `npm-check-updates` to manage both regular updates and overrides:
-
-```bash
-# Update dependencies
-npx npm-check-updates -u
-
-# Update override tracking
-npx pastoralist
-```
-
-### Renovate/Dependabot
-
-Configure automated tools to run pastoralist after updates:
-
-```json
-{
-  "postUpgradeTasks": {
-    "commands": ["npm install", "npx pastoralist"],
-    "fileFilters": ["package.json"]
-  }
-}
-```
-
-## Custom Workflows
-
-### Override Policies
-
-Create policies for when overrides should be used:
+### Advanced Tokenization Examples
 
 ```javascript
-// scripts/check-override-policy.js
-const pkg = require('./package.json');
+import { Tokenizer } from 'fast-brake/tokenizer';
 
-const policies = {
-  security: ['minimist', 'lodash'],  // Always override for security
-  compatibility: ['react'],           // Override for compatibility
-  temporary: ['experimental-pkg']     // Temporary overrides
+const code = `
+  const arrow = () => {};
+  const str = "This => is not an arrow function";
+  // This => is also not an arrow function
+  const regex = /=>/; // Neither is this
+`;
+
+const tokenizer = new Tokenizer(code);
+const allTokens = tokenizer.tokenize();
+const codeTokens = tokenizer.getCodeTokens(); // Excludes strings/comments
+
+console.log('All tokens:', allTokens.length);     // ~20 tokens
+console.log('Code tokens:', codeTokens.length);   // ~12 tokens (no strings/comments)
+
+// Find actual arrow functions (not in strings/comments)
+const arrowTokens = codeTokens.filter(t => t.value === '=>');
+console.log('Real arrow functions:', arrowTokens.length); // 1
+```
+
+## Performance Tuning
+
+### Choosing the Right Mode
+
+**Quick Mode - When Speed Matters Most:**
+```javascript
+import { detect } from 'fast-brake';
+
+// Development builds with hot reloading
+const features = detect(code, { quick: true });
+
+// Build tools where 95% accuracy is acceptable
+const isCompatible = check(code, { target: 'es5', quick: true });
+
+// Batch processing thousands of files
+const results = files.map(file => 
+  getMinimumESVersion(file.content, { quick: true })
+);
+```
+
+**Full Mode - When Accuracy is Critical:**
+```javascript
+// Production builds
+const features = detect(code, { quick: false }); // default
+
+// CI/CD pipelines
+fastBrake(code, { target: 'es2018' }); // always uses full mode
+
+// Code analysis and reporting
+const analysis = detect(codebase, { quick: false });
+```
+
+### Batch Processing Optimization
+
+```javascript
+import { getDetector } from 'fast-brake';
+
+// Reuse detector instance for better performance
+const detector = getDetector();
+
+// Process multiple files efficiently
+const results = files.map(file => ({
+  path: file.path,
+  features: detector.detect(file.content, { quick: true }),
+  minVersion: detector.getMinimumVersion(file.content, { quick: true })
+}));
+
+// Memory-efficient streaming for large codebases
+async function* processLargeCodebase(files) {
+  const detector = getDetector();
+  
+  for (const file of files) {
+    yield {
+      path: file.path,
+      result: detector.detect(file.content, { quick: true })
+    };
+  }
+}
+```
+
+### Memory Management
+
+```javascript
+// Efficient processing with minimal memory allocation
+function analyzeCodebase(files, options = {}) {
+  const detector = getDetector(); // Singleton - reuses compiled patterns
+  const results = [];
+  
+  for (const file of files) {
+    // Process one file at a time to minimize memory usage
+    const features = detector.detect(file.content, options);
+    
+    // Store only essential data
+    results.push({
+      file: file.path,
+      featureCount: features.length,
+      minVersion: features.reduce((max, f) => 
+        getVersionIndex(f.version) > getVersionIndex(max) ? f.version : max, 'es5'
+      )
+    });
+  }
+  
+  return results;
+}
+```
+
+## Custom Feature Detection
+
+### Extending Pattern Matching
+
+```javascript
+import { QUICK_PATTERNS, FEATURE_VERSIONS } from 'fast-brake/constants';
+
+// Add custom patterns (for internal use)
+const customPatterns = {
+  ...QUICK_PATTERNS,
+  
+  // Custom company-specific patterns
+  company_api: /CompanyAPI\./,
+  legacy_jquery: /\$\(/,
+  custom_decorator: /@CustomDecorator/
 };
 
-// Validate overrides match policies
-Object.keys(pkg.overrides || {}).forEach(override => {
-  const category = Object.entries(policies)
-    .find(([_, pkgs]) => pkgs.includes(override))?.[0];
-    
-  if (!category) {
-    console.warn(`Override '${override}' has no policy!`);
-  }
-});
+const customVersions = {
+  ...FEATURE_VERSIONS,
+  company_api: 'es2020',
+  legacy_jquery: 'es5',
+  custom_decorator: 'es2015'
+};
 ```
 
-### Appendix Analysis
-
-Extract insights from the appendix:
+### Building Custom Detectors
 
 ```javascript
-const pkg = require('./package.json');
-const appendix = pkg.pastoralist?.appendix || {};
+import { Detector } from 'fast-brake/detector';
 
-// Find overrides with most dependents
-const overrideImpact = Object.entries(appendix)
-  .map(([override, info]) => ({
-    override,
-    dependentCount: Object.keys(info.dependents || {}).length
-  }))
-  .sort((a, b) => b.dependentCount - a.dependentCount);
+class CustomDetector extends Detector {
+  detect(code, options) {
+    // Get standard features
+    const standardFeatures = super.detect(code, options);
+    
+    // Add custom detection logic
+    const customFeatures = this.detectCustomFeatures(code);
+    
+    return [...standardFeatures, ...customFeatures];
+  }
+  
+  detectCustomFeatures(code) {
+    const features = [];
+    
+    // Detect company-specific patterns
+    if (/CompanyAPI\./.test(code)) {
+      features.push({
+        name: 'company_api',
+        version: 'es2020',
+        line: this.getLineNumber(code, code.indexOf('CompanyAPI.')),
+        column: code.indexOf('CompanyAPI.') + 1
+      });
+    }
+    
+    // Detect legacy jQuery usage
+    if (/\$\(/.test(code)) {
+      features.push({
+        name: 'legacy_jquery',
+        version: 'es5',
+        line: this.getLineNumber(code, code.indexOf('$(')),
+        column: code.indexOf('$(') + 1
+      });
+    }
+    
+    return features;
+  }
+}
 
-console.log('Highest impact overrides:', overrideImpact.slice(0, 5));
+// Use custom detector
+const customDetector = new CustomDetector();
+const features = customDetector.detect(code, { target: 'es2018' });
 ```
 
-## Future-Proofing
+## Advanced Integration Patterns
 
-Pastoralist is designed to adapt as package managers evolve:
+### Webpack Plugin
 
-- **Version compatibility**: Handles different package.json formats
-- **Extensible appendix**: Room for additional metadata
-- **Backward compatibility**: Older versions can read newer appendixes
+```javascript
+class FastBrakeWebpackPlugin {
+  constructor(options = {}) {
+    this.target = options.target || 'es5';
+    this.mode = options.mode || 'full';
+    this.failOnIncompatible = options.failOnIncompatible || false;
+  }
+  
+  apply(compiler) {
+    compiler.hooks.compilation.tap('FastBrakePlugin', (compilation) => {
+      compilation.hooks.optimizeChunkAssets.tap('FastBrakePlugin', (chunks) => {
+        const { detect, check } = require('fast-brake');
+        
+        chunks.forEach(chunk => {
+          chunk.files.forEach(filename => {
+            if (!filename.endsWith('.js')) return;
+            
+            const asset = compilation.assets[filename];
+            const source = asset.source();
+            
+            // Check compatibility
+            const isCompatible = check(source, { 
+              target: this.target, 
+              quick: this.mode === 'quick' 
+            });
+            
+            if (!isCompatible) {
+              const features = detect(source, { 
+                target: this.target,
+                quick: this.mode === 'quick'
+              });
+              
+              const incompatible = features.filter(f => 
+                this.getVersionIndex(f.version) > this.getVersionIndex(this.target)
+              );
+              
+              const message = `${filename} contains incompatible features: ${
+                incompatible.map(f => f.name).join(', ')
+              }`;
+              
+              if (this.failOnIncompatible) {
+                compilation.errors.push(new Error(message));
+              } else {
+                compilation.warnings.push(new Error(message));
+              }
+            }
+          });
+        });
+      });
+    });
+  }
+  
+  getVersionIndex(version) {
+    const versions = ['es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022'];
+    return versions.indexOf(version);
+  }
+}
 
-## Best Practices
+// Usage
+module.exports = {
+  plugins: [
+    new FastBrakeWebpackPlugin({
+      target: 'es2018',
+      mode: 'full',
+      failOnIncompatible: true
+    })
+  ]
+};
+```
 
-1. **Regular Updates**: Run pastoralist regularly, ideally in postinstall
-2. **Review Patches**: Periodically review patches for upstream fixes
-3. **Document Policies**: Create clear policies for override usage
-4. **Monitor Impact**: Track which overrides affect the most packages
-5. **Clean Regularly**: Remove overrides as soon as they're not needed
+### Rollup Plugin
+
+```javascript
+import { detect, check } from 'fast-brake';
+
+function fastBrakePlugin(options = {}) {
+  const target = options.target || 'es5';
+  const mode = options.mode || 'full';
+  
+  return {
+    name: 'fast-brake',
+    
+    generateBundle(outputOptions, bundle) {
+      Object.entries(bundle).forEach(([fileName, chunk]) => {
+        if (chunk.type === 'chunk' && chunk.code) {
+          const isCompatible = check(chunk.code, { 
+            target, 
+            quick: mode === 'quick' 
+          });
+          
+          if (!isCompatible) {
+            const features = detect(chunk.code, { target, quick: mode === 'quick' });
+            const incompatible = features.filter(f => 
+              getVersionIndex(f.version) > getVersionIndex(target)
+            );
+            
+            this.warn(`${fileName} contains incompatible features: ${
+              incompatible.map(f => f.name).join(', ')
+            }`);
+          }
+        }
+      });
+    }
+  };
+}
+
+// Usage
+export default {
+  plugins: [
+    fastBrakePlugin({
+      target: 'es2018',
+      mode: 'full'
+    })
+  ]
+};
+```
+
+### ESLint Integration
+
+```javascript
+// eslint-plugin-fast-brake
+const { detect } = require('fast-brake');
+
+module.exports = {
+  rules: {
+    'es-version-compatibility': {
+      meta: {
+        type: 'problem',
+        docs: {
+          description: 'Enforce ES version compatibility'
+        },
+        schema: [
+          {
+            type: 'object',
+            properties: {
+              target: { type: 'string' },
+              mode: { type: 'string', enum: ['quick', 'full'] }
+            },
+            additionalProperties: false
+          }
+        ]
+      },
+      
+      create(context) {
+        const options = context.options[0] || {};
+        const target = options.target || 'es5';
+        const mode = options.mode || 'full';
+        
+        return {
+          Program(node) {
+            const sourceCode = context.getSourceCode();
+            const text = sourceCode.getText();
+            
+            try {
+              const features = detect(text, { 
+                target, 
+                quick: mode === 'quick' 
+              });
+              
+              const incompatible = features.filter(f => 
+                getVersionIndex(f.version) > getVersionIndex(target)
+              );
+              
+              incompatible.forEach(feature => {
+                context.report({
+                  node,
+                  message: `ES feature "${feature.name}" requires ${feature.version} but target is ${target}`,
+                  loc: feature.line ? {
+                    line: feature.line,
+                    column: feature.column || 0
+                  } : undefined
+                });
+              });
+            } catch (error) {
+              // Fallback to quick mode on tokenizer errors
+              if (mode === 'full') {
+                const quickFeatures = detect(text, { target, quick: true });
+                // Process quick features...
+              }
+            }
+          }
+        };
+      }
+    }
+  }
+};
+```
+
+## Error Handling and Debugging
+
+### Advanced Error Information
+
+```javascript
+import { fastBrake } from 'fast-brake';
+
+try {
+  fastBrake(code, { target: 'es5' });
+} catch (error) {
+  if (error.feature) {
+    console.log('Compatibility Error Details:');
+    console.log(`  Feature: ${error.feature.name}`);
+    console.log(`  Requires: ${error.feature.version}`);
+    console.log(`  Target: ${error.target}`);
+    console.log(`  Location: line ${error.feature.line}, column ${error.feature.column}`);
+    
+    if (error.feature.snippet) {
+      console.log(`  Code: ${error.feature.snippet}`);
+    }
+    
+    // Get suggestions for fixing
+    const suggestions = getSuggestions(error.feature, error.target);
+    console.log(`  Suggestions: ${suggestions.join(', ')}`);
+  }
+}
+
+function getSuggestions(feature, target) {
+  const suggestions = [];
+  
+  switch (feature.name) {
+    case 'arrow_functions':
+      suggestions.push('Use function expressions', 'Add Babel transform');
+      break;
+    case 'optional_chaining':
+      suggestions.push('Use logical AND (&&)', 'Add optional-chaining polyfill');
+      break;
+    case 'nullish_coalescing':
+      suggestions.push('Use logical OR (||)', 'Add nullish-coalescing polyfill');
+      break;
+    default:
+      suggestions.push(`Transpile to ${target}`, 'Add appropriate polyfill');
+  }
+  
+  return suggestions;
+}
+```
+
+### Debugging Tokenizer Issues
+
+```javascript
+import { Tokenizer } from 'fast-brake/tokenizer';
+
+function debugTokenization(code) {
+  const tokenizer = new Tokenizer(code);
+  const allTokens = tokenizer.tokenize();
+  const codeTokens = tokenizer.getCodeTokens();
+  
+  console.log('=== Tokenization Debug ===');
+  console.log(`Total tokens: ${allTokens.length}`);
+  console.log(`Code tokens: ${codeTokens.length}`);
+  console.log(`Filtered out: ${allTokens.length - codeTokens.length}`);
+  
+  // Show filtered tokens (strings, comments)
+  const filteredTokens = allTokens.filter(t => 
+    !codeTokens.some(ct => ct.start === t.start)
+  );
+  
+  console.log('\nFiltered tokens (strings/comments):');
+  filteredTokens.forEach(token => {
+    console.log(`  ${token.type}: "${token.value}" at line ${token.line}`);
+  });
+  
+  // Show potential ES features in filtered tokens
+  console.log('\nPotential false positives:');
+  filteredTokens.forEach(token => {
+    if (token.value.includes('=>')) {
+      console.log(`  Arrow function syntax in ${token.type}: "${token.value}"`);
+    }
+    if (token.value.includes('?.')) {
+      console.log(`  Optional chaining in ${token.type}: "${token.value}"`);
+    }
+  });
+}
+
+// Usage
+const problematicCode = `
+  const arrow = () => {};
+  const str = "This => looks like an arrow function";
+  // This => comment also looks suspicious
+  const regex = /=>/g;
+`;
+
+debugTokenization(problematicCode);
+```
+
+## Performance Monitoring
+
+### Benchmarking Custom Code
+
+```javascript
+import { detect, getMinimumESVersion } from 'fast-brake';
+
+function benchmarkDetection(code, iterations = 1000) {
+  console.log('=== Performance Benchmark ===');
+  
+  // Warm up
+  for (let i = 0; i < 10; i++) {
+    detect(code, { quick: true });
+    detect(code, { quick: false });
+  }
+  
+  // Benchmark quick mode
+  const quickStart = performance.now();
+  for (let i = 0; i < iterations; i++) {
+    detect(code, { quick: true });
+  }
+  const quickTime = performance.now() - quickStart;
+  
+  // Benchmark full mode
+  const fullStart = performance.now();
+  for (let i = 0; i < iterations; i++) {
+    detect(code, { quick: false });
+  }
+  const fullTime = performance.now() - fullStart;
+  
+  console.log(`Quick mode: ${(quickTime / iterations).toFixed(3)}ms per call`);
+  console.log(`Full mode: ${(fullTime / iterations).toFixed(3)}ms per call`);
+  console.log(`Speed difference: ${(fullTime / quickTime).toFixed(1)}x`);
+  
+  return {
+    quickAvg: quickTime / iterations,
+    fullAvg: fullTime / iterations,
+    speedup: fullTime / quickTime
+  };
+}
+
+// Usage
+const testCode = `
+  const arrow = () => {};
+  class MyClass {
+    #private = 'secret';
+    async method() {
+      return await fetch('/api');
+    }
+  }
+`;
+
+benchmarkDetection(testCode);
+```
+
+### Memory Usage Monitoring
+
+```javascript
+function monitorMemoryUsage(files) {
+  const initialMemory = process.memoryUsage();
+  console.log('Initial memory:', formatMemory(initialMemory));
+  
+  const detector = getDetector();
+  const results = [];
+  
+  files.forEach((file, index) => {
+    const features = detector.detect(file.content, { quick: false });
+    results.push({ file: file.path, features });
+    
+    // Check memory every 100 files
+    if (index % 100 === 0) {
+      const currentMemory = process.memoryUsage();
+      console.log(`After ${index + 1} files:`, formatMemory(currentMemory));
+    }
+  });
+  
+  const finalMemory = process.memoryUsage();
+  console.log('Final memory:', formatMemory(finalMemory));
+  
+  return results;
+}
+
+function formatMemory(memUsage) {
+  return {
+    rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+    heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+    heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`
+  };
+}
+```
+
+## Best Practices for Advanced Usage
+
+### 1. Mode Selection Strategy
+
+```javascript
+// Development: Quick mode for speed
+const devConfig = {
+  mode: 'quick',
+  target: 'es2015'
+};
+
+// CI/CD: Full mode for accuracy
+const ciConfig = {
+  mode: 'full',
+  target: 'es2018',
+  throwOnFirst: true
+};
+
+// Production analysis: Full mode with detailed reporting
+const prodConfig = {
+  mode: 'full',
+  target: 'es5',
+  generateReport: true
+};
+```
+
+### 2. Error Recovery Patterns
+
+```javascript
+function robustDetection(code, options) {
+  try {
+    // Try full mode first
+    return detect(code, { ...options, quick: false });
+  } catch (error) {
+    console.warn('Full mode failed, falling back to quick mode:', error.message);
+    
+    try {
+      // Fallback to quick mode
+      return detect(code, { ...options, quick: true });
+    } catch (quickError) {
+      console.error('Both modes failed:', quickError.message);
+      return []; // Return empty array as last resort
+    }
+  }
+}
+```
+
+### 3. Caching for Large Codebases
+
+```javascript
+const detectionCache = new Map();
+
+function cachedDetection(code, options) {
+  const cacheKey = `${code.length}-${JSON.stringify(options)}`;
+  
+  if (detectionCache.has(cacheKey)) {
+    return detectionCache.get(cacheKey);
+  }
+  
+  const result = detect(code, options);
+  detectionCache.set(cacheKey, result);
+  
+  // Limit cache size
+  if (detectionCache.size > 1000) {
+    const firstKey = detectionCache.keys().next().value;
+    detectionCache.delete(firstKey);
+  }
+  
+  return result;
+}
+```
+
+### 4. Progressive Enhancement
+
+```javascript
+function progressiveDetection(code, target) {
+  // Start with quick mode for immediate feedback
+  const quickResult = detect(code, { target, quick: true });
+  
+  // If quick mode finds issues, run full mode for accuracy
+  if (quickResult.length > 0) {
+    const fullResult = detect(code, { target, quick: false });
+    return {
+      mode: 'full',
+      features: fullResult,
+      quickFeatures: quickResult
+    };
+  }
+  
+  return {
+    mode: 'quick',
+    features: quickResult
+  };
+}
+```
+
+These advanced features make fast-brake incredibly flexible and powerful for complex use cases while maintaining its core promise of speed and accuracy.
