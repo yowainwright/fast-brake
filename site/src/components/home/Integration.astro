@@ -1,26 +1,26 @@
 ---
 import { resolveDocsUrl } from "../../utils/urlResolver";
 
-const packageManagers = [
+const buildTools = [
   {
-    name: "npm",
-    url: "https://www.npmjs.com/",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/npm/npm-original-wordmark.svg",
+    name: "webpack",
+    url: "https://webpack.js.org/",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/webpack/webpack-original.svg",
   },
   {
-    name: "yarn",
-    url: "https://yarnpkg.com/",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/yarn/yarn-original.svg",
+    name: "vite",
+    url: "https://vitejs.dev/",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitejs/vitejs-original.svg",
   },
   {
-    name: "pnpm", 
-    url: "https://pnpm.io/",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pnpm/pnpm-original.svg",
+    name: "rollup", 
+    url: "https://rollupjs.org/",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rollup/rollup-original.svg",
   },
   {
-    name: "bun",
-    url: "https://bun.sh/",
-    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bun/bun-original.svg",
+    name: "esbuild",
+    url: "https://esbuild.github.io/",
+    logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/esbuild/esbuild-original.svg",
   },
 ];
 ---
@@ -28,21 +28,21 @@ const packageManagers = [
 <div class="xl:flex xl:flex-row-reverse py-12 sm:py-16 lg:py-20 gap-8 lg:gap-16 xl:gap-28 px-4 sm:px-6 lg:px-8">
   <div class="xl:max-w-xl flex flex-col justify-center font-outfit">
     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight">
-      Works With All Major <span class="bg-clip-text text-transparent" style="background: linear-gradient(90deg, rgba(61, 4, 217, 1) 2%, rgba(114, 4, 217, 1) 55%, rgba(137, 10, 196, 1) 100%); -webkit-background-clip: text;"
-        >Package Managers
+      Works With All Major <span class="bg-clip-text text-transparent" style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%); -webkit-background-clip: text;"
+        >Build Tools
       </span>
     </h1>
 
     <p class="mt-4 sm:mt-6 text-base sm:text-lg">
-      Pastoralist works seamlessly with npm, yarn, pnpm, and bun package managers.
+      Fast Brake integrates seamlessly with webpack, Vite, Rollup, esbuild, and other modern build tools.
     </p>
 
     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
       <a href={resolveDocsUrl("setup")} class="w-full sm:w-auto">
-        <button class="btn btn-lg sm:btn-md text-white border-0 hover:opacity-90 w-full sm:w-auto" style="background: linear-gradient(90deg, rgba(61, 4, 217, 1) 2%, rgba(114, 4, 217, 1) 55%, rgba(137, 10, 196, 1) 100%);"> Get started </button>
+        <button class="btn btn-lg sm:btn-md text-white border-0 hover:opacity-90 w-full sm:w-auto" style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%);"> Get started </button>
       </a>
 
-      <a href={resolveDocsUrl("architecture#object-anatomy")} class="w-full sm:w-auto">
+      <a href={resolveDocsUrl("advanced-features")} class="w-full sm:w-auto">
         <button class="btn btn-lg sm:btn-md btn-outline w-full sm:w-auto"> See examples </button>
       </a>
     </div>
@@ -50,17 +50,17 @@ const packageManagers = [
 
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mt-8 sm:mt-10 xl:mt-0">
     {
-      packageManagers.map((pm) => (
+      buildTools.map((tool) => (
         <a 
-          href={pm.url} 
+          href={tool.url} 
           target="_blank" 
           rel="noopener noreferrer"
           class="bg-base-200 hover:bg-base-300 transition-colors rounded-xl sm:rounded-2xl flex justify-center items-center aspect-square group"
         >
           <img
             class="p-4 sm:p-6 lg:p-8 h-20 w-20 sm:h-24 sm:w-24 lg:h-32 lg:w-32 group-hover:scale-110 transition-transform"
-            src={pm.logo}
-            alt={pm.name}
+            src={tool.logo}
+            alt={tool.name}
           />
         </a>
       ))
