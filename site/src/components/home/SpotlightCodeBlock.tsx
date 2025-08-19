@@ -10,7 +10,7 @@ interface CodeLine {
 }
 
 const codeLines: CodeLine[] = [
-  { prefix: "$", content: "bun add -g pastoralist", spotlight: true, delay: 0 },
+  { prefix: "$", content: "bun add -g fast-brake", spotlight: true, delay: 0 },
   { prefix: "", content: "bun add v1.1.38", className: "text-base-content/60" },
   {
     prefix: "",
@@ -19,10 +19,10 @@ const codeLines: CodeLine[] = [
   },
   {
     prefix: "",
-    content: "Installed pastoralist with binaries:",
+    content: "Installed fast-brake with binaries:",
     className: "text-base-content/60",
   },
-  { prefix: "", content: " - pastoralist", className: "text-success" },
+  { prefix: "", content: " - fast-brake", className: "text-success" },
   {
     prefix: "$",
     content: "cd my-awesome-project",
@@ -30,8 +30,8 @@ const codeLines: CodeLine[] = [
     spotlight: true,
     delay: 1500,
   },
-  { prefix: "$", content: "pastoralist", spotlight: true, delay: 3000 },
-  { prefix: "", content: "⚡ Pastoralist v1.4.0", className: "text-warning" },
+  { prefix: "$", content: "fast-brake --help", spotlight: true, delay: 3000 },
+  { prefix: "", content: "⚡ Fast Brake v1.0.0 - ES Feature Detection", className: "text-warning" },
   {
     prefix: "",
     content: "📦 Scanning package.json for overrides and resolutions...",
