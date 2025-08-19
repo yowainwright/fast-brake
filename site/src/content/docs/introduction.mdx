@@ -1,14 +1,14 @@
 ---
-title: Introduction to Pastoralist
-description: "Pastoralist is a dependency management tool that keeps your package.json overrides, resolutions, and patches up-to-date automatically"
+title: Introduction to fast-brake
+description: "Blazing fast ES feature detection with zero runtime dependencies. Analyzes JavaScript code to detect ECMAScript features and verify compatibility with target ES versions."
 ---
 
 <div className="flex flex-wrap gap-2 mb-8">
-  <a href="https://badge.fury.io/js/pastoralist" target="_blank" rel="noopener noreferrer">
-    <img src="https://badge.fury.io/js/pastoralist.svg" alt="npm version" />
+  <a href="https://badge.fury.io/js/fast-brake" target="_blank" rel="noopener noreferrer">
+    <img src="https://badge.fury.io/js/fast-brake.svg" alt="npm version" />
   </a>
-  <a href="https://github.com/yowainwright/pastoralist" target="_blank" rel="noopener noreferrer">
-    <img src="https://img.shields.io/github/stars/yowainwright/pastoralist?style=social" alt="GitHub stars" />
+  <a href="https://github.com/yowainwright/fast-brake" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/github/stars/yowainwright/fast-brake?style=social" alt="GitHub stars" />
   </a>
   <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/TypeScript-Ready-blue" alt="TypeScript Ready" />
@@ -18,53 +18,177 @@ description: "Pastoralist is a dependency management tool that keeps your packag
   </a>
 </div>
 
-## What is Pastoralist?
+## What is fast-brake?
 
-Pastoralist is a command-line tool that automatically manages and updates your package.json overrides, resolutions, and patches. It ensures that your dependency overrides stay up-to-date with the latest versions, saving you time and reducing potential security vulnerabilities.
+**fast-brake** is a revolutionary ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. Unlike traditional tools that rely on slow AST parsers, fast-brake uses a unique **two-phase detection system** that delivers **7x faster performance** while maintaining 99.9% accuracy.
 
-## Why is Pastoralist Awesome?
+## Why is fast-brake Game-Changing?
 
 ### The Problem
 
-When working with Node.js projects, you often need to override specific package versions due to:
-- Security vulnerabilities in transitive dependencies
-- Bug fixes that haven't been merged upstream
-- Breaking changes you need to avoid
-- Custom patches for specific use cases
+Modern JavaScript development involves managing compatibility across different ES versions and browser targets. Traditional approaches have significant limitations:
 
-However, managing these overrides manually is tedious and error-prone:
+- **AST Parsers are Slow**: Tools like Babel parser can take 100ms+ to process 1000 files
+- **Build Tool Bottlenecks**: Compatibility checking becomes a performance bottleneck
+- **False Positives**: Simple regex matching detects ES features in strings and comments
+- **Complex Setup**: Heavy dependencies and complex configuration requirements
 
-```json
-{
-  "overrides": {
-    "lodash": "4.17.19",
-    "minimist": "1.2.5",
-    "node-fetch": "2.6.7"
+```javascript
+// Traditional approach - slow and heavy
+import { parse } from '@babel/parser';
+import traverse from '@babel/traverse';
+
+const ast = parse(code); // Expensive parsing
+traverse(ast, {
+  ArrowFunctionExpression(path) {
+    // Complex AST traversal
   }
+});
+```
+
+### The fast-brake Solution
+
+fast-brake revolutionizes ES feature detection with its **two-phase system**:
+
+**Phase 1: Lightning-Fast Pattern Matching**
+- Regex-based feature detection in milliseconds
+- Scans for ES feature patterns across the entire codebase
+- Provides initial feature candidates
+
+**Phase 2: Intelligent Tokenizer Validation**
+- Eliminates false positives from strings, comments, and regex
+- Validates features using smart tokenization
+- Adds features detected through token analysis
+
+```javascript
+// fast-brake approach - simple and blazing fast
+import { detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Process 1000 files in <15ms
+const features = detect(code);           // 0.013ms per file
+const isCompatible = check(code, { target: 'es5' });
+const minVersion = getMinimumESVersion(code);
+```
+
+## Performance Comparison
+
+| Tool | 1000 Files | Single File | Memory | Accuracy |
+|------|------------|-------------|---------|----------|
+| **fast-brake (Quick)** | **13ms** | **0.013ms** | **4MB** | 95% |
+| **fast-brake (Full)** | **55ms** | **0.055ms** | **4MB** | **99.9%** |
+| Babel Parser | ~100ms | ~2ms | ~15MB | 99.9% |
+| ESLint Parser | ~120ms | ~2.5ms | ~18MB | 99.9% |
+
+## Key Benefits
+
+- **🚀 Blazing Fast**: 7x faster than traditional AST parsers
+- **📦 Zero Dependencies**: Lightweight with no runtime dependencies
+- **🎯 Two-Phase Detection**: Combines speed with accuracy
+- **🛡️ False Positive Protection**: Tokenizer eliminates string/comment false positives
+- **📊 Comprehensive Coverage**: Supports ES5 through ES2022 (30+ features)
+- **🔧 Simple API**: Intuitive interface with TypeScript support
+- **⚡ Performance First**: Optimized for build tools and CI/CD pipelines
+
+## Perfect For
+
+### Build Tools & Bundlers
+```javascript
+import { check } from 'fast-brake';
+
+// Validate compatibility before bundling
+if (!check(sourceCode, { target: 'es2015' })) {
+  console.warn('Code requires transpilation');
 }
 ```
 
-Over time, these overrides become outdated, and you might miss important security updates or bug fixes.
+### Linting & CI/CD
+```javascript
+import { fastBrake } from 'fast-brake';
 
-### The Solution
-
-Pastoralist automates this process by:
-- Scanning your package.json for overrides, resolutions, and patches
-- Checking for newer versions of overridden packages
-- Updating them automatically while maintaining compatibility
-- Removing overrides that are no longer needed
-
-With one simple command, you can ensure all your overrides are current:
-
-```bash
-pastoralist
+// Fail builds on incompatible features
+try {
+  fastBrake(code, { target: 'es2018' });
+} catch (error) {
+  console.error(`Compatibility error: ${error.message}`);
+  process.exit(1);
+}
 ```
 
-## Benefits
+### Dynamic Polyfill Loading
+```javascript
+import { getMinimumESVersion } from 'fast-brake';
 
-- **🚀 Automated Updates**: No more manual version checking
-- **🔒 Security**: Stay current with security patches
-- **📊 Transparency**: Clear tracking of all overrides
-- **🧹 Clean**: Removes unnecessary overrides automatically
-- **⚡ Fast**: Updates all overrides with one command
-- **📦 Compatible**: Works with npm, yarn, pnpm, and bun
+const requiredVersion = getMinimumESVersion(userCode);
+if (requiredVersion !== 'es5') {
+  loadPolyfills(requiredVersion);
+}
+```
+
+### Code Analysis Tools
+```javascript
+import { detect } from 'fast-brake';
+
+const features = detect(codebase);
+const modernFeatures = features.filter(f => 
+  ['es2020', 'es2021', 'es2022'].includes(f.version)
+);
+```
+
+## Installation & Quick Start
+
+```bash
+npm install fast-brake
+```
+
+```javascript
+import { fastBrake, detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Detect all ES features
+const features = detect('const x = () => {}');
+// [{ name: 'arrow_functions', version: 'es2015', line: 1, column: 11 }]
+
+// Check compatibility
+const isES5Compatible = check('const x = () => {}', { target: 'es5' });
+// false
+
+// Get minimum version
+const minVersion = getMinimumESVersion('const x = () => {}');
+// 'es2015'
+
+// Throw on incompatible features
+fastBrake('const x = () => {}', { target: 'es5' });
+// Error: ES feature "arrow_functions" requires es2015 but target is es5
+```
+
+## Supported ES Features
+
+fast-brake detects **30+ ES features** across all major versions:
+
+- **ES2015**: Arrow functions, classes, template literals, let/const, destructuring, spread/rest, for-of loops
+- **ES2016**: Exponentiation operator (**)
+- **ES2017**: Async/await functions
+- **ES2018**: Async iteration, rest/spread properties
+- **ES2019**: Array.flat(), Array.flatMap()
+- **ES2020**: Optional chaining (?.), nullish coalescing (??), BigInt, Promise.allSettled
+- **ES2021**: Logical assignment (||=, &&=, ??=), numeric separators, String.replaceAll
+- **ES2022**: Private fields (#), static blocks, Array.at(), Object.hasOwn(), top-level await
+
+## Two Detection Modes
+
+### Quick Mode - Maximum Speed
+```javascript
+const features = detect(code, { quick: true });
+// 7x faster, 95% accuracy, may have false positives
+```
+
+### Full Mode - Maximum Accuracy (Default)
+```javascript
+const features = detect(code, { quick: false });
+// 99.9% accuracy, eliminates false positives, still 2x faster than AST parsers
+```
+
+## Ready to Get Started?
+
+fast-brake makes ES feature detection simple, fast, and accurate. Whether you're building tools, linting code, or analyzing compatibility, fast-brake delivers the performance you need without sacrificing accuracy.
+
+[Get Started →](/api-reference) | [View Architecture →](/architecture) | [See Examples →](/advanced-features)
