@@ -12,19 +12,11 @@ const SIDEBAR = [
         title: "Setup",
         href: resolveDocsUrl("setup"),
       },
-      {
-        title: "Interactive Codelab",
-        href: resolveDocsUrl("codelab"),
-      },
     ],
   },
   {
     title: "Guides",
     items: [
-      {
-        title: "Workspaces & Monorepos",
-        href: resolveDocsUrl("workspaces"),
-      },
       {
         title: "Advanced Features",
         href: resolveDocsUrl("advanced-features"),
