@@ -1,258 +1,585 @@
 ---
 title: API Reference
-description: Complete reference for pastoralist CLI and Node.js API
+description: Complete reference for fast-brake ES feature detection API
 ---
 
-Pastoralist provides both a CLI interface and a Node.js API for programmatic usage.
+fast-brake provides a simple, powerful API for ES feature detection with full TypeScript support.
 
-## CLI
-
-### `pastoralist`
-
-Run pastoralist on the current directory's package.json.
+## Installation
 
 ```bash
-npx pastoralist
+npm install fast-brake
+# or
+yarn add fast-brake
+# or
+bun add fast-brake
 ```
 
-### `pastoralist --path <path>`
+## Core Functions
 
-Run pastoralist on a specific package.json file.
+### `fastBrake(code, options)`
 
-**params:**
-- `<path>`: path to a package.json file
-
-```bash
-# Run on a specific package
-npx pastoralist --path packages/app/package.json
-
-# Run on a nested project
-npx pastoralist --path ./nested/project/package.json
-```
-
-### `pastoralist --depPaths [paths...]`
-
-Run pastoralist on multiple package.json files using glob patterns.
-
-**params:**
-- `[paths...]`: array of glob patterns
-
-```bash
-# Run on all packages in monorepo
-npx pastoralist --depPaths "packages/*/package.json"
-
-# Run on multiple directories
-npx pastoralist --depPaths "packages/*/package.json" "apps/*/package.json"
-```
-
-### `pastoralist --ignore [patterns...]`
-
-Exclude files matching glob patterns.
-
-**params:**
-- `[patterns...]`: array of glob patterns to ignore
-
-```bash
-# Ignore test directories
-npx pastoralist --ignore "**/test/**" "**/dist/**"
-
-# Ignore specific packages
-npx pastoralist --depPaths "**/*package.json" --ignore "**/node_modules/**" "**/legacy/**"
-```
-
-### `pastoralist --root <root>`
-
-Set the root directory for all operations.
-
-**params:**
-- `<root>`: root directory path
-
-```bash
-# Run from different directory
-npx pastoralist --root /path/to/project
-
-# Combine with other options
-npx pastoralist --root ../my-project --path package.json
-```
-
-### `pastoralist --debug`
-
-Enable detailed debug output.
-
-```bash
-# Run with debug logging
-npx pastoralist --debug
-
-# Debug specific package
-npx pastoralist --path packages/app/package.json --debug
-```
-
-## Node.js API
-
-### Installation
-
-```bash
-npm install pastoralist
-```
-
-### `update(options)`
-
-Update package.json overrides and manage the appendix.
-
-**params:**
-- `options`: configuration object (optional)
-  - `path`: path to package.json (default: './package.json')
-  - `depPaths`: array of glob patterns for multiple files
-  - `ignore`: array of glob patterns to ignore
-  - `root`: root directory path
-  - `debug`: enable debug logging
+Analyzes code and **throws an error** if incompatible features are found. Perfect for build tools and CI/CD pipelines where you want to fail fast on compatibility issues.
 
 ```javascript
-import { update } from 'pastoralist';
+import { fastBrake } from 'fast-brake';
 
-// Basic usage
-await update();
-
-// With specific path
-await update({
-  path: './packages/app/package.json'
-});
-
-// With debug mode
-await update({
-  debug: true
-});
-
-// Multiple packages
-await update({
-  depPaths: ['packages/*/package.json'],
-  ignore: ['**/test/**']
-});
+try {
+  fastBrake('const x = () => {}', { target: 'es5' });
+  console.log('✅ Code is compatible');
+} catch (error) {
+  console.error('❌ Compatibility error:', error.message);
+  // "ES feature "arrow_functions" requires es2015 but target is es5 at line 1:11"
+  
+  // Access detailed error information
+  console.log('Feature:', error.feature);
+  // { name: 'arrow_functions', version: 'es2015', line: 1, column: 11 }
+  
+  console.log('Target:', error.target); // 'es5'
+}
 ```
 
-### `logger(config)`
+**Parameters:**
+- `code` (string): JavaScript code to analyze
+- `options` (DetectionOptions):
+  - `target` (string): Target ES version ('es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022', 'esnext')
+  - `quick?` (boolean): Use quick mode only (default: false)
+  - `throwOnFirst?` (boolean): Stop on first incompatible feature (default: false)
 
-Create a logger instance for custom debugging.
+**Throws:** Error with additional properties:
+- `feature` (DetectedFeature): The incompatible feature that was found
+- `target` (string): The target ES version that was specified
 
-**params:**
-- `config`: logger configuration
-  - `file`: source file name
-  - `isLogging`: enable/disable logging
+### `detect(code, options?)`
+
+Returns an **array of detected ES features** with detailed location information. Use this for analysis and reporting.
 
 ```javascript
-import { logger } from 'pastoralist';
+import { detect } from 'fast-brake';
 
-// Create logger
-const log = logger({
-  file: 'my-script.js',
-  isLogging: true
-});
+const code = `
+  const arrow = () => {};
+  const template = \`Hello \${name}\`;
+  class MyClass {
+    #private = 'secret';
+  }
+`;
 
-// Use logger
-log.debug('method-name', 'action', { data: 'value' });
-log.error('method-name', 'error', { error: err });
+const features = detect(code);
+console.log(features);
+// [
+//   { name: 'let_const', version: 'es2015', line: 2, column: 3 },
+//   { name: 'arrow_functions', version: 'es2015', line: 2, column: 17 },
+//   { name: 'template_literals', version: 'es2015', line: 3, column: 19 },
+//   { name: 'classes', version: 'es2015', line: 4, column: 3 },
+//   { name: 'private_fields', version: 'es2022', line: 5, column: 5 }
+// ]
+
+// Filter by ES version
+const es2022Features = features.filter(f => f.version === 'es2022');
+console.log(es2022Features);
+// [{ name: 'private_fields', version: 'es2022', line: 5, column: 5 }]
 ```
 
-## Examples
+**Parameters:**
+- `code` (string): JavaScript code to analyze
+- `options?` (Partial&lt;DetectionOptions&gt;):
+  - `target?` (string): Target ES version (default: 'esnext')
+  - `quick?` (boolean): Use quick mode only (default: false)
+  - `throwOnFirst?` (boolean): Stop on first feature (default: false)
+
+**Returns:** `DetectedFeature[]`
+
+### `check(code, options)`
+
+Returns a **boolean** indicating if code is compatible with the target ES version. Perfect for conditional logic and validation.
+
+```javascript
+import { check } from 'fast-brake';
+
+// Check ES5 compatibility
+const isES5Compatible = check('var x = 10;', { target: 'es5' });
+console.log(isES5Compatible); // true
+
+const hasModernFeatures = check('const x = () => {};', { target: 'es5' });
+console.log(hasModernFeatures); // false
+
+// Check ES2015 compatibility
+const isES2015Compatible = check('const x = () => {};', { target: 'es2015' });
+console.log(isES2015Compatible); // true
+
+// Use in conditional logic
+if (check(userCode, { target: 'es2018' })) {
+  console.log('✅ Code is ES2018 compatible');
+} else {
+  console.log('⚠️ Code requires transpilation for ES2018');
+}
+```
+
+**Parameters:**
+- `code` (string): JavaScript code to analyze
+- `options` (DetectionOptions):
+  - `target` (string): Target ES version
+  - `quick?` (boolean): Use quick mode only (default: false)
+  - `throwOnFirst?` (boolean): Stop on first incompatible feature (default: false)
+
+**Returns:** `boolean`
+
+### `getMinimumESVersion(code, options?)`
+
+Returns the **minimum ES version** required to run the code. Perfect for determining polyfill requirements and compatibility targets.
+
+```javascript
+import { getMinimumESVersion } from 'fast-brake';
+
+// ES5 code
+const version1 = getMinimumESVersion('var x = 10;');
+console.log(version1); // 'es5'
+
+// ES2015 code
+const version2 = getMinimumESVersion('const x = () => {};');
+console.log(version2); // 'es2015'
+
+// ES2020 code
+const version3 = getMinimumESVersion('const x = obj?.prop ?? "default";');
+console.log(version3); // 'es2020'
+
+// ES2022 code
+const version4 = getMinimumESVersion(`
+  class MyClass {
+    #private = 'secret';
+    static { console.log('init'); }
+  }
+`);
+console.log(version4); // 'es2022'
+
+// Use for dynamic polyfill loading
+const requiredVersion = getMinimumESVersion(userCode);
+if (requiredVersion !== 'es5') {
+  loadPolyfills(requiredVersion);
+}
+```
+
+**Parameters:**
+- `code` (string): JavaScript code to analyze
+- `options?` (object):
+  - `quick?` (boolean): Use quick mode only (default: false)
+
+**Returns:** `string` - ES version ('es5', 'es2015', 'es2016', etc.)
+
+## Type Definitions
+
+### `DetectedFeature`
+
+Represents a detected ES feature with location information.
+
+```typescript
+interface DetectedFeature {
+  name: string;        // Feature name (e.g., 'arrow_functions')
+  version: string;     // Required ES version (e.g., 'es2015')
+  line?: number;       // Line number where feature was found
+  column?: number;     // Column number where feature was found
+  snippet?: string;    // Code snippet containing the feature
+}
+```
+
+### `DetectionOptions`
+
+Configuration options for detection functions.
+
+```typescript
+interface DetectionOptions {
+  target: string;           // Target ES version
+  quick?: boolean;          // Use quick mode only (default: false)
+  throwOnFirst?: boolean;   // Stop on first incompatible feature (default: false)
+}
+```
+
+## Detection Modes
+
+### Quick Mode
+
+**7x faster** than full mode, but may have false positives from strings and comments.
+
+```javascript
+import { detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Quick detection - fastest performance
+const features = detect(code, { quick: true });
+const isCompatible = check(code, { target: 'es5', quick: true });
+const minVersion = getMinimumESVersion(code, { quick: true });
+
+// Perfect for:
+// - Build tools with hot reloading
+// - Development environments
+// - When speed is more important than perfect accuracy
+```
+
+**Characteristics:**
+- ⚡ **Ultra-fast**: ~0.013ms per file
+- ⚠️ **95% accuracy**: May detect features in strings/comments
+- 🎯 **Use case**: Development builds, hot reloading
+
+### Full Mode (Default)
+
+**99.9% accuracy** with tokenizer validation to eliminate false positives.
+
+```javascript
+import { detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Full detection - maximum accuracy (default)
+const features = detect(code); // quick: false is default
+const isCompatible = check(code, { target: 'es5' });
+const minVersion = getMinimumESVersion(code);
+
+// Perfect for:
+// - Production builds
+// - CI/CD pipelines
+// - Linting and code analysis
+// - When accuracy is critical
+```
+
+**Characteristics:**
+- 🎯 **99.9% accuracy**: Eliminates false positives
+- ⚡ **Still fast**: ~0.055ms per file (2x faster than AST parsers)
+- 🛡️ **Tokenizer validation**: Ignores features in strings/comments
+- 🎯 **Use case**: Production builds, CI/CD, linting
+
+## Feature Detection Reference
+
+### ES2015 (ES6) Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `arrow_functions` | `=>` | `const fn = () => {}` |
+| `template_literals` | `` ` `` | `` `Hello ${name}` `` |
+| `classes` | `class` | `class MyClass {}` |
+| `let_const` | `let`/`const` | `const x = 10; let y = 20;` |
+| `destructuring` | `[...]`/`{...}` | `const [a, b] = arr; const {x} = obj;` |
+| `spread_rest` | `...` | `[...arr]; function fn(...args) {}` |
+| `for_of` | `for...of` | `for (const item of items) {}` |
+| `default_params` | `param = value` | `function fn(x = 10) {}` |
+
+### ES2016 Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `exponentiation` | `**` | `2 ** 3` |
+
+### ES2017 Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `async_await` | `async`/`await` | `async function fn() { await promise; }` |
+
+### ES2018 Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `async_iteration` | `for await` | `for await (const item of asyncIterable) {}` |
+| `rest_spread_properties` | `{...obj}` | `const newObj = {...obj, extra: true};` |
+
+### ES2019 Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `array_flat` | `.flat()`/`.flatMap()` | `arr.flat(); arr.flatMap(fn);` |
+
+### ES2020 Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `optional_chaining` | `?.` | `obj?.prop?.method?.()` |
+| `nullish_coalescing` | `??` | `value ?? 'default'` |
+| `bigint` | `123n` | `const big = 123n` |
+| `promise_allSettled` | `Promise.allSettled` | `Promise.allSettled(promises)` |
+| `globalThis` | `globalThis` | `globalThis.myVar = 'value'` |
+
+### ES2021 Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `logical_assignment` | `\|\|=`, `&&=`, `??=` | `x ??= 'default'; y \|\|= 'fallback';` |
+| `numeric_separators` | `1_000_000` | `const million = 1_000_000` |
+| `string_replaceAll` | `.replaceAll()` | `str.replaceAll('old', 'new')` |
+| `promise_any` | `Promise.any` | `Promise.any(promises)` |
+
+### ES2022 Features
+
+| Feature Name | Pattern | Example Code |
+|--------------|---------|--------------|
+| `class_fields` / `private_fields` | `#field` | `class C { #private = 1; }` |
+| `static_blocks` | `static {}` | `class C { static { /* init */ } }` |
+| `array_at` | `.at()` | `arr.at(-1); str.at(-1);` |
+| `object_hasOwn` | `Object.hasOwn` | `Object.hasOwn(obj, 'prop')` |
+| `top_level_await` | `await` (module) | `const data = await fetch(url);` |
+
+## Practical Examples
 
 ### Build Tool Integration
 
 ```javascript
-import { update } from 'pastoralist';
+import { check, detect } from 'fast-brake';
 
-// Ensure overrides are up-to-date before building
-await update();
-console.log('✓ Package overrides verified');
-```
-
-### Workspace Automation
-
-```javascript
-import { update } from 'pastoralist';
-import glob from 'glob';
-
-// Update all workspace packages
-const packages = glob.sync('packages/*/package.json');
-
-for (const pkgPath of packages) {
-  await update({ path: pkgPath });
-  console.log(`✓ Updated ${pkgPath}`);
-}
-```
-
-### CI/CD Validation
-
-```javascript
-import { update } from 'pastoralist';
-import { execSync } from 'child_process';
-
-// Check if overrides are up-to-date
-const before = execSync('git status --porcelain').toString();
-await update();
-const after = execSync('git status --porcelain').toString();
-
-if (before !== after) {
-  console.error('❌ Package.json overrides need updating');
-  process.exit(1);
-}
-```
-
-### Custom Logger
-
-```javascript
-import { update, logger } from 'pastoralist';
-
-// Create custom logger
-const log = logger({
-  file: 'my-script.js',
-  isLogging: process.env.DEBUG === 'true'
-});
-
-// Log custom events
-log.debug('custom-action', 'starting', { time: Date.now() });
-
-await update({ debug: true });
-
-log.debug('custom-action', 'completed', { time: Date.now() });
-```
-
-### Error Handling
-
-```javascript
-import { update } from 'pastoralist';
-
-try {
-  await update({ path: './package.json' });
-} catch (error) {
-  if (error.code === 'ENOENT') {
-    console.error('Package.json not found');
-  } else {
-    console.error('Unexpected error:', error);
+// Webpack plugin example
+class FastBrakePlugin {
+  constructor(options = {}) {
+    this.target = options.target || 'es5';
+  }
+  
+  apply(compiler) {
+    compiler.hooks.compilation.tap('FastBrakePlugin', (compilation) => {
+      compilation.hooks.optimizeChunkAssets.tap('FastBrakePlugin', (chunks) => {
+        chunks.forEach(chunk => {
+          chunk.files.forEach(filename => {
+            const source = compilation.assets[filename].source();
+            
+            if (!check(source, { target: this.target })) {
+              const features = detect(source);
+              const incompatible = features.filter(f => 
+                getVersionIndex(f.version) > getVersionIndex(this.target)
+              );
+              
+              console.warn(`⚠️ ${filename} contains incompatible features:`, 
+                incompatible.map(f => f.name));
+            }
+          });
+        });
+      });
+    });
   }
 }
 ```
 
-## Environment Variables
+### ESLint Rule Integration
 
-### `DEBUG=pastoralist*`
+```javascript
+import { detect } from 'fast-brake';
 
-Enable debug output (equivalent to --debug flag).
-
-```bash
-DEBUG=pastoralist* npx pastoralist
+// Custom ESLint rule
+module.exports = {
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Disallow ES features newer than target version'
+    }
+  },
+  
+  create(context) {
+    const target = context.options[0] || 'es5';
+    
+    return {
+      Program(node) {
+        const sourceCode = context.getSourceCode();
+        const text = sourceCode.getText();
+        
+        const features = detect(text, { quick: false });
+        const incompatible = features.filter(f => 
+          getVersionIndex(f.version) > getVersionIndex(target)
+        );
+        
+        incompatible.forEach(feature => {
+          context.report({
+            node,
+            message: `ES feature "${feature.name}" requires ${feature.version} but target is ${target}`,
+            loc: {
+              line: feature.line,
+              column: feature.column
+            }
+          });
+        });
+      }
+    };
+  }
+};
 ```
 
-## TypeScript
+### CI/CD Pipeline Integration
 
-Pastoralist includes full TypeScript support.
+```javascript
+import { fastBrake } from 'fast-brake';
+import { readFileSync, readdirSync } from 'fs';
+import { join } from 'path';
+
+// Validate all source files in CI
+async function validateCompatibility() {
+  const srcDir = 'src';
+  const target = process.env.ES_TARGET || 'es2018';
+  let hasErrors = false;
+  
+  const files = readdirSync(srcDir, { recursive: true })
+    .filter(file => file.endsWith('.js') || file.endsWith('.ts'))
+    .map(file => join(srcDir, file));
+  
+  console.log(`🔍 Checking ${files.length} files for ${target} compatibility...`);
+  
+  for (const file of files) {
+    try {
+      const code = readFileSync(file, 'utf-8');
+      fastBrake(code, { target });
+      console.log(`✅ ${file}`);
+    } catch (error) {
+      console.error(`❌ ${file}: ${error.message}`);
+      hasErrors = true;
+    }
+  }
+  
+  if (hasErrors) {
+    console.error(`\n❌ Compatibility check failed for target ${target}`);
+    process.exit(1);
+  } else {
+    console.log(`\n✅ All files are ${target} compatible`);
+  }
+}
+
+validateCompatibility();
+```
+
+### Dynamic Polyfill Loading
+
+```javascript
+import { getMinimumESVersion } from 'fast-brake';
+
+// Smart polyfill loading based on code requirements
+function loadPolyfillsForCode(code) {
+  const requiredVersion = getMinimumESVersion(code);
+  
+  const polyfills = [];
+  
+  switch (requiredVersion) {
+    case 'es2022':
+      polyfills.push('es2022-polyfills');
+      // fallthrough
+    case 'es2021':
+      polyfills.push('es2021-polyfills');
+      // fallthrough
+    case 'es2020':
+      polyfills.push('es2020-polyfills');
+      // fallthrough
+    case 'es2017':
+      polyfills.push('es2017-polyfills');
+      // fallthrough
+    case 'es2015':
+      polyfills.push('es2015-polyfills');
+      break;
+    case 'es5':
+      // No polyfills needed
+      break;
+  }
+  
+  return polyfills;
+}
+
+// Usage
+const userCode = getUserSubmittedCode();
+const requiredPolyfills = loadPolyfillsForCode(userCode);
+
+if (requiredPolyfills.length > 0) {
+  console.log(`Loading polyfills: ${requiredPolyfills.join(', ')}`);
+  await Promise.all(requiredPolyfills.map(loadPolyfill));
+}
+```
+
+## Error Handling
+
+### Handling fastBrake Errors
+
+```javascript
+import { fastBrake } from 'fast-brake';
+
+try {
+  fastBrake(code, { target: 'es5' });
+} catch (error) {
+  if (error.feature) {
+    // This is a compatibility error
+    console.error(`Incompatible feature: ${error.feature.name}`);
+    console.error(`Requires: ${error.feature.version}`);
+    console.error(`Target: ${error.target}`);
+    console.error(`Location: line ${error.feature.line}, column ${error.feature.column}`);
+    
+    if (error.feature.snippet) {
+      console.error(`Code: ${error.feature.snippet}`);
+    }
+  } else {
+    // This is a different kind of error
+    console.error('Unexpected error:', error.message);
+  }
+}
+```
+
+### Graceful Degradation
+
+```javascript
+import { detect, check } from 'fast-brake';
+
+function analyzeCodeSafely(code, target = 'es5') {
+  try {
+    // Try full mode first
+    const features = detect(code, { quick: false });
+    const isCompatible = check(code, { target, quick: false });
+    
+    return {
+      features,
+      isCompatible,
+      mode: 'full',
+      error: null
+    };
+  } catch (error) {
+    try {
+      // Fallback to quick mode
+      const features = detect(code, { quick: true });
+      const isCompatible = check(code, { target, quick: true });
+      
+      return {
+        features,
+        isCompatible,
+        mode: 'quick',
+        error: null
+      };
+    } catch (quickError) {
+      // Both modes failed
+      return {
+        features: [],
+        isCompatible: false,
+        mode: 'failed',
+        error: quickError
+      };
+    }
+  }
+}
+```
+
+## TypeScript Integration
+
+fast-brake includes comprehensive TypeScript definitions:
 
 ```typescript
-import { update, Options } from 'pastoralist';
+import { 
+  fastBrake, 
+  detect, 
+  check, 
+  getMinimumESVersion,
+  DetectedFeature,
+  DetectionOptions 
+} from 'fast-brake';
 
-const options: Options = {
-  path: './package.json',
-  debug: true
+// Type-safe options
+const options: DetectionOptions = {
+  target: 'es2015',
+  quick: false,
+  throwOnFirst: true
 };
 
-await update(options);
+// Type-safe results
+const features: DetectedFeature[] = detect(code, options);
+const isCompatible: boolean = check(code, options);
+const minVersion: string = getMinimumESVersion(code, { quick: false });
+
+// Custom type guards
+function isES2020Feature(feature: DetectedFeature): boolean {
+  return feature.version === 'es2020';
+}
+
+// Filter with type safety
+const es2020Features = features.filter(isES2020Feature);
 ```
