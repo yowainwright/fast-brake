@@ -1,4 +1,4 @@
-# Fast Brake 🚦
+# Fast Brake 💨
 
 **Fast braking js feature detection** Fast brake Analyzes JavaScript code to detect ECMAScript features and verify compatibility with target ES or Browser versions using a two-phase detection system.
 

@@ -10,8 +10,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     aria-hidden="true"
   >
     <div
-      class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[40rem] -translate-x-1/2 rotate-[70deg] bg-gradient-to-tr from-primary to-primary/50 opacity-15 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+      class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[40rem] -translate-x-1/2 rotate-[70deg] opacity-15 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
       style={{
+        background: "var(--checkered-gradient-alt)",
         clipPath:
           "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 150%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
       }}
@@ -19,8 +20,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     </div>
 
     <div
-      class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[40rem] -translate-x-1/2 rotate-[70deg] bg-gradient-to-tr from-primary to-primary/50 opacity-15 sm:left-[calc(100%)] sm:w-[72.1875rem]"
+      class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[40rem] -translate-x-1/2 rotate-[70deg] opacity-15 sm:left-[calc(100%)] sm:w-[72.1875rem]"
       style={{
+        background: "var(--checkered-gradient-alt)",
         clipPath:
           "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 150%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
       }}
@@ -29,18 +31,15 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
   </div>
   <div class="hero-content text-center min-h-[30rem] md:min-h-[40rem] font-outfit px-4 py-12 lg:py-20">
     <div class="max-w-2xl md:max-w-6xl w-full">
-      <img src={`${base}fast-brake-logo.svg`} alt="Brakefast Logo" class="h-24 w-24 md:h-32 md:w-32 mx-auto mb-6" />
-      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black leading-tight">
-        Optimize your build
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black leading-tight" style="font-family: var(--font-brand);">
+        <span class="bg-clip-text text-transparent" style="background: var(--checkered-gradient-alt); -webkit-background-clip: text;">Fast Brake</span> <span class="text-4xl sm:text-5xl md:text-6xl lg:text-8xl">💨</span>
         <br/>
-        <span class="font-bold bg-clip-text text-transparent" style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%); -webkit-background-clip: text;">performance</span>
-        <br/>
-        with smart caching
+        <span class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal" style="font-family: var(--font-outfit);">JavaScript ES Feature Detection</span>
       </h1>
       <div class="flex justify-center items-center">
         <p class="mt-4 sm:mt-6 mb-6 sm:mb-8 max-w-4xl text-base sm:text-lg md:text-xl lg:text-2xl px-2">
-          Brakefast analyzes and optimizes your build performance with intelligent
-          caching and dependency management.
+          Fast Brake analyzes JavaScript code to detect ECMAScript features and verify
+          compatibility with target ES or Browser versions.
         </p>
       </div>
       <div class="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-5 w-full max-w-lg mx-auto">

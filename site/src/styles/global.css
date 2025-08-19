@@ -8,11 +8,16 @@
 
 @theme {
   --font-outfit: "Outfit Variable", "sans-serif";
+  --font-fast-brake: "Poetsen One", "sans-serif";
 }
 
 :root {
-  --purple-gradient: linear-gradient(90deg, rgba(61, 4, 217, 1) 2%, rgba(114, 4, 217, 1) 55%, rgba(137, 10, 196, 1) 100%);
-  --purple-dark: #3d04d9;
+  --font-brand: "Poetsen One", sans-serif;
+  --race-car-gradient: linear-gradient(135deg, #ff0000 0%, #cc0000 25%, #990000 50%, #ff3333 75%, #ff0000 100%);
+  --checkered-gradient: linear-gradient(45deg, #ff0000 25%, #ffeb3b 25%, #ffeb3b 50%, #ff0000 50%, #ff0000 75%, #ffeb3b 75%, #ffeb3b);
+  --checkered-gradient-alt: linear-gradient(135deg, #ff0000 0%, #ffd700 20%, #ff0000 40%, #ffd700 60%, #ff0000 80%, #ffd700 100%);
+  --primary-red: #ff0000;
+  --primary-yellow: #ffd700;
 }
 
 /* Improve mobile responsiveness */
