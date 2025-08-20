@@ -9,6 +9,7 @@
 @theme {
   --font-outfit: "Outfit Variable", "sans-serif";
   --font-fast-brake: "Poetsen One", "sans-serif";
+  --color-brand-red: #f54900;
 }
 
 :root {
