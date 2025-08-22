@@ -6,7 +6,7 @@ import * as esprima from 'esprima';
 import * as espree from 'espree';
 import { parse as meriyahParse } from 'meriyah';
 import { parse as cherowParse } from 'cherow';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import Table from 'cli-table3';
