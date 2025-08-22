@@ -1,0 +1,16 @@
+{
+  "name": "@fast-brake/generator",
+  "version": "0.0.1",
+  "description": "Schema generator for fast-brake",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "generate": "bun generate-schema.ts"
+  },
+  "dependencies": {
+    "typescript": "5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.1.0"
+  }
+}
