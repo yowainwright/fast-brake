@@ -108,8 +108,7 @@
   "homepage": "https://jeffry.in/fast-brake/",
   "workspaces": [
     "site",
-    "utils/generator",
-    "utils/benchmarker"
+    "utils/*"
   ],
   "devDependencies": {
     "@commitlint/cli": "19.8.1",

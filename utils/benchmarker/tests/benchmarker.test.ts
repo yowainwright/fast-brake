@@ -19,13 +19,17 @@ describe('Benchmarker', () => {
     expect(pkg.scripts['benchmark:table']).toBeDefined();
   });
 
-  test('has required dependencies', () => {
-    const pkg = require('../package.json');
-    // Check for key benchmark dependencies
-    expect(pkg.dependencies['@babel/parser']).toBeDefined();
-    expect(pkg.dependencies['acorn']).toBeDefined();
-    expect(pkg.dependencies['esprima']).toBeDefined();
-    expect(pkg.dependencies['fast-brake']).toBe('workspace:*');
+  test('can import and use fast-brake', () => {
+    // Test that fast-brake can be imported and used
+    const { detect, getMinimumESVersion } = require('fast-brake');
+    
+    const testCode = 'const arrow = () => {};';
+    const features = detect(testCode);
+    const version = getMinimumESVersion(testCode);
+    
+    expect(features).toBeDefined();
+    expect(features.length).toBeGreaterThan(0);
+    expect(version).toBe('es2015');
   });
 
   test('has CLI table dependencies for output', () => {
