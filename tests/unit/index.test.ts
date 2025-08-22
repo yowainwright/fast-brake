@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'bun:test';
-import { fastBrake, detect, check, getMinimumESVersion } from './index';
-import type { DetectionOptions, DetectedFeature } from './types';
+import { fastBrake, detect, check, getMinimumESVersion } from '../../src/index';
+import type { DetectionOptions, DetectedFeature } from '../../src/types';
 
 describe('fast-brake main API', () => {
   describe('fastBrake function', () => {
@@ -308,7 +308,7 @@ describe('fast-brake main API', () => {
 
   describe('default export', () => {
     test('should have default export', async () => {
-      const module = await import('./index');
+      const module = await import('../../src/index');
       expect(module.default).toBe(fastBrake);
     });
   });

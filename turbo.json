@@ -14,6 +14,9 @@
       "dependsOn": ["^build"],
       "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
     },
+    "test:run": {
+      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
+    },
     "//#test:run": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
     },

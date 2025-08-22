@@ -6,7 +6,7 @@ import {
   FEATURE_PATTERNS,
   QUICK_PATTERNS,
   FEATURE_VERSIONS
-} from './constants';
+} from '../../src/constants';
 
 describe('Constants', () => {
   describe('ES_VERSIONS', () => {

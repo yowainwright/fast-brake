@@ -5,16 +5,16 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "bun test",
+    "test": "bun test tests",
     "build": "tsc --noEmit",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix",
-    "benchmark": "bun run benchmark.ts",
-    "benchmark:compare": "bun run compare.ts",
-    "benchmark:table": "bun run generate-table.ts"
+    "lint": "oxlint src tests",
+    "lint:fix": "oxlint src tests --fix",
+    "benchmark": "bun run src/benchmark.ts",
+    "benchmark:compare": "bun run src/compare.ts",
+    "benchmark:table": "bun run src/generate-table.ts"
   },
   "dependencies": {
     "fast-brake": "workspace:*",
