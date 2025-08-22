@@ -1,0 +1,29 @@
+{
+  "name": "@fast-brake/benchmarker",
+  "version": "0.0.1",
+  "description": "Benchmarking suite for fast-brake",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "benchmark": "bun run benchmark.ts",
+    "benchmark:compare": "bun run compare.ts",
+    "benchmark:table": "bun run generate-table.ts"
+  },
+  "dependencies": {
+    "fast-brake": "workspace:*",
+    "@babel/parser": "^7.26.3",
+    "acorn": "^8.14.0",
+    "esprima": "^4.0.1",
+    "espree": "^10.3.0",
+    "meriyah": "^6.0.2",
+    "cherow": "^1.6.9",
+    "browserslist": "^4.24.3",
+    "caniuse-lite": "^1.0.30001690",
+    "cli-table3": "^0.6.5",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.1.0",
+    "@types/esprima": "^4.0.6"
+  }
+}
