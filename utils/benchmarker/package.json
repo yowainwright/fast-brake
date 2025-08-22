@@ -5,6 +5,13 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "test": "bun test",
+    "build": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
     "benchmark": "bun run benchmark.ts",
     "benchmark:compare": "bun run compare.ts",
     "benchmark:table": "bun run generate-table.ts"
@@ -24,6 +31,9 @@
   },
   "devDependencies": {
     "@types/node": "24.1.0",
-    "@types/esprima": "^4.0.6"
+    "@types/esprima": "^4.0.6",
+    "oxlint": "^1.11.2",
+    "prettier": "3.6.2",
+    "typescript": "5.8.3"
   }
 }

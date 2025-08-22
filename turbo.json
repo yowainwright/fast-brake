@@ -1,26 +1,57 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "tasks": {
-    "build-dist": {
-      "dependsOn": ["^build-dist"],
-      "inputs": ["src/**/*.{ts,tsx}", "index.html"]
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"]
     },
-    "//#build-dist": {
-      "inputs": ["src/**/*.ts"]
+    "//#build:lib": {
+      "outputs": ["dist/**"],
+      "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"]
     },
-    "lint-src": {
-      "dependsOn": ["typecheck-src"],
-      "inputs": ["src/**/*.{tsx,ts}"]
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
     },
-    "//#lint-src": {
-      "dependsOn": ["typecheck-src"],
-      "inputs": ["src/**/*.ts"]
+    "//#test:run": {
+      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
     },
-    "typecheck-src": {
-      "inputs": ["src/**/*.ts"]
+    "test:unit": {
+      "inputs": ["src/**/*.ts", "tests/unit/**/*.ts"]
     },
-    "//#typecheck-src": {
-      "inputs": ["src/**/*.ts"]
+    "//#test:unit:run": {
+      "inputs": ["src/**/*.ts", "tests/unit/**/*.ts"]
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "tests/integration/**/*.ts", "tests/fixtures/**/*.js"]
+    },
+    "//#test:integration:run": {
+      "inputs": ["src/**/*.ts", "tests/integration/**/*.ts", "tests/fixtures/**/*.js"]
+    },
+    "lint": {
+      "inputs": ["src/**/*.ts", "tests/**/*.ts"]
+    },
+    "//#lint:run": {
+      "inputs": ["src/**/*.ts", "tests/**/*.ts"]
+    },
+    "typecheck": {
+      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tsconfig.json"]
+    },
+    "//#typecheck:run": {
+      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tsconfig.json"]
+    },
+    "benchmark": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.ts", "tests/integration/benchmarks.ts", "tests/fixtures/**/*.js"]
+    },
+    "//#benchmark:run": {
+      "inputs": ["src/**/*.ts", "tests/integration/benchmarks.ts", "tests/fixtures/**/*.js"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
     }
   }
 }
