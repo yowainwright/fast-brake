@@ -55,6 +55,10 @@ function getVersionIndex(version: string): number {
 
 // Export types
 export type { DetectionOptions, DetectedFeature } from './detector';
+export type { BrowserVersions, Feature, SchemaJson } from './types';
+
+// Export constants for tooling
+export { ES_VERSIONS, MDN_URLS, FEATURE_PATTERNS } from './constants';
 
 // Default export
 export default fastBrake;

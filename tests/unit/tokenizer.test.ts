@@ -1,5 +1,5 @@
 import { test, expect, describe } from 'bun:test';
-import { Tokenizer, tokenize, getCodeTokens, TokenState } from './tokenizer';
+import { Tokenizer, tokenize, getCodeTokens, TokenState } from '../../src/tokenizer';
 
 describe('Tokenizer', () => {
   describe('basic tokenization', () => {

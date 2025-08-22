@@ -3,9 +3,15 @@
   "type": "module",
   "version": "1.1.0",
   "scripts": {
+    "test": "bun test tests",
+    "build": "astro build",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,astro}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,astro}\"",
+    "typecheck": "astro check && tsc --noEmit",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -30,6 +36,9 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.13",
     "daisyui": "^5.0.0",
+    "oxlint": "^1.11.2",
+    "prettier": "3.6.2",
+    "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "^4.0.9"
   }
 }
