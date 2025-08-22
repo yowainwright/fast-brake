@@ -17,7 +17,7 @@
     "benchmark:table": "bun run src/generate-table.ts"
   },
   "dependencies": {
-    "fast-brake": "workspace:*",
+    "fast-brake": "*",
     "@babel/parser": "^7.26.3",
     "acorn": "^8.14.0",
     "esprima": "^4.0.1",
