@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'bun:test';
-import { Detector, getDetector, detect, check, getMinimumVersion } from './detector';
-import type { DetectionOptions } from './types';
+import { Detector, getDetector, detect, check, getMinimumVersion } from '../../src/detector';
+import type { DetectionOptions } from '../../src/types';
 
 describe('Detector', () => {
   describe('quickScan', () => {

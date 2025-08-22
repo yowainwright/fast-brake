@@ -373,6 +373,20 @@ const options: DetectionOptions = {
 const features: DetectedFeature[] = detect(code, options);
 ```
 
+## Development
+
+### Remote Caching (Vercel)
+
+Speed up builds with Vercel remote caching:
+
+```bash
+# Create .env.local with your Vercel token
+echo "TURBO_TOKEN=your-vercel-token" > .env.local
+echo "TURBO_TEAM=your-team-id" >> .env.local
+
+# Get token from: https://vercel.com/account/tokens
+```
+
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
