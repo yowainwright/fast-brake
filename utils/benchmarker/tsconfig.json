@@ -3,7 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "./dist",
-    "types": ["bun-types", "node"]
+    "types": ["node", "bun"]
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist", "results"]
