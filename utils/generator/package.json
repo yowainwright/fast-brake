@@ -4,6 +4,9 @@
   "description": "Schema generator for fast-brake",
   "type": "module",
   "private": true,
+  "dependencies": {
+    "fast-brake": "*"
+  },
   "scripts": {
     "test": "bun test tests",
     "build": "tsc --noEmit",

@@ -80,6 +80,9 @@
     "utils/generator": {
       "name": "@fast-brake/generator",
       "version": "0.0.1",
+      "dependencies": {
+        "fast-brake": "*",
+      },
       "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "24.1.0",

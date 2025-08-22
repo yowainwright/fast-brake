@@ -3,8 +3,8 @@ import https from 'https';
 import { writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { ES_VERSIONS, MDN_URLS, FEATURE_PATTERNS } from '../src/constants';
-import type { BrowserVersions, Feature, SchemaJson } from '../src/types';
+import { ES_VERSIONS, MDN_URLS, FEATURE_PATTERNS } from 'fast-brake';
+import type { BrowserVersions, Feature, SchemaJson } from 'fast-brake';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
