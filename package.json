@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "generate": "bun generator/generate-schema.ts",
+    "generate": "bun utils/generator/src/generate-schema.ts",
     "build": "turbo run build",
     "build:lib": "bun run clean && bun run build:run",
     "build:run": "tsup src/index.ts --format esm,cjs --dts --minify",
@@ -32,8 +32,8 @@
     "prepublishOnly": "bun run test && bun run build",
     "preview": "bun run --cwd site preview",
     "release": "release-it",
-    "test": "turbo run test",
-    "test:run": "bun test tests/unit/*.test.ts tests/integration/integration.test.ts --timeout 5000",
+    "test": "turbo run test:run test",
+    "test:run": "bun test tests/unit tests/integration/integration.test.ts --timeout 5000",
     "test:all": "bun test tests/**/*.test.ts --timeout 5000",
     "test:unit": "turbo run test:unit",
     "test:unit:run": "bun test tests/unit/*.test.ts --timeout 5000",
@@ -41,7 +41,7 @@
     "test:integration:run": "bun test tests/integration/integration.test.ts --timeout 5000",
     "test:watch": "bun test --watch tests/**/*.test.ts",
     "benchmark": "turbo run benchmark",
-    "benchmark:run": "bun tests/integration/benchmarks.ts",
+    "benchmark:run": "bun utils/benchmarker/src/benchmark.ts",
     "benchmark:quick": "bun tests/integration/benchmarks.ts --quick",
     "typecheck": "turbo run typecheck",
     "typecheck:run": "tsc --noEmit",
