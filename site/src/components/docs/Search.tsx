@@ -22,14 +22,12 @@ export default function Search({ searchData }: SearchProps) {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize Fuse.js
   const fuse = new Fuse(searchData, {
     keys: ["title", "description", "content"],
     threshold: 0.3,
     includeScore: true,
   });
 
-  // Handle search
   useEffect(() => {
     if (query.length > 0) {
       const searchResults = fuse.search(query);
@@ -39,7 +37,6 @@ export default function Search({ searchData }: SearchProps) {
     }
   }, [query]);
 
-  // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -57,7 +54,6 @@ export default function Search({ searchData }: SearchProps) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {

@@ -1,4 +1,3 @@
-// Type definitions for fast-brake
 
 export interface BrowserVersions {
   chrome: number;

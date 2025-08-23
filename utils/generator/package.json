@@ -5,11 +5,12 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "fast-brake": "*"
+    "fast-brake": "file:../.."
   },
   "scripts": {
-    "test": "bun test tests",
-    "build": "tsc --noEmit",
+    "test:run": "bun test tests",
+    "build:pkg": "echo 'Skipping generator build (utility only)'",
+    "clean": "rimraf dist",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "typecheck": "tsc --noEmit",

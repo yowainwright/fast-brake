@@ -17,12 +17,12 @@ graph TD
     E -->|No| G[Phase 2: Tokenizer Validation]
     G --> H[Tokenize Code]
     H --> I[Validate Features]
-    I --> J[Filter False Positives]
+    I --> J[Validate Features]
     J --> K[Add Token-based Features]
     K --> L[Return Accurate Results]
 ```
 
-This approach delivers **7x faster performance** than traditional AST parsers while maintaining 99.9% accuracy.
+This approach can deliver up to **7x faster performance** than traditional AST parsers while maintaining high accuracy.
 
 ## Core Architecture Components
 
@@ -51,7 +51,7 @@ class Detector {
 
 ### 2. Tokenizer Engine (`src/tokenizer.ts`)
 
-The **Tokenizer** provides intelligent code analysis to eliminate false positives and detect additional features.
+The **Tokenizer** provides intelligent code analysis to accurately detect features in code.
 
 ```typescript
 class Tokenizer {
@@ -61,14 +61,14 @@ class Tokenizer {
   // Get code tokens (excluding strings/comments)
   getCodeTokens(): Token[]
   
-  // Track tokenizer state to avoid false positives
+  // Track tokenizer state for accurate detection
   private state: TokenState
 }
 ```
 
 **Key Features:**
 - **State-aware tokenization**: Tracks strings, comments, regex, and template literals
-- **False positive elimination**: Ignores ES features in non-code contexts
+- **Accurate detection**: Validates ES features in actual code contexts
 - **Token-based feature detection**: Identifies imports, exports, and complex patterns
 - **Performance optimized**: Minimal memory allocation and fast scanning
 
@@ -122,8 +122,6 @@ if (matches) {
 **Characteristics:**
 - ⚡ **Ultra-fast**: ~0.013ms per file
 - 🎯 **High recall**: Catches most features
-- ⚠️ **May have false positives**: Detects patterns in strings/comments
-- 📊 **~95% accuracy**: Good enough for development builds
 
 **Use Cases:**
 - Development builds with hot reloading
@@ -132,7 +130,7 @@ if (matches) {
 
 ### Phase 2: Tokenizer Validation
 
-**Objective**: Eliminate false positives and add token-based feature detection.
+**Objective**: Validate features and add token-based feature detection.
 
 ```javascript
 // Example: Validating arrow functions
@@ -153,7 +151,7 @@ if (hasArrowFunction) {
 5. **Merge results**: Combine validated quick features with token features
 
 **Characteristics:**
-- 🎯 **99.9% accuracy**: Eliminates false positives
+- 🎯 **High accuracy**: With tokenizer validation
 - 🛡️ **Context-aware**: Understands strings, comments, regex
 - 📈 **Additional detection**: Finds features missed by regex
 - ⚡ **Still fast**: ~0.055ms per file (2x faster than AST parsers)
@@ -395,15 +393,23 @@ class CustomDetector extends Detector {
 
 ## Performance Benchmarks
 
-### Comparison with Traditional Approaches
+### Live Benchmark Results
 
-| Approach | 1000 Files | Single File | Memory | Accuracy |
-|----------|------------|-------------|---------|----------|
-| **fast-brake (Quick)** | **13ms** | **0.013ms** | **4MB** | 95% |
-| **fast-brake (Full)** | **55ms** | **0.055ms** | **4MB** | **99.9%** |
-| Babel Parser | ~100ms | ~2ms | ~15MB | 99.9% |
-| ESLint Parser | ~120ms | ~2.5ms | ~18MB | 99.9% |
-| Acorn Parser | ~80ms | ~1.8ms | ~12MB | 99.9% |
+import BenchmarkData from "../../components/docs/BenchmarkData";
+
+<BenchmarkData />
+
+### Detailed Performance Analysis
+
+| Approach | 1000 Files | Single File | Memory |
+|----------|------------|-------------|---------|
+| **fast-brake (Quick)** | **13ms** | **0.013ms** | **4MB** |
+| **fast-brake (Full)** | **55ms** | **0.055ms** | **4MB** |
+| Babel Parser | ~100ms | ~2ms | ~15MB |
+| ESLint Parser | ~120ms | ~2.5ms | ~18MB |
+| Acorn Parser | ~80ms | ~1.8ms | ~12MB |
+
+*Live results above show single-file performance on ES2015 test code. Detailed analysis includes batch processing and memory usage.*
 
 ### Scalability Characteristics
 
@@ -445,7 +451,7 @@ if (check(code, { target: 'es5', quick: true })) {
 // Production builds - accuracy critical
 const features = detect(code, { quick: false });
 
-// CI/CD pipelines - no false positives
+// CI/CD pipelines - accurate detection
 fastBrake(code, { target: 'es2018', quick: false });
 
 // Code analysis - detailed reporting
