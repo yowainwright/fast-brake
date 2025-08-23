@@ -18,8 +18,8 @@
   ],
   "scripts": {
     "generate": "bun utils/generator/src/generate-schema.ts",
-    "build": "turbo run build",
-    "build:lib": "bun run clean && bun run build:run",
+    "build": "turbo run build:pkg",
+    "build:pkg": "bun run clean && bun run build:run",
     "build:run": "tsup src/index.ts --format esm,cjs --dts --minify",
     "clean": "rimraf dist",
     "commit": "git-cz",
@@ -33,7 +33,7 @@
     "prepublishOnly": "bun run test && bun run build",
     "preview": "bun run --cwd site preview",
     "release": "release-it",
-    "test": "turbo run test:run test",
+    "test": "turbo run test:run",
     "test:run": "bun test tests/unit tests/integration/integration.test.ts --timeout 5000",
     "test:all": "bun test tests/**/*.test.ts --timeout 5000",
     "test:unit": "turbo run test:unit",
@@ -44,6 +44,7 @@
     "benchmark": "turbo run benchmark",
     "benchmark:run": "bun utils/benchmarker/src/benchmark.ts",
     "benchmark:quick": "bun tests/integration/benchmarks.ts --quick",
+    "benchmark:update": "cd utils/benchmarker && bun run benchmark:all",
     "typecheck": "turbo run typecheck",
     "typecheck:run": "tsc --noEmit",
     "update": "codependence --update && bun run update-site-deps",
@@ -108,6 +109,7 @@
   },
   "homepage": "https://jeffry.in/fast-brake/",
   "workspaces": [
+    ".",
     "site",
     "utils/*"
   ],

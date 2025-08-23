@@ -24,7 +24,7 @@ interface Token {
 
 ### State Management
 
-The tokenizer tracks context to avoid false positives:
+The tokenizer tracks context for accurate detection:
 
 ```typescript
 enum TokenState {
@@ -73,7 +73,7 @@ import { detect } from 'fast-brake';
 // Development builds with hot reloading
 const features = detect(code, { quick: true });
 
-// Build tools where 95% accuracy is acceptable
+// Build tools where speed is critical
 const isCompatible = check(code, { target: 'es5', quick: true });
 
 // Batch processing thousands of files

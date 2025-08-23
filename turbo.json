@@ -1,55 +1,49 @@
 {
   "$schema": "https://turborepo.org/schema.json",
+  "extends": ["//"],
   "tasks": {
+    "build:pkg": {
+      "outputs": ["dist/**"],
+      "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"]
+    },
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"],
-      "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"]
-    },
-    "//#build:lib": {
-      "outputs": ["dist/**"],
-      "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"]
-    },
-    "test": {
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
+      "dependsOn": ["^build:pkg"],
+      "outputs": ["dist/**"]
     },
     "test:run": {
-      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
-    },
-    "//#test:run": {
+      "dependsOn": ["^build:pkg"],
       "inputs": ["src/**/*.ts", "tests/**/*.ts", "tests/**/*.js"]
     },
     "test:unit": {
       "inputs": ["src/**/*.ts", "tests/unit/**/*.ts"]
     },
-    "//#test:unit:run": {
+    "test:unit:run": {
       "inputs": ["src/**/*.ts", "tests/unit/**/*.ts"]
     },
     "test:integration": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build:pkg"],
       "inputs": ["src/**/*.ts", "tests/integration/**/*.ts", "tests/fixtures/**/*.js"]
     },
-    "//#test:integration:run": {
+    "test:integration:run": {
+      "dependsOn": ["^build:pkg"],
       "inputs": ["src/**/*.ts", "tests/integration/**/*.ts", "tests/fixtures/**/*.js"]
     },
     "lint": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts"]
     },
-    "//#lint:run": {
+    "lint:run": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts"]
     },
     "typecheck": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts", "tsconfig.json"]
     },
-    "//#typecheck:run": {
+    "typecheck:run": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts", "tsconfig.json"]
     },
     "benchmark": {
-      "dependsOn": ["^build"],
       "inputs": ["src/**/*.ts", "tests/integration/benchmarks.ts", "tests/fixtures/**/*.js"]
     },
-    "//#benchmark:run": {
+    "benchmark:run": {
       "inputs": ["src/**/*.ts", "tests/integration/benchmarks.ts", "tests/fixtures/**/*.js"]
     },
     "dev": {

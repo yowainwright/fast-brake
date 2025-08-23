@@ -1,8 +1,9 @@
-// Main API for fast-brake ES feature detection
 import { getDetector, detect as detectFeatures, check as checkFeatures, getMinimumVersion } from './detector';
+import { PluginManager } from './pluginsManager';
+import { loadPlugin } from './plugins';
 import type { DetectionOptions, DetectedFeature } from './detector';
+import type { PluginConfig, Plugin, PluginResult } from './plugins/types';
 
-// Main function - throws on incompatible features
 export function fastBrake(code: string, options: DetectionOptions): void {
   const detector = getDetector();
   const detected = detector.detect(code, options);
@@ -23,8 +24,29 @@ export function fastBrake(code: string, options: DetectionOptions): void {
   }
 }
 
-// Detect - returns array of detected features
+export function detectWithPlugins(code: string, plugins: PluginConfig[] = ['es5']): PluginResult[] {
+  const plugin = loadPlugin(plugins);
+  return plugin.detect(code);
+}
+
+export function checkWithPlugins(code: string, plugins: PluginConfig[] = ['es5']): boolean {
+  const plugin = loadPlugin(plugins);
+  return plugin.check(code);
+}
+
 export function detect(code: string, options?: Partial<DetectionOptions>): DetectedFeature[] {
+  if (options && 'plugins' in options) {
+    const plugins = (options as any).plugins as PluginConfig[];
+    const results = detectWithPlugins(code, plugins);
+    return results.map(r => ({
+      name: r.name,
+      version: 'unknown',
+      line: r.line,
+      column: r.column,
+      snippet: r.snippet
+    } as DetectedFeature));
+  }
+  
   const opts: DetectionOptions = {
     target: options?.target || 'esnext',
     quick: options?.quick,
@@ -33,8 +55,11 @@ export function detect(code: string, options?: Partial<DetectionOptions>): Detec
   return detectFeatures(code, opts);
 }
 
-// Check - returns boolean
-export function check(code: string, options: DetectionOptions): boolean {
+export function check(code: string, options: DetectionOptions | PluginConfig[]): boolean {
+  if (Array.isArray(options)) {
+    return checkWithPlugins(code, options);
+  }
+  
   try {
     return checkFeatures(code, options);
   } catch {
@@ -42,23 +67,48 @@ export function check(code: string, options: DetectionOptions): boolean {
   }
 }
 
-// Get minimum ES version required
 export function getMinimumESVersion(code: string, options?: { quick?: boolean }): string {
   return getMinimumVersion(code, options);
 }
 
-// Helper function
+export function registerPlugin(name: string, plugin: Plugin): void {
+  const manager = new PluginManager();
+  manager.register(name, plugin);
+}
+
+export function createPlugin(config: {
+  name: string;
+  patterns: Array<{
+    name: string;
+    pattern: RegExp | string;
+    message?: string;
+    severity?: 'error' | 'warning' | 'info';
+  }>;
+  validate?: (context: any, matches: PluginResult[]) => PluginResult[];
+}): Plugin {
+  return {
+    name: config.name,
+    patterns: config.patterns.map(p => ({
+      name: p.name,
+      pattern: typeof p.pattern === 'string' ? new RegExp(p.pattern) : p.pattern,
+      message: p.message,
+      severity: p.severity
+    })),
+    validate: config.validate
+  };
+}
+
 function getVersionIndex(version: string): number {
-  const versions = ['es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022', 'esnext'];
+  const versions = ['es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022', 'es2023', 'es2024', 'es2025', 'esnext'];
   return versions.indexOf(version);
 }
 
-// Export types
 export type { DetectionOptions, DetectedFeature } from './detector';
 export type { BrowserVersions, Feature, SchemaJson } from './types';
+export type { Plugin, PluginConfig, PluginResult, PluginContext } from './plugins/types';
 
-// Export constants for tooling
 export { ES_VERSIONS, MDN_URLS, FEATURE_PATTERNS } from './constants';
 
-// Default export
+export * as plugins from './plugins';
+
 export default fastBrake;

@@ -1,0 +1,69 @@
+// Auto-generated benchmark data
+export const benchmarkData = [
+  {
+    "parser": "cherow",
+    "method": "Fast AST",
+    "timeMs": 0.016,
+    "opsPerSec": 62821,
+    "relative": 1,
+    "accuracy": "parsed"
+  },
+  {
+    "parser": "fast-brake (pattern)",
+    "method": "Pattern matching",
+    "timeMs": 0.017,
+    "opsPerSec": 60008,
+    "relative": 1,
+    "accuracy": "es2015"
+  },
+  {
+    "parser": "meriyah",
+    "method": "Fast AST",
+    "timeMs": 0.017,
+    "opsPerSec": 57816,
+    "relative": 1,
+    "accuracy": "parsed"
+  },
+  {
+    "parser": "esprima",
+    "method": "Standard AST",
+    "timeMs": 0.025,
+    "opsPerSec": 40234,
+    "relative": 0.7,
+    "accuracy": "parse error"
+  },
+  {
+    "parser": "acorn",
+    "method": "Lightweight AST",
+    "timeMs": 0.04,
+    "opsPerSec": 25163,
+    "relative": 0.4,
+    "accuracy": "parse error"
+  },
+  {
+    "parser": "@babel/parser",
+    "method": "Full AST",
+    "timeMs": 0.052,
+    "opsPerSec": 19365,
+    "relative": 0.3,
+    "accuracy": "parsed"
+  },
+  {
+    "parser": "espree",
+    "method": "ESLint AST",
+    "timeMs": 0.054,
+    "opsPerSec": 18350,
+    "relative": 0.3,
+    "accuracy": "parse error"
+  },
+  {
+    "parser": "fast-brake (full)",
+    "method": "Full analysis",
+    "timeMs": 0.077,
+    "opsPerSec": 12922,
+    "relative": 0.2,
+    "accuracy": "es2015"
+  }
+];
+
+export default benchmarkData;
