@@ -324,9 +324,9 @@ describe('Integration Tests', () => {
     test('all fixtures should be processable without errors', () => {
       for (const fixture of fixtures) {
         expect(() => {
-          const features = detect(fixture.content);
-          const version = getMinimumESVersion(fixture.content);
-          const isES5 = check(fixture.content, { target: 'es5' });
+          detect(fixture.content);
+          getMinimumESVersion(fixture.content);
+          check(fixture.content, { target: 'es5' });
         }).not.toThrow();
       }
     });

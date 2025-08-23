@@ -94,9 +94,9 @@ export function BenchmarkDataTable() {
   };
 
   const getSpeedBadge = (relative: number) => {
-    if (relative >= 0.8) return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-    if (relative >= 0.5) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+    if (relative >= 0.8) return 'border border-green-500 text-green-600 dark:text-green-400';
+    if (relative >= 0.5) return 'border border-yellow-500 text-yellow-600 dark:text-yellow-400';
+    return 'border border-gray-400 text-gray-600 dark:text-gray-400';
   };
 
   return (
