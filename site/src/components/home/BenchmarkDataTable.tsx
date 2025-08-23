@@ -21,66 +21,66 @@ interface BenchmarkResult {
 
 const benchmarkData: BenchmarkResult[] = [
   {
-    "parser": "cherow",
-    "method": "Fast AST",
-    "timeMs": 0.016,
-    "opsPerSec": 62821,
-    "relative": 1,
-    "accuracy": "parsed"
-  },
-  {
     "parser": "fast-brake (pattern)",
     "method": "Pattern matching",
-    "timeMs": 0.017,
-    "opsPerSec": 60008,
-    "relative": 1,
+    "timeMs": 0.014,
+    "opsPerSec": 72812,
+    "relative": 1.0,
     "accuracy": "es2015"
   },
   {
     "parser": "meriyah",
-    "method": "Fast AST",
-    "timeMs": 0.017,
-    "opsPerSec": 57816,
-    "relative": 1,
+    "method": "Fast ES parser",
+    "timeMs": 0.016,
+    "opsPerSec": 61003,
+    "relative": 0.8,
+    "accuracy": "parsed"
+  },
+  {
+    "parser": "cherow",
+    "method": "Fast parser",
+    "timeMs": 0.018,
+    "opsPerSec": 54067,
+    "relative": 0.7,
     "accuracy": "parsed"
   },
   {
     "parser": "esprima",
-    "method": "Standard AST",
-    "timeMs": 0.025,
-    "opsPerSec": 40234,
-    "relative": 0.7,
+    "method": "ECMAScript parser",
+    "timeMs": 0.026,
+    "opsPerSec": 38320,
+    "relative": 0.5,
     "accuracy": "parse error"
   },
   {
     "parser": "acorn",
-    "method": "Lightweight AST",
-    "timeMs": 0.04,
-    "opsPerSec": 25163,
+    "method": "Lightweight parser",
+    "timeMs": 0.039,
+    "opsPerSec": 25786,
     "relative": 0.4,
     "accuracy": "parse error"
   },
   {
     "parser": "@babel/parser",
-    "method": "Full AST",
+    "method": "Full AST parser",
     "timeMs": 0.052,
-    "opsPerSec": 19365,
+    "opsPerSec": 19152,
     "relative": 0.3,
     "accuracy": "parsed"
   },
   {
     "parser": "espree",
-    "method": "ESLint AST",
-    "timeMs": 0.054,
-    "opsPerSec": 18350,
-    "relative": 0.3,
+    "method": "ESLint parser",
+    "timeMs": 0.059,
+    "opsPerSec": 17036,
+    "relative": 0.2,
     "accuracy": "parse error"
   },
   {
     "parser": "fast-brake (full)",
     "method": "Full analysis",
-    "timeMs": 0.077,
-    "opsPerSec": 12922,
+    "timeMs": 0.086,
+    "opsPerSec": 11606,
     "relative": 0.2,
     "accuracy": "es2015"
   }
@@ -104,7 +104,7 @@ export function BenchmarkDataTable() {
       <div className="flex-1">
         <Table>
           <TableCaption>
-            *Benchmarked on 8/22/2025 with ES2015 test files. All tests run on identical hardware with warm cache.
+            *Benchmarked on 2025-08-23 with ES2015 test files on Apple M4. All tests run on identical hardware with warm cache.
           </TableCaption>
           <TableHeader>
             <TableRow>
