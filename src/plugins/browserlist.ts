@@ -31,13 +31,21 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
   const targets: BrowserTarget[] = [];
   
   for (const browser of browserArray) {
-    const match = browser.match(/^(chrome|firefox|safari|edge|ie)\s*([><=]{0,2})\s*(\d+)/i);
-    if (match) {
-      const [, name, , version] = match;
-      targets.push({
-        name: name.toLowerCase(),
-        version: parseInt(version, 10)
-      });
+    const trimmed = browser.trim().toLowerCase();
+    
+    const browserMatch = trimmed.match(/^(chrome|firefox|safari|edge|ie)/);
+    if (browserMatch) {
+      const name = browserMatch[1];
+      const rest = trimmed.slice(name.length).trim();
+      
+      const versionMatch = rest.match(/^([><=]{0,2})\s*(\d+)$/);
+      if (versionMatch) {
+        const version = parseInt(versionMatch[2], 10);
+        targets.push({
+          name,
+          version
+        });
+      }
     }
     else if (browser.includes('last')) {
       const versionMatch = browser.match(/last\s+(\d{1,2})/);
