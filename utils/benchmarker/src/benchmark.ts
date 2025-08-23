@@ -137,7 +137,7 @@ const parsers = {
       try {
         const ast = babel.parse(code, { sourceType: 'module' });
         return { nodes: ast.program.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -152,7 +152,7 @@ const parsers = {
       try {
         const ast = acorn.parse(code, { ecmaVersion: 'latest' as any });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -164,7 +164,7 @@ const parsers = {
       try {
         const ast = esprima.parseScript(code);
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -179,7 +179,7 @@ const parsers = {
       try {
         const ast = espree.parse(code, { ecmaVersion: 'latest' });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -194,7 +194,7 @@ const parsers = {
       try {
         const ast = meriyahParse(code, { module: true });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -209,7 +209,7 @@ const parsers = {
       try {
         const ast = cherowParse(code, { module: true });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -227,18 +227,18 @@ function runBenchmark(
   for (let i = 0; i < 10; i++) {
     try {
       parser.parse(testCase.code);
-    } catch (e) {
+    } catch {
     }
   }
 
-  let successful = 0;
+  let _successful = 0;
   const start = performance.now();
   
   for (let i = 0; i < iterations; i++) {
     try {
       parser.parse(testCase.code);
-      successful++;
-    } catch (e) {
+      _successful++;
+    } catch {
     }
   }
   
@@ -320,7 +320,7 @@ async function main() {
         const result = runBenchmark(name, parser, testCase);
         results.push(result);
         console.log(pc.green(' ✓'));
-      } catch (e) {
+      } catch {
         console.log(pc.red(' ✗ Failed'));
       }
     }
