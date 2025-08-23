@@ -1,4 +1,3 @@
-// Constants for ES feature detection
 
 export const IS_DEBUGGING = process.env.DEBUG === "true" || false;
 
@@ -13,12 +12,16 @@ export const ES_VERSIONS = {
   es2019: { chrome: 73, firefox: 62, safari: 12.1 },
   es2020: { chrome: 80, firefox: 74, safari: 13.1 },
   es2021: { chrome: 85, firefox: 79, safari: 14.1 },
-  es2022: { chrome: 94, firefox: 93, safari: 15.4 }
+  es2022: { chrome: 94, firefox: 93, safari: 15.4 },
+  es2023: { chrome: 110, firefox: 104, safari: 16.4 },
+  es2024: { chrome: 120, firefox: 119, safari: 17.2 },
+  es2025: { chrome: 125, firefox: 125, safari: 18 }
 };
 
 export const VERSION_ORDER = [
   'es5', 'es2015', 'es2016', 'es2017', 'es2018', 
-  'es2019', 'es2020', 'es2021', 'es2022', 'esnext'
+  'es2019', 'es2020', 'es2021', 'es2022', 'es2023',
+  'es2024', 'es2025', 'esnext'
 ];
 
 export const MDN_URLS = [
@@ -85,12 +88,25 @@ export const FEATURE_PATTERNS: Record<string, RegExp> = {
   'object_hasOwn': /Object\.hasOwn\s*\(/,
   'class_private_methods': /#[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/,
   'class_static_blocks': /\bstatic\s*\{/,
-  'top_level_await': /^[^{]*\bawait\s/m
+  'top_level_await': /^[^{]*\bawait\s/m,
+  'array_findLast': /\.findLast\s*\(/,
+  'array_findLastIndex': /\.findLastIndex\s*\(/,
+  'array_toReversed': /\.toReversed\s*\(/,
+  'array_toSorted': /\.toSorted\s*\(/,
+  'array_toSpliced': /\.toSpliced\s*\(/,
+  'array_with': /\.with\s*\(/,
+  'hashbang': /^#!/,
+  'regexp_v_flag': /\/[^/]*\/[gimsuvy]*v[gimsuvy]*/,
+  'array_fromAsync': /Array\.fromAsync\s*\(/,
+  'promise_withResolvers': /Promise\.withResolvers\s*\(/,
+  'object_groupBy': /Object\.groupBy\s*\(/,
+  'map_groupBy': /Map\.groupBy\s*\(/,
+  'temporal': /Temporal\./,
+  'regexp_duplicate_named_groups': /\(\?<([^>]+)>.*\(\?<\1>/,
+  'set_methods': /\.(?:intersection|union|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\s*\(/
 };
 
-// Quick detection patterns compiled at startup
 export const QUICK_PATTERNS: Record<string, RegExp> = {
-  // ES2015 (ES6)
   arrow_functions: /=>/,
   template_literals: /`/,
   classes: /\bclass\s+[a-zA-Z_$]/,
@@ -100,42 +116,52 @@ export const QUICK_PATTERNS: Record<string, RegExp> = {
   destructuring: /(?:const|let|var)\s*[[{]/,
   default_params: /function[^(]*\([^)]*=[^)]*\)/,
   
-  // ES2016
   exponentiation: /\*\*/,
   
-  // ES2017
   async_await: /\b(?:async\s+function|async\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>|await\s)/,
   
-  // ES2018
   async_iteration: /\bfor\s+await\s*\(/,
-  rest_spread_properties: /\{[^}]*\.\.\.[^.]/,  // Object rest/spread only
+  rest_spread_properties: /\{[^}]*\.\.\.[^.]/,
   
-  // ES2019
   array_flat: /\.(?:flat|flatMap)\s*\(/,
   
-  // ES2020
   optional_chaining: /\?\./,
   nullish_coalescing: /\?\?/,
   bigint: /\b\d+n\b/,
   promise_allSettled: /Promise\.allSettled\s*\(/,
   globalThis: /\bglobalThis\b/,
   
-  // ES2021
   logical_assignment: /(?:\|\|=|&&=|\?\?=)/,
   numeric_separators: /\b\d+_\d+/,
   string_replaceAll: /\.replaceAll\s*\(/,
   promise_any: /Promise\.any\s*\(/,
   
-  // ES2022
   class_fields: /#[a-zA-Z_$]/,
   private_fields: /#[a-zA-Z_$]/,
   static_blocks: /\bstatic\s*\{/,
   array_at: /\.at\s*\(/,
   object_hasOwn: /Object\.hasOwn\s*\(/,
-  top_level_await: /^[^{]*\bawait\s/m
+  top_level_await: /^[^{]*\bawait\s/m,
+  
+  array_findLast: /\.findLast\s*\(/,
+  array_findLastIndex: /\.findLastIndex\s*\(/,
+  array_toReversed: /\.toReversed\s*\(/,
+  array_toSorted: /\.toSorted\s*\(/,
+  array_toSpliced: /\.toSpliced\s*\(/,
+  array_with: /\.with\s*\(/,
+  hashbang: /^#!/,
+  
+  regexp_v_flag: /\/[^/]*\/[gimsuvy]*v[gimsuvy]*/,
+  array_fromAsync: /Array\.fromAsync\s*\(/,
+  promise_withResolvers: /Promise\.withResolvers\s*\(/,
+  object_groupBy: /Object\.groupBy\s*\(/,
+  map_groupBy: /Map\.groupBy\s*\(/,
+  
+  temporal: /Temporal\./,
+  regexp_duplicate_named_groups: /\(\?<([^>]+)>.*\(\?<\1>/,
+  set_methods: /\.(?:intersection|union|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\s*\(/
 };
 
-// ES version requirements for each feature
 export const FEATURE_VERSIONS: Record<string, string> = {
   arrow_functions: 'es2015',
   template_literals: 'es2015',
@@ -164,5 +190,23 @@ export const FEATURE_VERSIONS: Record<string, string> = {
   static_blocks: 'es2022',
   array_at: 'es2022',
   object_hasOwn: 'es2022',
-  top_level_await: 'es2022'
+  top_level_await: 'es2022',
+  
+  array_findLast: 'es2023',
+  array_findLastIndex: 'es2023',
+  array_toReversed: 'es2023',
+  array_toSorted: 'es2023',
+  array_toSpliced: 'es2023',
+  array_with: 'es2023',
+  hashbang: 'es2023',
+  
+  regexp_v_flag: 'es2024',
+  array_fromAsync: 'es2024',
+  promise_withResolvers: 'es2024',
+  object_groupBy: 'es2024',
+  map_groupBy: 'es2024',
+  
+  temporal: 'es2025',
+  regexp_duplicate_named_groups: 'es2025',
+  set_methods: 'es2025'
 };

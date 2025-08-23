@@ -1,6 +1,3 @@
-// Two-phase ES feature detection engine
-// Phase 1: Quick regex pattern matching
-// Phase 2: Accurate tokenizer-based validation
 
 import { Tokenizer } from './tokenizer';
 import { QUICK_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from './constants';
@@ -9,37 +6,96 @@ export type { DetectedFeature, DetectionOptions } from './types';
 
 export class Detector {
   private compiledPatterns: Map<string, RegExp>;
+  private es2015Pattern: RegExp;
   
   constructor() {
-    // Compile all patterns once at startup
     this.compiledPatterns = new Map();
     for (const [name, pattern] of Object.entries(QUICK_PATTERNS)) {
       this.compiledPatterns.set(name, pattern);
     }
+    
+    this.es2015Pattern = /=>|`|\bclass\s|\b(?:let|const)\s|\.\.\.|\basync\s|\bawait\s/g;
   }
   
-  // Phase 1: Quick pattern scan
-  quickScan(code: string): DetectedFeature[] {
+  quickScan(code: string, options?: Partial<DetectionOptions>): DetectedFeature[] {
     const detected: DetectedFeature[] = [];
-    const lines = code.split('\n');
+    const targetIndex = options?.target ? VERSION_ORDER.indexOf(options.target) : -1;
+    const shouldCheckCompatibility = options?.target && options.target !== 'esnext';
+    
+    if (options?.target === 'es5') {
+      this.es2015Pattern.lastIndex = 0;
+      const match = this.es2015Pattern.exec(code);
+      if (match) {
+        const featureName = match[0] === '=>' ? 'arrow_functions' :
+                           match[0] === '`' ? 'template_literals' :
+                           match[0].includes('class') ? 'classes' :
+                           match[0].includes('let') || match[0].includes('const') ? 'let_const' :
+                           match[0] === '...' ? 'spread_rest' :
+                           match[0].includes('async') || match[0].includes('await') ? 'async_await' : 'unknown';
+        
+        const upToMatch = code.substring(0, match.index);
+        const lineNum = (upToMatch.match(/\n/g) || []).length + 1;
+        const lastNewline = upToMatch.lastIndexOf('\n');
+        const column = match.index - lastNewline;
+        
+        const lineStart = lastNewline + 1;
+        const lineEnd = code.indexOf('\n', match.index);
+        const endPos = lineEnd === -1 ? code.length : lineEnd;
+        const maxSnippetEnd = Math.min(lineStart + 50, endPos);
+        const rawSnippet = code.substring(lineStart, maxSnippetEnd);
+        const cleanSnippet = rawSnippet.replace(/\n/g, ' ');
+        const snippet = cleanSnippet.trim();
+        
+        detected.push({
+          name: featureName,
+          version: 'es2015',
+          line: lineNum,
+          column: column,
+          snippet: snippet
+        });
+        
+        if (options?.throwOnFirst) {
+          return detected;
+        }
+      }
+      return detected;
+    }
     
     for (const [featureName, pattern] of this.compiledPatterns.entries()) {
-      // Reset regex lastIndex for global patterns
-      pattern.lastIndex = 0;
+      const featureVersion = FEATURE_VERSIONS[featureName];
+      const featureIndex = VERSION_ORDER.indexOf(featureVersion);
       
-      for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-        const line = lines[lineNum];
-        const match = pattern.exec(line);
+      const isAlreadySupported = shouldCheckCompatibility && targetIndex >= 0 && featureIndex <= targetIndex;
+      if (isAlreadySupported) {
+        continue;
+      }
+      
+      pattern.lastIndex = 0;
+      const match = pattern.exec(code);
+      if (match) {
+        const upToMatch = code.substring(0, match.index);
+        const lineNum = (upToMatch.match(/\n/g) || []).length + 1;
+        const lastNewline = upToMatch.lastIndexOf('\n');
+        const column = match.index - lastNewline;
         
-        if (match) {
-          detected.push({
-            name: featureName,
-            version: FEATURE_VERSIONS[featureName],
-            line: lineNum + 1,
-            column: match.index + 1,
-            snippet: line.trim()
-          });
-          break; // Found this feature, move to next
+        const lineStart = lastNewline + 1;
+        const lineEnd = code.indexOf('\n', match.index);
+        const endPos = lineEnd === -1 ? code.length : lineEnd;
+        const maxSnippetEnd = Math.min(lineStart + 50, endPos);
+        const rawSnippet = code.substring(lineStart, maxSnippetEnd);
+        const cleanSnippet = rawSnippet.replace(/\n/g, ' ');
+        const snippet = cleanSnippet.trim();
+        
+        detected.push({
+          name: featureName,
+          version: featureVersion,
+          line: lineNum,
+          column: column,
+          snippet: snippet
+        });
+        
+        if (options?.throwOnFirst) {
+          return detected;
         }
       }
     }
@@ -47,59 +103,52 @@ export class Detector {
     return detected;
   }
   
-  // Phase 2: Accurate tokenizer-based detection
   accurateScan(code: string, quickFeatures: DetectedFeature[]): DetectedFeature[] {
     const tokenizer = new Tokenizer(code);
     const tokens = tokenizer.tokenize();
     const codeTokens = tokenizer.getCodeTokens();
     
+    const tokenValueSet = new Set(codeTokens.map(t => t.value));
+    const hasTemplates = tokens.some(t => t.type === 'template');
+    
     const validated: DetectedFeature[] = [];
     
-    // Validate each quick-detected feature
     for (const feature of quickFeatures) {
-      if (this.validateFeature(feature, codeTokens, tokens)) {
+      if (this.validateFeatureFast(feature, codeTokens, tokenValueSet, hasTemplates)) {
         validated.push(feature);
       }
     }
     
-    // Additional token-based detection
     const additionalFeatures = this.detectFromTokens(codeTokens);
     validated.push(...additionalFeatures);
     
     return validated;
   }
   
-  // Validate a feature using tokens
-  private validateFeature(feature: DetectedFeature, codeTokens: any[], allTokens: any[]): boolean {
-    // Skip validation for features detected in actual code tokens
-    // This ensures we don't have false positives from strings/comments
+  private validateFeatureFast(feature: DetectedFeature, codeTokens: any[], tokenValues: Set<string>, hasTemplates: boolean): boolean {
     switch (feature.name) {
       case 'arrow_functions':
-        return codeTokens.some(t => t.value === '=>');
+        return tokenValues.has('=>');
       case 'spread_rest':
-        return codeTokens.some(t => t.value === '...');
+        return tokenValues.has('...');
       case 'template_literals':
-        // Template literals have type 'template' in full tokens
-        return allTokens.some(t => t.type === 'template');
+        return hasTemplates;
       case 'async_await':
-        return codeTokens.some(t => t.value === 'async' || t.value === 'await');
+        return tokenValues.has('async') || tokenValues.has('await');
       case 'classes':
-        return codeTokens.some(t => t.value === 'class');
+        return tokenValues.has('class');
       case 'let_const':
-        return codeTokens.some(t => t.value === 'let' || t.value === 'const');
+        return tokenValues.has('let') || tokenValues.has('const');
       case 'optional_chaining':
-        return codeTokens.some(t => t.value === '?.');
+        return tokenValues.has('?.');
       case 'nullish_coalescing':
-        return codeTokens.some(t => t.value === '??');
+        return tokenValues.has('??');
       case 'bigint':
-        // BigInt literals show up as numbers with 'n' suffix
         return codeTokens.some(t => t.type === 'number' && t.value.endsWith('n'));
       case 'private_fields':
       case 'class_fields':
-        // Private fields start with #
         return codeTokens.some(t => t.value.startsWith('#'));
       case 'static_blocks':
-        // Static blocks: static { ... }
         for (let i = 0; i < codeTokens.length - 1; i++) {
           if (codeTokens[i].value === 'static' && codeTokens[i + 1].value === '{') {
             return true;
@@ -107,7 +156,7 @@ export class Detector {
         }
         return false;
       case 'array_at':
-        // Array.at() method
+        if (!tokenValues.has('at')) return false;
         for (let i = 0; i < codeTokens.length - 2; i++) {
           if (codeTokens[i].value === '.' && codeTokens[i + 1].value === 'at' && codeTokens[i + 2].value === '(') {
             return true;
@@ -115,7 +164,7 @@ export class Detector {
         }
         return false;
       case 'object_hasOwn':
-        // Object.hasOwn() method
+        if (!tokenValues.has('Object') || !tokenValues.has('hasOwn')) return false;
         for (let i = 0; i < codeTokens.length - 3; i++) {
           if (codeTokens[i].value === 'Object' && codeTokens[i + 1].value === '.' &&
               codeTokens[i + 2].value === 'hasOwn' && codeTokens[i + 3].value === '(') {
@@ -124,9 +173,8 @@ export class Detector {
         }
         return false;
       case 'for_of':
-        return codeTokens.some(t => t.value === 'of');
+        return tokenValues.has('of');
       case 'destructuring':
-        // Complex to validate, check for const/let/var followed by [ or {
         for (let i = 0; i < codeTokens.length - 1; i++) {
           if ((codeTokens[i].value === 'const' || codeTokens[i].value === 'let' || codeTokens[i].value === 'var') &&
               (codeTokens[i + 1].value === '[' || codeTokens[i + 1].value === '{')) {
@@ -135,11 +183,10 @@ export class Detector {
         }
         return false;
       default:
-        return false; // Default to false to avoid false positives
+        return false;
     }
   }
   
-  // Detect features from tokens
   private detectFromTokens(tokens: any[]): DetectedFeature[] {
     const detected: DetectedFeature[] = [];
     
@@ -147,7 +194,6 @@ export class Detector {
       const token = tokens[i];
       const next = tokens[i + 1];
       
-      // Check for specific token patterns
       if (token.value === 'import' && next && (next.value === '(' || next.value === '{' || next.type === 'string')) {
         detected.push({
           name: 'import',
@@ -179,20 +225,16 @@ export class Detector {
     return detected;
   }
   
-  // Main detection method
   detect(code: string, options: DetectionOptions): DetectedFeature[] {
-    // Phase 1: Quick scan
-    const quickFeatures = this.quickScan(code);
+    const quickFeatures = this.quickScan(code, options);
     
     if (options.quick) {
       return quickFeatures;
     }
     
-    // Phase 2: Accurate validation
     return this.accurateScan(code, quickFeatures);
   }
   
-  // Check if code is compatible with target
   check(code: string, options: DetectionOptions): boolean {
     const detected = this.detect(code, options);
     const targetIndex = VERSION_ORDER.indexOf(options.target);
@@ -213,7 +255,6 @@ export class Detector {
     return true;
   }
   
-  // Get minimum required ES version
   getMinimumVersion(code: string, options?: { quick?: boolean }): string {
     const detected = this.detect(code, { target: 'esnext', quick: options?.quick });
     
@@ -232,7 +273,6 @@ export class Detector {
   }
 }
 
-// Singleton instance
 let detectorInstance: Detector | null = null;
 
 export function getDetector(): Detector {
@@ -242,7 +282,6 @@ export function getDetector(): Detector {
   return detectorInstance;
 }
 
-// Convenience functions
 export function detect(code: string, options: DetectionOptions): DetectedFeature[] {
   return getDetector().detect(code, options);
 }

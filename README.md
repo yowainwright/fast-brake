@@ -20,7 +20,7 @@ Perfect for:
 - **ES5 to ES2022** - Comprehensive feature coverage (30+ features)
 - **Programmatic API** - Simple, intuitive interface
 - **Performance First** - Optimized for speed
-- **False Positive Protection** - Tokenizer eliminates string/comment false positives
+- **Accurate Detection** - Tokenizer validates features in actual code
 
 ## Installation
 
@@ -61,15 +61,15 @@ fast-brake uses a unique **two-phase detection system** that combines speed with
 - Provides initial feature candidates
 
 ### Phase 2: Tokenizer Validation
-- **Eliminates false positives** from strings, comments, and regex
+- **Validates features** in actual code contexts
 - Validates features using intelligent tokenization
 - Adds additional features detected through token analysis (imports, exports, etc.)
 
 ```javascript
-// Quick mode: Phase 1 only (fastest, may have false positives)
+// Quick mode: Phase 1 only (fastest pattern matching)
 const quickFeatures = detect(code, { quick: true });
 
-// Full mode: Phase 1 + Phase 2 (recommended, eliminates false positives)
+// Full mode: Phase 1 + Phase 2 (recommended, with tokenizer validation)
 const accurateFeatures = detect(code, { quick: false }); // default
 ```
 
@@ -248,26 +248,72 @@ console.log(version3); // 'es2020'
 
 ## Performance Benchmarks
 
-Tested on a MacBook Pro M1 with typical JavaScript files:
+### Plugin Configuration Performance  
+Tested on MacBook Pro M4 (8.9KB test file):
 
-| Metric | fast-brake (Quick) | fast-brake (Full) | Traditional AST Parser |
-|--------|-------------------|-------------------|----------------------|
-| Single file (1KB) | **0.013ms** | 0.055ms | ~2ms |
-| 1000 files | **13ms** | 55ms | ~100ms |
-| Memory usage | **4MB** | 4MB | ~15MB |
-| Accuracy | 95% | **99.9%** | 99.9% |
+| Configuration | Ops/sec | vs Single ES5 | Use Case |
+|--------------|---------|---------------|----------|
+| **Telemetry Only** | 4,951 | 2.03x | Analytics/tracking detection |
+| **Single ES2015** | 2,459 | 1.01x | Known ES2015 target |
+| **Single ES2020** | 2,452 | 1.01x | Known ES2020 target |
+| **Single ES5** | 2,439 | 1.00x (baseline) | Known ES5 target |
+| **Legacy Browsers** | 2,416 | 0.99x | Older browser support |
+| **Modern Browsers** | 2,371 | 0.97x | Last 2 versions |
+| **ES Detect** | 2,353 | 0.96x | Auto-detect min version |
+| **All ES Versions** | 2,343 | 0.96x | Comprehensive checking |
+| **All + Telemetry** | 1,653 | 0.68x | ES + tracking detection |
+| **All + Browsers** | 1,504 | 0.62x | Full compatibility |
+| **Kitchen Sink** | 1,080 | 0.44x | Everything enabled |
+
+### Parser Comparison - ES5 File (455B)
+Tested on MacBook Pro M4:
+
+| Parser | Ops/sec | Time (ms) | Relative | Status |
+|--------|---------|-----------|----------|--------|
+| **fast-brake (pattern)** | 110,842 | 0.009 | 1.0x | ✅ es5 |
+| **Meriyah** | 68,213 | 0.015 | 0.6x | ✅ parsed |
+| **Cherow** | 56,497 | 0.018 | 0.5x | ✅ parsed |
+| **Esprima** | 42,735 | 0.023 | 0.4x | ✅ parsed |
+| **fast-brake (es2015)** | 42,644 | 0.023 | 0.4x | ✅ es2015 check |
+| **fast-brake (all ES)** | 42,500 | 0.024 | 0.4x | ✅ all versions |
+| **fast-brake (es5)** | 39,130 | 0.026 | 0.4x | ✅ es5 check |
+| **Acorn** | 38,627 | 0.026 | 0.3x | ✅ parsed |
+| **Espree** | 28,513 | 0.035 | 0.3x | ✅ parsed |
+| **Babel** | 21,701 | 0.046 | 0.2x | ✅ parsed |
+| **fast-brake (all+browser)** | 19,782 | 0.051 | 0.2x | ✅ all+browser |
+| **fast-brake (full)** | 17,170 | 0.058 | 0.2x | ✅ es5 |
+
+### Parser Comparison - ES2015 File (711B)
+Tested on MacBook Pro M4:
+
+| Parser | Ops/sec | Time (ms) | Relative | Status |
+|--------|---------|-----------|----------|--------|
+| **fast-brake (pattern)** | 72,812 | 0.014 | 1.0x | ✅ es2015 |
+| **Meriyah** | 62,628 | 0.016 | 0.9x | ✅ parsed |
+| **Cherow** | 58,772 | 0.017 | 0.8x | ✅ parsed |
+| **Esprima** | 36,789 | 0.027 | 0.5x | ❌ parse error |
+| **Acorn** | 25,866 | 0.039 | 0.4x | ❌ parse error |
+| **fast-brake (all ES)** | 24,678 | 0.041 | 0.3x | ✅ all versions |
+| **fast-brake (es2015)** | 24,265 | 0.041 | 0.3x | ✅ es2015 check |
+| **fast-brake (es5)** | 23,041 | 0.043 | 0.3x | ✅ es5 check |
+| **Babel** | 19,152 | 0.052 | 0.3x | ✅ parsed |
+| **Espree** | 17,036 | 0.059 | 0.2x | ❌ parse error |
+| **fast-brake (full)** | 11,606 | 0.086 | 0.2x | ✅ es2015 |
+| **fast-brake (all+browser)** | 10,797 | 0.093 | 0.1x | ✅ all+browser |
+
+*Benchmarked on 2025-08-23*
 
 ### When to use Quick vs Full mode
 
 **Quick Mode** (`{ quick: true }`):
-- **7x faster** than full mode
+- **Up to 7x faster** than full mode
 - Perfect for **build tools** and **hot reloading**
-- May have **false positives** from strings/comments
-- Use when **speed is critical** and occasional false positives are acceptable
+- **Pattern-based detection** without tokenizer validation
+- Use when **speed is critical**
 
 **Full Mode** (default):
-- **99.9% accuracy** - eliminates false positives
-- **Still 2x faster** than AST parsers
+- **High accuracy** with tokenizer validation
+- **Still faster** than AST parsers
 - **Recommended** for most use cases
 - Use for **linting**, **CI/CD**, and **production builds**
 

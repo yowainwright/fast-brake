@@ -199,7 +199,7 @@ interface DetectionOptions {
 
 ### Quick Mode
 
-**7x faster** than full mode, but may have false positives from strings and comments.
+**Faster** than full mode using pattern-based detection.
 
 ```javascript
 import { detect, check, getMinimumESVersion } from 'fast-brake';
@@ -217,12 +217,12 @@ const minVersion = getMinimumESVersion(code, { quick: true });
 
 **Characteristics:**
 - ⚡ **Ultra-fast**: ~0.013ms per file
-- ⚠️ **95% accuracy**: May detect features in strings/comments
+- ⚠️ Pattern-based detection only
 - 🎯 **Use case**: Development builds, hot reloading
 
 ### Full Mode (Default)
 
-**99.9% accuracy** with tokenizer validation to eliminate false positives.
+**High accuracy** with tokenizer validation for accurate detection.
 
 ```javascript
 import { detect, check, getMinimumESVersion } from 'fast-brake';
@@ -240,7 +240,7 @@ const minVersion = getMinimumESVersion(code);
 ```
 
 **Characteristics:**
-- 🎯 **99.9% accuracy**: Eliminates false positives
+- 🎯 **High accuracy**: With tokenizer validation
 - ⚡ **Still fast**: ~0.055ms per file (2x faster than AST parsers)
 - 🛡️ **Tokenizer validation**: Ignores features in strings/comments
 - 🎯 **Use case**: Production builds, CI/CD, linting

@@ -1,0 +1,101 @@
+{
+  "timestamp": "2025-08-23T06:15:57.415Z",
+  "results": [
+    {
+      "plugin": "Telemetry Detection",
+      "timeMs": 0.202,
+      "opsPerSec": 4951,
+      "relativeToES5": 2.03,
+      "featuresDetected": 2,
+      "memoryMB": 0
+    },
+    {
+      "plugin": "Single ES2015",
+      "timeMs": 0.407,
+      "opsPerSec": 2459,
+      "relativeToES5": 1.01,
+      "featuresDetected": 6,
+      "memoryMB": 1.33
+    },
+    {
+      "plugin": "Single ES2020",
+      "timeMs": 0.408,
+      "opsPerSec": 2452,
+      "relativeToES5": 1.01,
+      "featuresDetected": 0,
+      "memoryMB": 1.34
+    },
+    {
+      "plugin": "Single ES5",
+      "timeMs": 0.41,
+      "opsPerSec": 2439,
+      "relativeToES5": 1,
+      "featuresDetected": 244,
+      "memoryMB": 2.92
+    },
+    {
+      "plugin": "Legacy Browsers",
+      "timeMs": 0.414,
+      "opsPerSec": 2416,
+      "relativeToES5": 0.99,
+      "featuresDetected": 6,
+      "memoryMB": 1.55
+    },
+    {
+      "plugin": "Modern Browsers",
+      "timeMs": 0.422,
+      "opsPerSec": 2371,
+      "relativeToES5": 0.97,
+      "featuresDetected": 0,
+      "memoryMB": 1.52
+    },
+    {
+      "plugin": "ES Detect",
+      "timeMs": 0.425,
+      "opsPerSec": 2353,
+      "relativeToES5": 0.96,
+      "featuresDetected": 1,
+      "memoryMB": 1.3
+    },
+    {
+      "plugin": "All ES Versions",
+      "timeMs": 0.427,
+      "opsPerSec": 2343,
+      "relativeToES5": 0.96,
+      "featuresDetected": 244,
+      "memoryMB": 2.35
+    },
+    {
+      "plugin": "All + Telemetry",
+      "timeMs": 0.605,
+      "opsPerSec": 1653,
+      "relativeToES5": 0.68,
+      "featuresDetected": 246,
+      "memoryMB": 2.49
+    },
+    {
+      "plugin": "All + Browsers",
+      "timeMs": 0.665,
+      "opsPerSec": 1504,
+      "relativeToES5": 0.62,
+      "featuresDetected": 244,
+      "memoryMB": 3.48
+    },
+    {
+      "plugin": "Kitchen Sink",
+      "timeMs": 0.926,
+      "opsPerSec": 1080,
+      "relativeToES5": 0.44,
+      "featuresDetected": 246,
+      "memoryMB": 3.76
+    },
+    {
+      "plugin": "ES5 + ES2015 + ES2020",
+      "timeMs": 0.943,
+      "opsPerSec": 1061,
+      "relativeToES5": 0.43,
+      "featuresDetected": 244,
+      "memoryMB": 3.65
+    }
+  ]
+}

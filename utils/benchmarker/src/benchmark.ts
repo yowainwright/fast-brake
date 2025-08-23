@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { detect, getMinimumESVersion } from 'fast-brake';
+import { detect, getMinimumESVersion, detectWithPlugins } from 'fast-brake';
 import * as babel from '@babel/parser';
 import * as acorn from 'acorn';
 import * as esprima from 'esprima';
@@ -32,9 +32,8 @@ interface TestCase {
   expectedVersion?: string;
 }
 
-// Load test cases
 function loadTestCases(): TestCase[] {
-  const fixturesDir = join(__dirname, '../../tests/fixtures');
+  const fixturesDir = join(__dirname, '../../../tests/fixtures');
   const cases: TestCase[] = [
     {
       name: 'ES5 (Legacy)',
@@ -62,7 +61,6 @@ function loadTestCases(): TestCase[] {
     }
   ];
 
-  // Add synthetic large file test
   const largeCode = cases[1].code.repeat(100); // 100x ES2015 code
   cases.push({
     name: 'Large File (100x)',
@@ -71,7 +69,6 @@ function loadTestCases(): TestCase[] {
     expectedVersion: 'es2015'
   });
 
-  // Update sizes
   cases.forEach(c => {
     if (c.size === 0) c.size = Buffer.byteLength(c.code, 'utf-8');
   });
@@ -79,7 +76,6 @@ function loadTestCases(): TestCase[] {
   return cases;
 }
 
-// Benchmark runners for each parser
 const parsers = {
   'fast-brake (pattern)': {
     parse: (code: string) => detect(code, { quick: true }),
@@ -99,6 +95,38 @@ const parsers = {
       return { features: features.length, version };
     }
   },
+  'fast-brake (es5 only)': {
+    parse: (code: string) => detectWithPlugins(code, ['es5']),
+    description: 'Single ES5 plugin',
+    validate: (code: string) => {
+      const features = detectWithPlugins(code, ['es5']);
+      return { features: features.length, version: 'es5 check' };
+    }
+  },
+  'fast-brake (es2015 only)': {
+    parse: (code: string) => detectWithPlugins(code, ['es2015']),
+    description: 'Single ES2015 plugin',
+    validate: (code: string) => {
+      const features = detectWithPlugins(code, ['es2015']);
+      return { features: features.length, version: 'es2015 check' };
+    }
+  },
+  'fast-brake (all ES)': {
+    parse: (code: string) => detectWithPlugins(code, ['all']),
+    description: 'All ES versions plugin',
+    validate: (code: string) => {
+      const features = detectWithPlugins(code, ['all']);
+      return { features: features.length, version: 'all versions' };
+    }
+  },
+  'fast-brake (all + browser)': {
+    parse: (code: string) => detectWithPlugins(code, ['all', 'browser:defaults']),
+    description: 'All ES + browserlist',
+    validate: (code: string) => {
+      const features = detectWithPlugins(code, ['all', 'browser:defaults']);
+      return { features: features.length, version: 'all + browser' };
+    }
+  },
   '@babel/parser': {
     parse: (code: string) => babel.parse(code, { 
       sourceType: 'module',
@@ -109,7 +137,7 @@ const parsers = {
       try {
         const ast = babel.parse(code, { sourceType: 'module' });
         return { nodes: ast.program.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -124,7 +152,7 @@ const parsers = {
       try {
         const ast = acorn.parse(code, { ecmaVersion: 'latest' as any });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -136,7 +164,7 @@ const parsers = {
       try {
         const ast = esprima.parseScript(code);
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -151,7 +179,7 @@ const parsers = {
       try {
         const ast = espree.parse(code, { ecmaVersion: 'latest' });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -166,7 +194,7 @@ const parsers = {
       try {
         const ast = meriyahParse(code, { module: true });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
@@ -181,14 +209,13 @@ const parsers = {
       try {
         const ast = cherowParse(code, { module: true });
         return { nodes: ast.body.length };
-      } catch (e) {
+      } catch {
         return { error: true };
       }
     }
   }
 };
 
-// Run benchmark for a parser
 function runBenchmark(
   name: string, 
   parser: any, 
@@ -197,25 +224,21 @@ function runBenchmark(
 ): BenchmarkResult {
   const startMem = process.memoryUsage().heapUsed;
   
-  // Warmup
   for (let i = 0; i < 10; i++) {
     try {
       parser.parse(testCase.code);
-    } catch (e) {
-      // Ignore warmup errors
+    } catch {
     }
   }
 
-  // Actual benchmark
-  let successful = 0;
+  let _successful = 0;
   const start = performance.now();
   
   for (let i = 0; i < iterations; i++) {
     try {
       parser.parse(testCase.code);
-      successful++;
-    } catch (e) {
-      // Count failures
+      _successful++;
+    } catch {
     }
   }
   
@@ -226,7 +249,6 @@ function runBenchmark(
   const opsPerSec = 1000 / timeMs;
   const memoryMB = (endMem - startMem) / 1024 / 1024;
   
-  // Validate accuracy if applicable
   let accuracy = '';
   if (parser.validate) {
     const result = parser.validate(testCase.code);
@@ -248,7 +270,6 @@ function runBenchmark(
   };
 }
 
-// Generate markdown table
 function generateMarkdownTable(results: BenchmarkResult[]): string {
   let md = '| Parser | Method | Time (ms) | Ops/sec | Relative | Accuracy |\n';
   md += '|--------|--------|-----------|---------|----------|----------|\n';
@@ -260,7 +281,6 @@ function generateMarkdownTable(results: BenchmarkResult[]): string {
   return md;
 }
 
-// Generate JSON for homepage
 function generateJSON(allResults: Map<string, BenchmarkResult[]>): string {
   const output: any = {
     timestamp: new Date().toISOString(),
@@ -280,7 +300,6 @@ function generateJSON(allResults: Map<string, BenchmarkResult[]>): string {
   return JSON.stringify(output, null, 2);
 }
 
-// Main benchmark runner
 async function main() {
   console.log(pc.bold(pc.cyan('\n🚀 Fast-Brake Benchmark Suite\n')));
   console.log(pc.gray('Comparing fast-brake against popular JavaScript parsers\n'));
@@ -294,7 +313,6 @@ async function main() {
     
     const results: BenchmarkResult[] = [];
     
-    // Run benchmarks
     for (const [name, parser] of Object.entries(parsers)) {
       process.stdout.write(pc.gray(`  Running ${name}...`));
       
@@ -302,21 +320,18 @@ async function main() {
         const result = runBenchmark(name, parser, testCase);
         results.push(result);
         console.log(pc.green(' ✓'));
-      } catch (e) {
+      } catch {
         console.log(pc.red(' ✗ Failed'));
       }
     }
     
-    // Calculate relative speeds (fast-brake pattern as baseline)
     const baseline = results.find(r => r.parser === 'fast-brake (pattern)')?.timeMs || 1;
     results.forEach(r => {
       r.relativeSpeed = baseline / r.timeMs;
     });
     
-    // Sort by speed
     results.sort((a, b) => b.opsPerSec - a.opsPerSec);
     
-    // Display results table
     const table = new Table({
       head: ['Parser', 'Time (ms)', 'Ops/sec', 'Relative', 'Accuracy'],
       style: { head: ['cyan'] }
@@ -341,7 +356,6 @@ async function main() {
     allResults.set(testCase.name, results);
   }
   
-  // Summary
   console.log(pc.bold(pc.cyan('\n📈 Summary\n')));
   
   const fastBrakePatternAvg = Array.from(allResults.values())
@@ -356,7 +370,6 @@ async function main() {
   console.log(pc.yellow(`✓ @babel/parser: ${babelAvg.toFixed(0)} ops/sec average`));
   console.log(pc.bold(`✓ Speed advantage: ${(fastBrakePatternAvg / babelAvg).toFixed(1)}x faster\n`));
   
-  // Trade-offs explanation
   console.log(pc.bold(pc.cyan('⚖️  Trade-offs\n')));
   console.log(pc.gray('fast-brake achieves its speed through:'));
   console.log(pc.gray('  • Pattern matching instead of full AST parsing'));
@@ -376,14 +389,12 @@ async function main() {
   console.log(pc.gray('  • Linting and formatting'));
   console.log(pc.gray('  • AST manipulation\n'));
   
-  // Save results
   const resultsDir = join(__dirname, 'results');
   await Bun.write(
     join(resultsDir, 'benchmark-results.json'),
     generateJSON(allResults)
   );
   
-  // Generate markdown for README
   const firstTest = allResults.values().next().value;
   if (firstTest) {
     const markdown = generateMarkdownTable(firstTest);
@@ -396,5 +407,4 @@ async function main() {
   console.log(pc.green('✓ Results saved to utils/benchmarker/results/\n'));
 }
 
-// Run benchmarks
 main().catch(console.error);
