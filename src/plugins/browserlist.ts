@@ -31,7 +31,7 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
   const targets: BrowserTarget[] = [];
   
   for (const browser of browserArray) {
-    const match = browser.match(/^(chrome|firefox|safari|edge|ie)\s*([><=]*)\s*(\d+)/i);
+    const match = browser.match(/^(chrome|firefox|safari|edge|ie)\s*([><=]{0,2})\s*(\d+)/i);
     if (match) {
       const [, name, , version] = match;
       targets.push({
@@ -40,7 +40,7 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
       });
     }
     else if (browser.includes('last')) {
-      const versionMatch = browser.match(/last\s+(\d+)/);
+      const versionMatch = browser.match(/last\s+(\d{1,2})/);
       if (versionMatch) {
         const versions = parseInt(versionMatch[1], 10);
         targets.push(
