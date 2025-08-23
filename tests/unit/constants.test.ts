@@ -23,7 +23,7 @@ describe('Constants', () => {
     });
 
     test('should have browser versions for each ES version', () => {
-      for (const [version, browsers] of Object.entries(ES_VERSIONS)) {
+      for (const [_version, browsers] of Object.entries(ES_VERSIONS)) {
         expect(browsers).toHaveProperty('chrome');
         expect(browsers).toHaveProperty('firefox');
         expect(browsers).toHaveProperty('safari');
@@ -93,7 +93,7 @@ describe('Constants', () => {
 
   describe('FEATURE_PATTERNS', () => {
     test('should be valid RegExp patterns', () => {
-      for (const [name, pattern] of Object.entries(FEATURE_PATTERNS)) {
+      for (const [_name, pattern] of Object.entries(FEATURE_PATTERNS)) {
         expect(pattern).toBeInstanceOf(RegExp);
       }
     });
@@ -161,7 +161,7 @@ describe('Constants', () => {
 
   describe('QUICK_PATTERNS', () => {
     test('should be valid RegExp patterns', () => {
-      for (const [name, pattern] of Object.entries(QUICK_PATTERNS)) {
+      for (const [_name, pattern] of Object.entries(QUICK_PATTERNS)) {
         expect(pattern).toBeInstanceOf(RegExp);
       }
     });
