@@ -1,0 +1,73 @@
+---
+import BenchmarkDataTable from "./BenchmarkDataTable";
+import { resolveDocsUrl } from "../../utils/urlResolver";
+---
+
+<div class="pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="text-center mb-12 lg:mb-16">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight font-outfit">
+        <span class="bg-clip-text text-transparent" style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%); -webkit-background-clip: text;">
+          Very Fast
+        </span> Performance
+      </h2>
+      
+      <p class="mt-4 sm:mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+        Fast Brake offers competitive performance for ES feature detection through efficient pattern matching.
+        Ideal for build tools, CI/CD pipelines, and large codebases where speed matters.
+      </p>
+    </div>
+
+    <!-- Performance Highlights -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12 lg:mb-16">
+      <div class="bg-base-200 rounded-2xl p-6 lg:p-8 text-center">
+        <div class="text-3xl lg:text-4xl font-bold text-green-500 mb-2">11</div>
+        <div class="text-lg font-semibold mb-2">ES Versions Tested</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          ES5 through ES2025 compatibility
+        </div>
+      </div>
+      
+      <div class="bg-base-200 rounded-2xl p-6 lg:p-8 text-center">
+        <div class="text-3xl lg:text-4xl font-bold text-blue-500 mb-2">60k+</div>
+        <div class="text-lg font-semibold mb-2">Operations/sec</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          Process thousands of files in seconds
+        </div>
+      </div>
+      
+      <div class="bg-base-200 rounded-2xl p-6 lg:p-8 text-center">
+        <div class="text-3xl lg:text-4xl font-bold text-purple-500 mb-2">High</div>
+        <div class="text-lg font-semibold mb-2">Detection Accuracy</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          Two-phase validation for accurate detection
+        </div>
+      </div>
+    </div>
+
+    <!-- Benchmark Table with Side Content -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-6 lg:p-8">
+      <h3 class="text-xl font-bold mb-6 font-outfit">Live Benchmark Results</h3>
+      <BenchmarkDataTable client:load />
+    </div>
+
+    <!-- CTA Section -->
+    <div class="text-center mt-12 lg:mt-16">
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href={resolveDocsUrl("setup")} class="w-full sm:w-auto">
+          <button class="btn btn-lg text-white border-0 hover:opacity-90 w-full sm:w-auto" 
+                  style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%);">
+            Get Started
+          </button>
+        </a>
+        
+        <a href={resolveDocsUrl("architecture")} class="w-full sm:w-auto">
+          <button class="btn btn-lg btn-outline w-full sm:w-auto">
+            Learn Architecture
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

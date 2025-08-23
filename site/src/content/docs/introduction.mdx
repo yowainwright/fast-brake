@@ -1,6 +1,6 @@
 ---
 title: Introduction to fast-brake
-description: "Blazing fast ES feature detection with zero runtime dependencies. Analyzes JavaScript code to detect ECMAScript features and verify compatibility with target ES versions."
+description: "ES feature detection with zero runtime dependencies. Analyzes JavaScript code to detect ECMAScript features and verify compatibility with target ES versions."
 ---
 
 <div className="flex flex-wrap gap-2 mb-8">
@@ -20,7 +20,7 @@ description: "Blazing fast ES feature detection with zero runtime dependencies. 
 
 ## What is fast-brake?
 
-**fast-brake** is a revolutionary ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. Unlike traditional tools that rely on slow AST parsers, fast-brake uses a unique **two-phase detection system** that delivers **7x faster performance** while maintaining 99.9% accuracy.
+**fast-brake** is an ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. Unlike traditional tools that rely on slow AST parsers, fast-brake uses a unique **two-phase detection system** that is faster while still maintaining high accuracy.
 
 ## Why is fast-brake Game-Changing?
 
@@ -30,7 +30,7 @@ Modern JavaScript development involves managing compatibility across different E
 
 - **AST Parsers are Slow**: Tools like Babel parser can take 100ms+ to process 1000 files
 - **Build Tool Bottlenecks**: Compatibility checking becomes a performance bottleneck
-- **False Positives**: Simple regex matching detects ES features in strings and comments
+- **Limited Context**: Simple regex matching without semantic understanding
 - **Complex Setup**: Heavy dependencies and complex configuration requirements
 
 ```javascript
@@ -56,12 +56,12 @@ fast-brake revolutionizes ES feature detection with its **two-phase system**:
 - Provides initial feature candidates
 
 **Phase 2: Intelligent Tokenizer Validation**
-- Eliminates false positives from strings, comments, and regex
+- Validates features in actual code contexts
 - Validates features using smart tokenization
 - Adds features detected through token analysis
 
 ```javascript
-// fast-brake approach - simple and blazing fast
+// fast-brake approach - simple and fast
 import { detect, check, getMinimumESVersion } from 'fast-brake';
 
 // Process 1000 files in <15ms
@@ -72,19 +72,50 @@ const minVersion = getMinimumESVersion(code);
 
 ## Performance Comparison
 
-| Tool | 1000 Files | Single File | Memory | Accuracy |
-|------|------------|-------------|---------|----------|
-| **fast-brake (Quick)** | **13ms** | **0.013ms** | **4MB** | 95% |
-| **fast-brake (Full)** | **55ms** | **0.055ms** | **4MB** | **99.9%** |
-| Babel Parser | ~100ms | ~2ms | ~15MB | 99.9% |
-| ESLint Parser | ~120ms | ~2.5ms | ~18MB | 99.9% |
+### Plugin Configuration Performance
+
+Choose the right plugin configuration for your needs:
+
+| Plugin Configuration | Time (ms) | Ops/sec | vs Single ES5 | Features Detected |
+|---------------------|-----------|---------|---------------|-------------------|
+| **Telemetry Detection** | **0.202** | **4,951** | **2.03x** | 2 |
+| Single ES5 | 0.410 | 2,439 | 1.00x | 244 |
+| All ES Versions | 0.427 | 2,343 | 0.96x | 244 |
+| All + Browser Compat | 0.665 | 1,504 | 0.62x | 244 |
+| Kitchen Sink (All) | 0.926 | 1,080 | 0.44x | 246 |
+
+*Benchmarked on Apple M4, 2025-08-22*
+
+### Parser Comparison - ES2015 Files
+
+| Parser | Time (ms) | Ops/sec | Relative Speed |
+|--------|-----------|---------|----------------|
+| **fast-brake (pattern)** | **0.014** | **72,812** | **1.0x** |
+| meriyah | 0.016 | 61,003 | 0.8x |
+| cherow | 0.018 | 54,067 | 0.7x |
+| esprima | 0.026 | 38,320 | 0.5x |
+| @babel/parser | 0.052 | 19,152 | 0.3x |
+| fast-brake (full) | 0.086 | 11,606 | 0.2x |
+
+### Parser Comparison - ES5 Files  
+
+| Parser | Time (ms) | Ops/sec | Relative Speed |
+|--------|-----------|---------|----------------|
+| **fast-brake (pattern)** | **0.009** | **110,842** | **1.0x** |
+| meriyah | 0.016 | 61,811 | 0.6x |
+| cherow | 0.016 | 62,570 | 0.6x |
+| esprima | 0.023 | 42,832 | 0.4x |
+| @babel/parser | 0.048 | 20,776 | 0.2x |
+| fast-brake (full) | 0.056 | 17,871 | 0.2x |
+
+*All benchmarks run on Apple M4, 2025-08-22*
 
 ## Key Benefits
 
-- **🚀 Blazing Fast**: 7x faster than traditional AST parsers
+- **🚀 Fast**: Can be up to 7x faster than traditional AST parsers for its intended purpose
 - **📦 Zero Dependencies**: Lightweight with no runtime dependencies
 - **🎯 Two-Phase Detection**: Combines speed with accuracy
-- **🛡️ False Positive Protection**: Tokenizer eliminates string/comment false positives
+- **🛡️ Accurate Detection**: Tokenizer validates features in actual code
 - **📊 Comprehensive Coverage**: Supports ES5 through ES2022 (30+ features)
 - **🔧 Simple API**: Intuitive interface with TypeScript support
 - **⚡ Performance First**: Optimized for build tools and CI/CD pipelines
@@ -178,13 +209,13 @@ fast-brake detects **30+ ES features** across all major versions:
 ### Quick Mode - Maximum Speed
 ```javascript
 const features = detect(code, { quick: true });
-// 7x faster, 95% accuracy, may have false positives
+// Faster pattern matching
 ```
 
 ### Full Mode - Maximum Accuracy (Default)
 ```javascript
 const features = detect(code, { quick: false });
-// 99.9% accuracy, eliminates false positives, still 2x faster than AST parsers
+// High accuracy with tokenizer validation, still faster than AST parsers
 ```
 
 ## Ready to Get Started?

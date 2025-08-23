@@ -69,7 +69,7 @@ benchmarker/
 
 ## Parsers Compared
 
-- **Fast Brake** - Blazing fast ES feature detection (this project)
+- **Fast Brake** - ES feature detection (this project)
 - **@babel/parser** - Babel's JavaScript parser
 - **Acorn** - Small, fast JavaScript parser
 - **Esprima** - ECMAScript parsing infrastructure

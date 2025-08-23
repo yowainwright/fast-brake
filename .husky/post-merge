@@ -1,2 +1,2 @@
 
-bun install && bun run build
+bun install

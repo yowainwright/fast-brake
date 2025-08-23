@@ -5,19 +5,21 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "bun test tests",
-    "build": "tsc --noEmit",
+    "test:run": "bun test tests",
+    "build:pkg": "echo 'Skipping benchmarker build (utility only)'",
+    "clean": "rimraf dist",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint src tests",
+    "lint:run": "oxlint src tests",
     "lint:fix": "oxlint src tests --fix",
     "benchmark": "bun run src/benchmark.ts",
-    "benchmark:compare": "bun run src/compare.ts",
-    "benchmark:table": "bun run src/generate-table.ts"
+    "benchmark:table": "bun run src/generate-table.ts",
+    "benchmark:update": "bun run src/update-benchmarks.ts",
+    "benchmark:all": "bun run benchmark && bun run benchmark:table && bun run benchmark:update"
   },
   "dependencies": {
-    "fast-brake": "*",
+    "fast-brake": "file:../..",
     "@babel/parser": "^7.26.3",
     "acorn": "^8.14.0",
     "esprima": "^4.0.1",

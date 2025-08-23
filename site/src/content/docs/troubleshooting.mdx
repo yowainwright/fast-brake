@@ -7,26 +7,26 @@ description: Common issues, debugging tips, and frequently asked questions for f
 
 ### What is fast-brake?
 
-fast-brake is a blazing-fast ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. It uses a revolutionary two-phase detection system that's 7x faster than traditional AST parsers.
+fast-brake is an ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. It uses a two-phase detection system that can be faster than traditional AST parsers for its intended service to brake fast!
 
 ### Why is fast-brake faster than other tools?
 
 fast-brake uses a unique **two-phase detection system**:
 1. **Phase 1**: Lightning-fast regex pattern matching for initial feature detection
-2. **Phase 2**: Intelligent tokenizer validation to eliminate false positives
+2. **Phase 2**: Intelligent tokenizer validation for accurate detection
 
 This approach avoids the overhead of full AST parsing while maintaining 99.9% accuracy.
 
 ### When should I use quick mode vs full mode?
 
 **Quick Mode** (`{ quick: true }`):
-- ✅ **7x faster** than full mode (~0.013ms per file)
+- ✅ **Faster** than full mode (~0.013ms per file)
 - ✅ Perfect for **development builds** and **hot reloading**
-- ⚠️ **95% accuracy** - may have false positives from strings/comments
+- ⚠️ Pattern-based detection without tokenizer validation
 - ✅ Use when speed is critical
 
 **Full Mode** (default):
-- ✅ **99.9% accuracy** - eliminates false positives
+- ✅ **High accuracy** with tokenizer validation
 - ✅ **Still 2x faster** than AST parsers (~0.055ms per file)
 - ✅ **Recommended** for production builds and CI/CD
 - ✅ Use when accuracy is critical
@@ -53,7 +53,7 @@ Yes! fast-brake is designed to be extensible. You can create custom detectors an
 
 ## Common Issues
 
-### False Positives in Quick Mode
+### Quick Mode Detection Characteristics
 
 **Problem:** Quick mode detects ES features in strings or comments.
 
@@ -589,12 +589,12 @@ const isCompatible = check(code, { target: 'es2022' });
 
 ### Performance Comparison
 
-| Tool | 1000 Files | Accuracy | Memory |
-|------|------------|----------|---------|
-| **fast-brake (Quick)** | **13ms** | 95% | **4MB** |
-| **fast-brake (Full)** | **55ms** | **99.9%** | **4MB** |
-| Babel Parser | ~100ms | 99.9% | ~15MB |
-| ESLint Parser | ~120ms | 99.9% | ~18MB |
-| Acorn Parser | ~80ms | 99.9% | ~12MB |
+| Tool | 1000 Files | Memory |
+|------|------------|---------|
+| **fast-brake (Quick)** | **13ms** | **4MB** |
+| **fast-brake (Full)** | **55ms** | **4MB** |
+| Babel Parser | ~100ms | ~15MB |
+| ESLint Parser | ~120ms | ~18MB |
+| Acorn Parser | ~80ms | ~12MB |
 
 The migration to fast-brake typically results in significant performance improvements while maintaining or improving accuracy.
