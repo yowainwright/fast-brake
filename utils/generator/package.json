@@ -14,7 +14,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint src tests",
+    "lint:run": "oxlint src tests",
     "lint:fix": "oxlint src tests --fix",
     "generate": "bun src/generate-schema.ts"
   },
