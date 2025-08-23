@@ -54,10 +54,28 @@ function loadTestCases(): TestCase[] {
       expectedVersion: 'es2020'
     },
     {
-      name: 'ES2022 (Latest)',
+      name: 'ES2022',
       code: readFileSync(join(fixturesDir, 'es2022.js'), 'utf-8'),
       size: 0,
       expectedVersion: 'es2022'
+    },
+    {
+      name: 'ES2023 (Array Methods)',
+      code: readFileSync(join(fixturesDir, 'es2023.js'), 'utf-8'),
+      size: 0,
+      expectedVersion: 'es2023'
+    },
+    {
+      name: 'ES2024 (Latest)',
+      code: readFileSync(join(fixturesDir, 'es2024.js'), 'utf-8'),
+      size: 0,
+      expectedVersion: 'es2024'
+    },
+    {
+      name: 'ES2025 (Bleeding Edge)',
+      code: readFileSync(join(fixturesDir, 'es2025.js'), 'utf-8'),
+      size: 0,
+      expectedVersion: 'es2025'
     }
   ];
 

@@ -265,43 +265,92 @@ Tested on MacBook Pro M4 (8.9KB test file):
 | **All + Browsers** | 1,504 | 0.62x | Full compatibility |
 | **Kitchen Sink** | 1,080 | 0.44x | Everything enabled |
 
-### Parser Comparison - ES5 File (455B)
+### Parser Comparison - ES5 (Legacy) File (455B)
 Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 110,842 | 0.009 | 1.0x | ✅ es5 |
-| **Meriyah** | 68,213 | 0.015 | 0.6x | ✅ parsed |
-| **Cherow** | 56,497 | 0.018 | 0.5x | ✅ parsed |
-| **Esprima** | 42,735 | 0.023 | 0.4x | ✅ parsed |
-| **fast-brake (es2015)** | 42,644 | 0.023 | 0.4x | ✅ es2015 check |
-| **fast-brake (all ES)** | 42,500 | 0.024 | 0.4x | ✅ all versions |
-| **fast-brake (es5)** | 39,130 | 0.026 | 0.4x | ✅ es5 check |
-| **Acorn** | 38,627 | 0.026 | 0.3x | ✅ parsed |
-| **Espree** | 28,513 | 0.035 | 0.3x | ✅ parsed |
-| **Babel** | 21,701 | 0.046 | 0.2x | ✅ parsed |
-| **fast-brake (all+browser)** | 19,782 | 0.051 | 0.2x | ✅ all+browser |
-| **fast-brake (full)** | 17,170 | 0.058 | 0.2x | ✅ es5 |
+| **fast-brake (pattern)** | 104,991 | 0.010 | 1.0x | ✅ es5 |
+| **Meriyah** | 68,770 | 0.015 | 0.7x | ✅ parsed |
+| **Cherow** | 60,829 | 0.016 | 0.6x | ✅ parsed |
+| **Esprima** | 42,263 | 0.024 | 0.4x | ✅ parsed |
+| **Acorn** | 40,971 | 0.024 | 0.4x | ✅ parsed |
+| **Espree** | 29,722 | 0.034 | 0.3x | ✅ parsed |
+| **@babel/parser** | 21,681 | 0.046 | 0.2x | ✅ parsed |
+| **fast-brake (full)** | 18,694 | 0.053 | 0.2x | ✅ es5 |
 
-### Parser Comparison - ES2015 File (711B)
+### Parser Comparison - ES2015 (ES6) File (711B)
 Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 72,812 | 0.014 | 1.0x | ✅ es2015 |
-| **Meriyah** | 62,628 | 0.016 | 0.9x | ✅ parsed |
-| **Cherow** | 58,772 | 0.017 | 0.8x | ✅ parsed |
-| **Esprima** | 36,789 | 0.027 | 0.5x | ❌ parse error |
-| **Acorn** | 25,866 | 0.039 | 0.4x | ❌ parse error |
-| **fast-brake (all ES)** | 24,678 | 0.041 | 0.3x | ✅ all versions |
-| **fast-brake (es2015)** | 24,265 | 0.041 | 0.3x | ✅ es2015 check |
-| **fast-brake (es5)** | 23,041 | 0.043 | 0.3x | ✅ es5 check |
-| **Babel** | 19,152 | 0.052 | 0.3x | ✅ parsed |
-| **Espree** | 17,036 | 0.059 | 0.2x | ❌ parse error |
-| **fast-brake (full)** | 11,606 | 0.086 | 0.2x | ✅ es2015 |
-| **fast-brake (all+browser)** | 10,797 | 0.093 | 0.1x | ✅ all+browser |
+| **fast-brake (pattern)** | 74,883 | 0.013 | 1.0x | ✅ es2015 |
+| **Meriyah** | 63,671 | 0.016 | 0.9x | ✅ parsed |
+| **Cherow** | 63,665 | 0.016 | 0.9x | ✅ parsed |
+| **Esprima** | 37,768 | 0.026 | 0.5x | ❌ parse error |
+| **Acorn** | 26,842 | 0.037 | 0.4x | ❌ parse error |
+| **@babel/parser** | 19,264 | 0.052 | 0.3x | ✅ parsed |
+| **Espree** | 17,640 | 0.057 | 0.2x | ❌ parse error |
+| **fast-brake (full)** | 12,810 | 0.078 | 0.2x | ✅ es2015 |
 
-*Benchmarked on 2025-08-23*
+### Parser Comparison - ES2020 File (798B)
+Tested on MacBook Pro M4:
+
+| Parser | Ops/sec | Time (ms) | Relative | Status |
+|--------|---------|-----------|----------|--------|
+| **fast-brake (pattern)** | 99,853 | 0.010 | 1.0x | ✅ es2020 |
+| **Meriyah** | 71,870 | 0.014 | 0.7x | ✅ parsed |
+| **@babel/parser** | 30,898 | 0.032 | 0.3x | ✅ parsed |
+| **Espree** | 31,450 | 0.032 | 0.3x | ❌ parse error |
+| **Acorn** | 29,512 | 0.034 | 0.3x | ❌ parse error |
+| **fast-brake (full)** | 16,407 | 0.061 | 0.2x | ✅ es2020 |
+
+### Parser Comparison - ES2022 File (1181B)
+Tested on MacBook Pro M4:
+
+| Parser | Ops/sec | Time (ms) | Relative | Status |
+|--------|---------|-----------|----------|--------|
+| **fast-brake (pattern)** | 55,760 | 0.018 | 1.0x | ✅ es2022 |
+| **Meriyah** | 60,343 | 0.017 | 1.1x | ✅ parsed |
+| **Acorn** | 32,162 | 0.031 | 0.6x | ❌ parse error |
+| **Espree** | 25,361 | 0.039 | 0.5x | ❌ parse error |
+| **@babel/parser** | 21,553 | 0.046 | 0.4x | ✅ parsed |
+| **fast-brake (full)** | 12,462 | 0.080 | 0.2x | ✅ es2022 |
+
+### Parser Comparison - ES2023 File (702B)
+Tested on MacBook Pro M4:
+
+| Parser | Ops/sec | Time (ms) | Relative | Status |
+|--------|---------|-----------|----------|--------|
+| **fast-brake (pattern)** | 50,923 | 0.020 | 1.0x | ✅ es2023 |
+| **Meriyah** | 75,263 | 0.013 | 1.5x | ✅ parsed |
+| **@babel/parser** | 28,455 | 0.035 | 0.6x | ✅ parsed |
+| **Acorn** | 32,315 | 0.031 | 0.6x | ❌ parse error |
+| **Espree** | 26,208 | 0.038 | 0.5x | ❌ parse error |
+
+### Parser Comparison - ES2024 File (923B)
+Tested on MacBook Pro M4:
+
+| Parser | Ops/sec | Time (ms) | Relative | Status |
+|--------|---------|-----------|----------|--------|
+| **fast-brake (pattern)** | 71,428 | 0.014 | 1.0x | ✅ es2024 |
+| **Meriyah** | 82,333 | 0.012 | 1.2x | ❌ parse error |
+| **@babel/parser** | 26,316 | 0.038 | 0.4x | ❌ parse error |
+| **Acorn** | 30,303 | 0.033 | 0.4x | ❌ parse error |
+| **Espree** | 24,390 | 0.041 | 0.3x | ❌ parse error |
+
+### Parser Comparison - ES2025 File (954B)
+Tested on MacBook Pro M4:
+
+| Parser | Ops/sec | Time (ms) | Relative | Status |
+|--------|---------|-----------|----------|--------|
+| **fast-brake (pattern)** | 47,619 | 0.021 | 1.0x | ✅ es2025 |
+| **Meriyah** | 73,669 | 0.014 | 1.5x | ❌ parse error |
+| **@babel/parser** | 24,156 | 0.041 | 0.5x | ❌ parse error |
+| **Acorn** | 28,571 | 0.035 | 0.6x | ❌ parse error |
+| **Espree** | 23,256 | 0.043 | 0.5x | ❌ parse error |
+
+*Benchmarked on 2025-08-22*
 
 ### When to use Quick vs Full mode
 
@@ -319,19 +368,22 @@ Tested on MacBook Pro M4:
 
 ## Browser Support
 
-ES version compatibility with major browsers:
+Fast-brake supports detection of all ES versions from ES5 through ES2025+:
 
-| ES Version | Chrome | Firefox | Safari | Node.js |
-|------------|--------|---------|--------|---------|
-| ES5 | 5+ | 4+ | 5+ | 0.10+ |
-| ES2015 | 51+ | 54+ | 10+ | 6+ |
-| ES2016 | 52+ | 55+ | 10.1+ | 7+ |
-| ES2017 | 58+ | 53+ | 11+ | 8+ |
-| ES2018 | 64+ | 58+ | 12+ | 10+ |
-| ES2019 | 73+ | 62+ | 12.1+ | 12+ |
-| ES2020 | 80+ | 74+ | 13.1+ | 14+ |
-| ES2021 | 85+ | 79+ | 14.1+ | 15+ |
-| ES2022 | 94+ | 93+ | 15.4+ | 16+ |
+| ES Version | Chrome | Firefox | Safari | Node.js | Key Features |
+|------------|--------|---------|--------|---------|--------------|
+| ES5 (2009) | 5+ | 4+ | 5+ | 0.10+ | Strict mode, JSON, Array methods |
+| ES2015/ES6 | 51+ | 54+ | 10+ | 6+ | Arrow functions, Classes, Template literals |
+| ES2016 | 52+ | 55+ | 10.1+ | 7+ | Exponentiation, Array.includes |
+| ES2017 | 58+ | 53+ | 11+ | 8+ | Async/await, Object.entries |
+| ES2018 | 64+ | 58+ | 12+ | 10+ | Rest/spread, Async iteration |
+| ES2019 | 73+ | 62+ | 12.1+ | 12+ | Array.flat, Object.fromEntries |
+| ES2020 | 80+ | 74+ | 13.1+ | 14+ | Optional chaining, Nullish coalescing |
+| ES2021 | 85+ | 79+ | 14.1+ | 15+ | Logical assignment, String.replaceAll |
+| ES2022 | 94+ | 93+ | 15.4+ | 16+ | Top-level await, Class fields |
+| ES2023 | 110+ | 104+ | 16.4+ | 19+ | Array methods (toReversed, toSorted, with) |
+| ES2024 | 120+ | 119+ | 17.2+ | 21+ | Promise.withResolvers, Object.groupBy |
+| ES2025 | 125+ | 125+ | 18+ | 22+ | Set methods, Temporal API |
 
 ## Use Cases
 
