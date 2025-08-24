@@ -3,7 +3,7 @@
     {
       "name": "javascript.statements.async_function",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2017",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/async_function",
       "description": "`async function` statement"
@@ -11,7 +11,7 @@
     {
       "name": "javascript.statements.async_generator_function",
       "category": "statements",
-      "esVersion": "es2017",
+      "esVersion": "es2018",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/async_function*",
       "description": "`async function*` statement"
@@ -41,14 +41,14 @@
     {
       "name": "javascript.statements.class",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/class"
     },
     {
       "name": "javascript.statements.const",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/const"
     },
@@ -85,21 +85,21 @@
     {
       "name": "javascript.statements.export",
       "category": "statements",
-      "esVersion": "es2016",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export"
     },
     {
       "name": "javascript.statements.export.arbitrary_module_namespace_identifier_names",
       "category": "statements",
-      "esVersion": "es2021",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Arbitrary module namespace identifier names"
     },
     {
       "name": "javascript.statements.export.default",
       "category": "statements",
-      "esVersion": "es2016",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export",
       "description": "`default` keyword with `export`"
@@ -107,7 +107,7 @@
     {
       "name": "javascript.statements.export.namespace",
       "category": "statements",
-      "esVersion": "es2018",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/export",
       "description": "`export * as namespace`"
@@ -138,7 +138,7 @@
     {
       "name": "javascript.statements.for_of",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/for...of",
       "description": "`for...of`"
@@ -146,14 +146,14 @@
     {
       "name": "javascript.statements.for_of.async_iterators",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "async iterators"
     },
     {
       "name": "javascript.statements.for_of.closing_iterators",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Closing iterators"
     },
@@ -175,7 +175,7 @@
     {
       "name": "javascript.statements.generator_function",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function*",
       "description": "`function*` statement"
@@ -183,21 +183,21 @@
     {
       "name": "javascript.statements.generator_function.IteratorResult_object",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "`IteratorResult` object instead of throwing"
     },
     {
       "name": "javascript.statements.generator_function.not_constructable_with_new",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Not constructable with `new` (ES2016)"
     },
     {
       "name": "javascript.statements.generator_function.trailing_comma_in_parameters",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Trailing comma in parameters"
     },
@@ -212,49 +212,49 @@
     {
       "name": "javascript.statements.import",
       "category": "statements",
-      "esVersion": "es2016",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/import"
     },
     {
       "name": "javascript.statements.import.worker_support",
       "category": "statements",
-      "esVersion": "es2020",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Available in workers"
     },
     {
       "name": "javascript.statements.import.arbitrary_module_namespace_identifier_names",
       "category": "statements",
-      "esVersion": "es2021",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Arbitrary module namespace identifier names"
     },
     {
       "name": "javascript.statements.import.import_assertions",
       "category": "statements",
-      "esVersion": "es2021",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Import attributes with `assert` syntax (formerly import assertions)"
     },
     {
       "name": "javascript.statements.import.import_assertions.type_css",
       "category": "statements",
-      "esVersion": "es2021",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "`assert {type: 'css'}`"
     },
     {
       "name": "javascript.statements.import.import_assertions.type_json",
       "category": "statements",
-      "esVersion": "es2021",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "`assert {type: 'json'}`"
     },
     {
       "name": "javascript.statements.import.import_attributes",
       "category": "statements",
-      "esVersion": "es2022",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/import/with",
       "description": "Import attributes (`with` syntax)"
@@ -262,28 +262,28 @@
     {
       "name": "javascript.statements.import.import_attributes.type_css",
       "category": "statements",
-      "esVersion": "es2022",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "`with {type: 'css'}`"
     },
     {
       "name": "javascript.statements.import.import_attributes.type_json",
       "category": "statements",
-      "esVersion": "es2022",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "`with {type: 'json'}`"
     },
     {
       "name": "javascript.statements.import.service_worker_support",
       "category": "statements",
-      "esVersion": "es2021",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Available in service workers"
     },
     {
       "name": "javascript.statements.import.worklet_support",
       "category": "statements",
-      "esVersion": "es2022",
+      "esVersion": "es2015",
       "pattern": null,
       "description": "Available in worklets"
     },
@@ -297,7 +297,7 @@
     {
       "name": "javascript.statements.let",
       "category": "statements",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/let"
     },
@@ -488,7 +488,7 @@
     {
       "name": "javascript.grammar.template_literals",
       "category": "grammar",
-      "esVersion": "es5",
+      "esVersion": "es2015",
       "pattern": null,
       "mdn_url": "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Template_literals",
       "description": "Template literals"

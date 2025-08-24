@@ -1,31 +1,33 @@
 # Fast Brake 💨
 
-**Fast braking js feature detection** Fast brake Analyzes JavaScript code to detect ECMAScript features and verify compatibility with target ES or Browser versions using a two-phase detection system.
+**Fast braking js feature detection** Fast brake Analyzes JavaScript code to detect syntax such as ECMAscript api features or Telemetry and fail using a two-phase detection system.
 
 ## Why Fast Brake?
 
-Traditional JavaScript compatibility tools rely on AST parsers process js file. **Fast Brake** uses pattern matching combined with tokenizer validation to achieve the similar accuracy fast.
+Traditional JavaScript compatibility tools rely on AST parsers process js files. **Fast Brake** uses pattern matching combined with tokenizer validation to achieve the similar accuracy in way that is often faster considering it's goal—to fail.
 
 Perfect for:
 - **Build tools** - Validate code compatibility before bundling
-- **Linters** - Check ES version compliance in CI/CD
+- **Linters** - Check ES version or Telemetry compliance in CI/CD
 - **Transpilers** - Determine which features need polyfilling
 - **Code analysis** - Understand your codebase's ES requirements
 
 ## Features
 
-- **Fast** - Process 1000 files faster than AST parsers)
+- **Fast** - Often process files faster than AST parsers
 - **Zero Runtime Dependencies** - Lightweight and secure
 - **Two-Phase Detection** - Quick pattern matching + accurate tokenizer validation
-- **ES5 to ES2022** - Comprehensive feature coverage (30+ features)
+- **ES5 to ES2025** - Comprehensive feature coverage (40+ features)
 - **Programmatic API** - Simple, intuitive interface
 - **Performance First** - Optimized for speed
 - **Accurate Detection** - Tokenizer validates features in actual code
+- **Plugin enabled** - Mix and max what matters to you.
+- **Simple interface** - Just a few files and 
 
 ## Installation
 
 ```bash
-npm install fast-brake
+bun install fast-brake
 ```
 
 ## Quick Start
@@ -53,16 +55,16 @@ console.log(minVersion); // 'es2015'
 
 ## Two-Phase Detection System
 
-fast-brake uses a unique **two-phase detection system** that combines speed with accuracy:
+fast-brake uses a **two-phase detection system** for speed and accuracy:
 
 ### Phase 1: Quick Pattern Matching
-- **Lightning fast** regex-based feature detection
+- **Very fast** pattern matching feature detection
 - Scans code for ES feature patterns in milliseconds
 - Provides initial feature candidates
 
 ### Phase 2: Tokenizer Validation
 - **Validates features** in actual code contexts
-- Validates features using intelligent tokenization
+- Validates features using tokenization
 - Adds additional features detected through token analysis (imports, exports, etc.)
 
 ```javascript
@@ -135,6 +137,39 @@ const accurateFeatures = detect(code, { quick: false }); // default
 | Object.hasOwn | `Object.hasOwn` | `Object.hasOwn(obj, 'prop')` |
 | Top-level Await | `await` (module) | `const data = await fetch(url)` |
 
+### ES2023 Features
+| Feature | Pattern | Example |
+|---------|---------|---------||
+| Array.findLast() | `.findLast()` | `arr.findLast(x => x > 10)` |
+| Array.findLastIndex() | `.findLastIndex()` | `arr.findLastIndex(x => x > 10)` |
+| Array.toReversed() | `.toReversed()` | `arr.toReversed()` |
+| Array.toSorted() | `.toSorted()` | `arr.toSorted()` |
+| Array.toSpliced() | `.toSpliced()` | `arr.toSpliced(1, 2, 'new')` |
+| Array.with() | `.with()` | `arr.with(0, 'new')` |
+| Hashbang | `#!` | `#!/usr/bin/env node` |
+
+### ES2024 Features
+| Feature | Pattern | Example |
+|---------|---------|---------||
+| RegExp v flag | `/pattern/v` | `/[\p{Letter}]/v` |
+| Array.fromAsync() | `Array.fromAsync` | `Array.fromAsync(asyncIterable)` |
+| Promise.withResolvers | `Promise.withResolvers` | `const { promise, resolve, reject } = Promise.withResolvers()` |
+| Object.groupBy() | `Object.groupBy` | `Object.groupBy(items, item => item.category)` |
+| Map.groupBy() | `Map.groupBy` | `Map.groupBy(items, item => item.category)` |
+
+### ES2025 Features
+| Feature | Pattern | Example |
+|---------|---------|---------||
+| Temporal API | `Temporal.` | `Temporal.Now.plainDateISO()` |
+| RegExp duplicate named groups | `(?<name>)` | `/(?<year>\d{4})-(?<year>\d{2})/` |
+| Set methods | `.intersection()` | `setA.intersection(setB)` |
+| | `.union()` | `setA.union(setB)` |
+| | `.difference()` | `setA.difference(setB)` |
+| | `.symmetricDifference()` | `setA.symmetricDifference(setB)` |
+| | `.isSubsetOf()` | `setA.isSubsetOf(setB)` |
+| | `.isSupersetOf()` | `setA.isSupersetOf(setB)` |
+| | `.isDisjointFrom()` | `setA.isDisjointFrom(setB)` |
+
 ## API Reference
 
 ### `fastBrake(code, options)`
@@ -157,7 +192,7 @@ try {
 **Parameters:**
 - `code` (string): JavaScript code to analyze
 - `options` (object):
-  - `target` (string): Target ES version ('es5', 'es2015', 'es2016', etc.)
+  - `target` (string): Target ES version ('es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022', 'es2023', 'es2024', 'es2025', 'esnext')
   - `quick?` (boolean): Use quick mode only (default: false)
   - `throwOnFirst?` (boolean): Stop on first incompatible feature (default: false)
 

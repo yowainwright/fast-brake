@@ -29,7 +29,6 @@
     "lint:run": "oxlint src tests --ignore-pattern='tests/fixtures/*'",
     "lint:fix": "oxlint src tests --fix",
     "pre-commit": "lint-staged --quiet && bun run test",
-    "prepare": "is-ci || husky install",
     "prepublishOnly": "bun run test && bun run build",
     "preview": "bun run --cwd site preview",
     "release": "release-it",
@@ -47,8 +46,7 @@
     "benchmark:update": "cd utils/benchmarker && bun run benchmark:all",
     "typecheck": "turbo run typecheck",
     "typecheck:run": "tsc --noEmit",
-    "update": "codependence --update && bun run update-site-deps",
-    "update-site-deps": "cd site && bun update"
+    "update": "codependence --update && bun install"
   },
   "repository": {
     "type": "git",
@@ -117,7 +115,7 @@
     "@commitlint/cli": "19.8.1",
     "@commitlint/config-conventional": "19.8.1",
     "@types/node": "24.1.0",
-    "codependence": "^0.3.1",
+    "codependence": "^1.0.0-1",
     "husky": "9.1.7",
     "is-ci": "^4.1.0",
     "lint-staged": "16.1.2",
@@ -137,10 +135,12 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
-      "oxlint --fix"
+      "oxlint --fix",
+      "prettier --write"
     ],
     "tests/**/*.ts": [
-      "oxlint --fix"
+      "oxlint --fix",
+      "prettier --write"
     ]
   },
   "release-it": {
