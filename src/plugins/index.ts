@@ -1,12 +1,13 @@
-export * from './types';
-export * from '../pluginsManager';
+export * from "./types";
+export * from "../pluginsManager";
 
-export * from './esversion';
-export * from './telemetry';
-export * from './browserlist';
+export * from "./esversion";
+export * from "./es2015";
+export * from "./telemetry";
+export * from "./browserlist";
 
-import { PluginManager } from '../pluginsManager';
-import { PluginConfig, Plugin, PluginResult } from './types';
+import { PluginManager } from "../pluginsManager";
+import { PluginConfig, Plugin, PluginResult } from "./types";
 
 export function createPlugin(config: {
   name: string;
@@ -14,19 +15,20 @@ export function createPlugin(config: {
     name: string;
     pattern: RegExp | string;
     message?: string;
-    severity?: 'error' | 'warning' | 'info';
+    severity?: "error" | "warning" | "info";
   }>;
   validate?: (context: any, matches: PluginResult[]) => PluginResult[];
 }): Plugin {
   return {
     name: config.name,
-    patterns: config.patterns.map(p => ({
+    patterns: config.patterns.map((p) => ({
       name: p.name,
-      pattern: typeof p.pattern === 'string' ? new RegExp(p.pattern) : p.pattern,
+      pattern:
+        typeof p.pattern === "string" ? new RegExp(p.pattern) : p.pattern,
       message: p.message,
-      severity: p.severity
+      severity: p.severity,
     })),
-    validate: config.validate
+    validate: config.validate,
   };
 }
 
@@ -36,43 +38,56 @@ export function loadPlugin(plugins: PluginConfig[]): PluginManager {
   return manager;
 }
 
-export function detect(code: string, plugins: PluginConfig[] = ['es5']): PluginResult[] {
+export function detect(
+  code: string,
+  plugins: PluginConfig[] = ["es2015"],
+): PluginResult[] {
   const plugin = loadPlugin(plugins);
   return plugin.detect(code);
 }
 
-export function check(code: string, plugins: PluginConfig[] = ['es5']): boolean {
+export function check(
+  code: string,
+  plugins: PluginConfig[] = ["es2015"],
+): boolean {
   const plugin = loadPlugin(plugins);
   return plugin.check(code);
 }
 
 export function getMinimumESVersion(code: string): string {
-  const plugin = loadPlugin(['detect']);
+  const plugin = loadPlugin(["detect"]);
   const results = plugin.detect(code);
-  
+
   if (results.length > 0 && results[0].message) {
-    const match = results[0].message.match(/Minimum ES version required: (\w+)/);
+    const match = results[0].message.match(
+      /Minimum ES version required: (\w+)/,
+    );
     if (match) {
       return match[1];
     }
   }
-  
-  return 'es5';
+
+  return "es2015";
 }
 
-export { 
-  es5, es2015, es2020, es2022, es2023, es2024, es2025,
-  esAll, esDetect 
-} from './esversion';
+export {
+  es5,
+  es2015,
+  es2020,
+  es2022,
+  es2023,
+  es2024,
+  es2025,
+  esAll,
+  esDetect,
+} from "./esversion";
 
-export { 
-  telemetryPlugin, 
+export { es2015Plugin, es2015StrictPlugin } from "./es2015";
+
+export {
+  telemetryPlugin,
   strictTelemetryPlugin,
-  noTelemetryPlugin 
-} from './telemetry';
+  noTelemetryPlugin,
+} from "./telemetry";
 
-export { 
-  modernBrowsers, 
-  legacyBrowsers, 
-  defaultBrowsers 
-} from './browserlist';
+export { modernBrowsers, legacyBrowsers, defaultBrowsers } from "./browserlist";
