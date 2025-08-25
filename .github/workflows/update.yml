@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "0 5 * * 5"
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   udpate-deps:
     runs-on: ubuntu-latest
