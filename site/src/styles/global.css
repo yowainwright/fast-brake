@@ -19,9 +19,30 @@
   --checkered-gradient-alt: linear-gradient(135deg, #ff0000 0%, #ffd700 20%, #ff0000 40%, #ffd700 60%, #ff0000 80%, #ffd700 100%);
   --primary-red: #ff0000;
   --primary-yellow: #ffd700;
+  
+  /* Layout variables for docs navigation */
+  --header-height: 4rem;
+  --sidebar-width: 20rem;
+  --footer-height: 4rem;
+  --nav-z-index: 50;
 }
 
-/* Improve mobile responsiveness */
+
+
+/* Docs layout footer positioning */
+.drawer.lg\\:drawer-open ~ footer {
+  margin-left: 20rem;
+  width: calc(100% - 20rem);
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 1024px) {
+  .drawer.lg\\:drawer-open ~ footer {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
 @media (max-width: 640px) {
   /* Ensure code blocks are scrollable on mobile */
   pre {

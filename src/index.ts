@@ -4,8 +4,7 @@ import {
   check as checkFeatures,
   getMinimumVersion,
 } from "./detector";
-import { PluginManager } from "./pluginsManager";
-import { loadPlugin } from "./plugins";
+import { PluginManager, loadPlugin } from "./plugins";
 import type { DetectionOptions, DetectedFeature } from "./detector";
 import type { PluginConfig, Plugin, PluginResult } from "./plugins/types";
 

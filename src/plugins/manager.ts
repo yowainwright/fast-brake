@@ -1,13 +1,5 @@
-import {
-  Plugin,
-  PluginConfig,
-  PluginResult,
-  PluginContext,
-} from "./plugins/types";
-import { getESVersionPlugin } from "./plugins/esversion";
-import { es2015Plugin, es2015StrictPlugin } from "./plugins/es2015";
-import { telemetryPlugin, strictTelemetryPlugin } from "./plugins/telemetry";
-import { createBrowserlistPlugin } from "./plugins/browserlist";
+import { Plugin, PluginConfig, PluginResult, PluginContext } from "./types";
+import { loadPlugin, loadBrowserlistPlugin } from "./loader";
 
 export class PluginManager {
   private plugins: Plugin[] = [];
@@ -17,24 +9,20 @@ export class PluginManager {
     new Map();
 
   constructor() {
-    this.registerBuiltInPlugins();
-  }
-
-  private registerBuiltInPlugins() {
-    this.pluginRegistry.set("es2015", es2015Plugin);
-    this.pluginRegistry.set("es2015-strict", es2015StrictPlugin);
-    this.pluginRegistry.set("telemetry", telemetryPlugin);
-    this.pluginRegistry.set("telemetry-strict", strictTelemetryPlugin);
+    // No pre-registration needed - plugins loaded on demand
   }
 
   register(name: string, plugin: Plugin): void {
     this.pluginRegistry.set(name, plugin);
   }
 
-  load(configs: PluginConfig[]): void {
+  async load(configs: PluginConfig[]): Promise<void> {
     this.plugins = [];
 
-    for (const config of configs) {
+    // Default to detect plugin if no configs provided
+    const configsToLoad = configs.length === 0 ? ["detect"] : configs;
+
+    for (const config of configsToLoad) {
       let plugin: Plugin | null = null;
 
       if (typeof config === "string") {
@@ -42,15 +30,25 @@ export class PluginManager {
           plugin = this.pluginRegistry.get(config)!;
         } else if (config.startsWith("browser:")) {
           const browserlist = config.substring(8);
-          plugin = createBrowserlistPlugin(browserlist);
+          plugin = await loadBrowserlistPlugin(browserlist);
         } else {
-          plugin = getESVersionPlugin(config);
+          plugin = await loadPlugin(config);
         }
       } else if (Array.isArray(config)) {
         const [name, options] = config;
 
+        let basePlugin: Plugin | null = null;
         if (this.pluginRegistry.has(name)) {
-          const basePlugin = this.pluginRegistry.get(name)!;
+          basePlugin = this.pluginRegistry.get(name)!;
+        } else if (name === "browserlist") {
+          basePlugin = await loadBrowserlistPlugin(
+            options.browsers || "defaults",
+          );
+        } else {
+          basePlugin = await loadPlugin(name);
+        }
+
+        if (basePlugin) {
           plugin = {
             ...basePlugin,
             name: `${basePlugin.name}-configured`,
@@ -62,8 +60,6 @@ export class PluginManager {
                   )
               : undefined,
           };
-        } else if (name === "browserlist") {
-          plugin = createBrowserlistPlugin(options.browsers || "defaults");
         }
       } else if ("name" in config && "patterns" in config) {
         plugin = config as Plugin;
@@ -179,24 +175,7 @@ export class PluginManager {
   }
 
   getAvailablePlugins(): string[] {
-    return [
-      ...Array.from(this.pluginRegistry.keys()),
-      "es5",
-      "es2015",
-      "es2016",
-      "es2017",
-      "es2018",
-      "es2019",
-      "es2020",
-      "es2021",
-      "es2022",
-      "es2023",
-      "es2024",
-      "es2025",
-      "all",
-      "detect",
-      "browserlist",
-    ];
+    return Array.from(this.pluginRegistry.keys());
   }
 }
 

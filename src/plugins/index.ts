@@ -1,12 +1,11 @@
 export * from "./types";
-export * from "../pluginsManager";
+export * from "./manager";
+export * from "./loader";
 
-export * from "./esversion";
-export * from "./es2015";
-export * from "./telemetry";
-export * from "./browserlist";
+// Only export functions that enable tree-shaking
+// Don't import plugins directly here
 
-import { PluginManager } from "../pluginsManager";
+import { PluginManager } from "./manager";
 import { PluginConfig, Plugin, PluginResult } from "./types";
 
 export function createPlugin(config: {
@@ -70,24 +69,6 @@ export function getMinimumESVersion(code: string): string {
   return "es2015";
 }
 
-export {
-  es5,
-  es2015,
-  es2020,
-  es2022,
-  es2023,
-  es2024,
-  es2025,
-  esAll,
-  esDetect,
-} from "./esversion";
-
-export { es2015Plugin, es2015StrictPlugin } from "./es2015";
-
-export {
-  telemetryPlugin,
-  strictTelemetryPlugin,
-  noTelemetryPlugin,
-} from "./telemetry";
-
-export { modernBrowsers, legacyBrowsers, defaultBrowsers } from "./browserlist";
+// For users who want to import specific plugins directly
+// These will be tree-shaken if not used
+export type { Plugin as PluginType } from "./types";
