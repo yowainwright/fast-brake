@@ -37,13 +37,13 @@ const pathname = new URL(Astro.request.url).pathname;
       </div>
       <ul
         tabindex="0"
-        class="menu menu-sm dropdown-content mt-3 z-[50] p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-content/10"
+        class="menu menu-sm dropdown-content mt-3 z-[50] p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-content/10 space-y-1"
       >
         {
           navigation.map((item) => (
             <li>
               <a
-                class={`hover:text-[#ff4500] hover:bg-[#ff4500]/10 transition flex ${pathname === item.href ? "text-[#ff4500] bg-[#ff4500]/10" : ""}`}
+                class={`py-2 px-3 hover:text-[#ff4500] hover:bg-[#ff4500]/10 transition flex ${pathname === item.href ? "text-[#ff4500] bg-[#ff4500]/10" : ""}`}
                 href={item.href}
               >
                 {item.title}
@@ -63,12 +63,12 @@ const pathname = new URL(Astro.request.url).pathname;
     </div>
 
     <div class="navbar-center hidden lg:flex">
-      <ul class="menu menu-horizontal text-base font-medium">
+      <ul class="menu menu-horizontal text-base font-medium space-x-2">
         {
           navigation.map((item) => (
             <li>
               <a
-                class={`hover:text-[#ff4500] hover:bg-[#ff4500]/10 transition flex ${pathname === item.href ? "text-[#ff4500] bg-[#ff4500]/10" : ""}`}
+                class={`py-2 px-4 hover:text-[#ff4500] hover:bg-[#ff4500]/10 transition flex ${pathname === item.href ? "text-[#ff4500] bg-[#ff4500]/10" : ""}`}
                 href={item.href}
               >
                 {item.title}

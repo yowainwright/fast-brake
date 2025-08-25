@@ -11,6 +11,81 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./plugins/es2015": {
+      "types": "./dist/plugins/es2015/index.d.ts",
+      "import": "./dist/plugins/es2015/index.js",
+      "require": "./dist/plugins/es2015/index.cjs"
+    },
+    "./plugins/es2016": {
+      "types": "./dist/plugins/es2016/index.d.ts",
+      "import": "./dist/plugins/es2016/index.js",
+      "require": "./dist/plugins/es2016/index.cjs"
+    },
+    "./plugins/es2017": {
+      "types": "./dist/plugins/es2017/index.d.ts",
+      "import": "./dist/plugins/es2017/index.js",
+      "require": "./dist/plugins/es2017/index.cjs"
+    },
+    "./plugins/es2018": {
+      "types": "./dist/plugins/es2018/index.d.ts",
+      "import": "./dist/plugins/es2018/index.js",
+      "require": "./dist/plugins/es2018/index.cjs"
+    },
+    "./plugins/es2019": {
+      "types": "./dist/plugins/es2019/index.d.ts",
+      "import": "./dist/plugins/es2019/index.js",
+      "require": "./dist/plugins/es2019/index.cjs"
+    },
+    "./plugins/es2020": {
+      "types": "./dist/plugins/es2020/index.d.ts",
+      "import": "./dist/plugins/es2020/index.js",
+      "require": "./dist/plugins/es2020/index.cjs"
+    },
+    "./plugins/es2021": {
+      "types": "./dist/plugins/es2021/index.d.ts",
+      "import": "./dist/plugins/es2021/index.js",
+      "require": "./dist/plugins/es2021/index.cjs"
+    },
+    "./plugins/es2022": {
+      "types": "./dist/plugins/es2022/index.d.ts",
+      "import": "./dist/plugins/es2022/index.js",
+      "require": "./dist/plugins/es2022/index.cjs"
+    },
+    "./plugins/es2023": {
+      "types": "./dist/plugins/es2023/index.d.ts",
+      "import": "./dist/plugins/es2023/index.js",
+      "require": "./dist/plugins/es2023/index.cjs"
+    },
+    "./plugins/es2024": {
+      "types": "./dist/plugins/es2024/index.d.ts",
+      "import": "./dist/plugins/es2024/index.js",
+      "require": "./dist/plugins/es2024/index.cjs"
+    },
+    "./plugins/es2025": {
+      "types": "./dist/plugins/es2025/index.d.ts",
+      "import": "./dist/plugins/es2025/index.js",
+      "require": "./dist/plugins/es2025/index.cjs"
+    },
+    "./plugins/detect": {
+      "types": "./dist/plugins/detect/index.d.ts",
+      "import": "./dist/plugins/detect/index.js",
+      "require": "./dist/plugins/detect/index.cjs"
+    },
+    "./plugins/all": {
+      "types": "./dist/plugins/all/index.d.ts",
+      "import": "./dist/plugins/all/index.js",
+      "require": "./dist/plugins/all/index.cjs"
+    },
+    "./plugins/telemetry": {
+      "types": "./dist/plugins/telemetry/index.d.ts",
+      "import": "./dist/plugins/telemetry/index.js",
+      "require": "./dist/plugins/telemetry/index.cjs"
+    },
+    "./plugins/browserlist": {
+      "types": "./dist/plugins/browserlist/index.d.ts",
+      "import": "./dist/plugins/browserlist/index.js",
+      "require": "./dist/plugins/browserlist/index.cjs"
     }
   },
   "files": [
@@ -20,7 +95,7 @@
     "generate": "bun utils/generator/src/generate-schema.ts",
     "build": "turbo run build:pkg",
     "build:pkg": "bun run clean && bun run build:run",
-    "build:run": "tsup src/index.ts --format esm,cjs --dts --minify",
+    "build:run": "tsup",
     "clean": "rimraf dist",
     "commit": "git-cz",
     "commit-msg": "commitlint --edit $1",
