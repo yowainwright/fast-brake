@@ -1,5 +1,5 @@
 import { Plugin } from "../types";
-import { QUICK_PATTERNS, FEATURE_VERSIONS, ES_VERSIONS } from "./constants";
+import { FEATURE_PATTERNS, FEATURE_VERSIONS, ES_VERSIONS } from "../../constants";
 
 export interface BrowserTarget {
   name: string;
@@ -11,7 +11,7 @@ export function createBrowserlistPlugin(browsers: string | string[]): Plugin {
 
   return {
     name: "browserlist",
-    patterns: Object.entries(QUICK_PATTERNS).map(([name, pattern]) => ({
+    patterns: Object.entries(FEATURE_PATTERNS).map(([name, pattern]) => ({
       name,
       pattern,
       message: `Feature "${name}" (${FEATURE_VERSIONS[name]}) may not be supported in: ${browsers}`,

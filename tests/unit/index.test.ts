@@ -27,24 +27,25 @@ describe("fast-brake main API", () => {
       }
     });
 
-    test("should include line and column in error", () => {
+    test("should not include line and column in error by default", () => {
       const code = "\n\n  const arrow = () => {}";
       try {
         fastBrake(code, { target: "es5" });
         expect(true).toBe(false);
       } catch (error: any) {
-        expect(error.message).toContain("line");
-        expect(error.feature.line).toBe(3);
+        expect(error.message).not.toContain("line");
+        expect(error.feature.line).toBeUndefined();
       }
     });
 
-    test("should include snippet in error", () => {
+    test("should not include snippet in error by default", () => {
       const code = "const arrow = () => {}";
       try {
         fastBrake(code, { target: "es5" });
         expect(true).toBe(false);
       } catch (error: any) {
-        expect(error.message).toContain("const arrow = () => {}");
+        expect(error.message).not.toContain("const arrow = () => {}");
+        expect(error.feature.snippet).toBeUndefined();
       }
     });
 
@@ -119,12 +120,14 @@ describe("fast-brake main API", () => {
       expect(arrowFeature?.version).toBe("es2015");
     });
 
-    test("should include location info", () => {
+    test("should not include location info by default", () => {
       const code = "\n\nconst arrow = () => {}";
       const features = detect(code);
 
       const arrowFeature = features.find((f) => f.name === "arrow_functions");
-      expect(arrowFeature?.line).toBe(3);
+      expect(arrowFeature?.line).toBeUndefined();
+      expect(arrowFeature?.column).toBeUndefined();
+      expect(arrowFeature?.snippet).toBeUndefined();
     });
   });
 
@@ -298,9 +301,6 @@ describe("fast-brake main API", () => {
       const feature: DetectedFeature = {
         name: "test",
         version: "es2015",
-        line: 1,
-        column: 1,
-        snippet: "code",
       };
       expect(feature).toBeDefined();
     });

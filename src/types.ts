@@ -46,5 +46,4 @@ export interface DetectionOptions {
   throwOnFirst?: boolean;
   ignorePatterns?: string[];
   preprocessors?: Array<(code: string) => string>;
-  includeLoc?: boolean;
 }

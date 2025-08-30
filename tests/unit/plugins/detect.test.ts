@@ -1,7 +1,8 @@
 import { describe, test, expect } from "bun:test";
 import { detectPlugin, detect, esDetect } from "../../../src/plugins/detect";
 import {
-  QUICK_PATTERNS,
+  FEATURE_PATTERNS,
+  FEATURE_STRINGS,
   FEATURE_VERSIONS,
   VERSION_ORDER,
 } from "../../../src/plugins/detect/constants";
@@ -61,8 +62,11 @@ describe("Detect Plugin", () => {
   });
 
   test("should have constants", () => {
-    expect(QUICK_PATTERNS).toBeDefined();
-    expect(Object.keys(QUICK_PATTERNS).length).toBeGreaterThan(0);
+    expect(FEATURE_PATTERNS).toBeDefined();
+    expect(Object.keys(FEATURE_PATTERNS).length).toBeGreaterThan(0);
+    
+    expect(FEATURE_STRINGS).toBeDefined();
+    expect(Object.keys(FEATURE_STRINGS).length).toBeGreaterThan(0);
 
     expect(FEATURE_VERSIONS).toBeDefined();
     expect(Object.keys(FEATURE_VERSIONS).length).toBeGreaterThan(0);

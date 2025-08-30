@@ -1,73 +1,62 @@
-export const QUICK_PATTERNS: Record<string, RegExp> = {
-  arrow_functions: /=>/,
-  template_literals: /`/,
+export const FEATURE_STRINGS: Record<string, string[]> = {
+  arrow_functions: ["=>"],
+  template_literals: ["`"],
+  let_const: ["let ", "const "],
+  spread_rest: ["..."],
+  generators: ["function*", "yield "],
+  promise: ["Promise"],
+  promise_resolve: ["Promise.resolve("],
+  promise_reject: ["Promise.reject("],
+  map: ["new Map"],
+  set: ["new Set"],
+  weakmap: ["new WeakMap"],
+  weakset: ["new WeakSet"],
+  symbol: ["Symbol("],
+  proxy: ["new Proxy"],
+  reflect: ["Reflect."],
+  exponentiation: ["**"],
+  optional_chaining: ["?."],
+  nullish_coalescing: ["??"],
+  globalThis: ["globalThis"],
+  logical_assignment: ["||=", "&&=", "??="],
+  string_replaceAll: [".replaceAll("],
+  promise_any: ["Promise.any("],
+  array_at: [".at("],
+  object_hasOwn: ["Object.hasOwn("],
+  array_findLast: [".findLast("],
+  array_findLastIndex: [".findLastIndex("],
+  array_toReversed: [".toReversed("],
+  array_toSorted: [".toSorted("],
+  array_toSpliced: [".toSpliced("],
+  array_with: [".with("],
+  array_fromAsync: ["Array.fromAsync("],
+  promise_withResolvers: ["Promise.withResolvers("],
+  object_groupBy: ["Object.groupBy("],
+  map_groupBy: ["Map.groupBy("],
+  temporal: ["Temporal."],
+  array_flat: [".flat(", ".flatMap("],
+  promise_allSettled: ["Promise.allSettled("],
+};
+
+export const FEATURE_PATTERNS: Record<string, RegExp> = {
   classes: /\bclass\s+[a-zA-Z_$]/,
   extends: /\bclass\s+\w+\s+extends\s+/,
-  let_const: /\b(?:let|const)\s+/,
-  spread_rest: /\.\.\./,
   for_of: /\bfor\s*\([^)]*\bof\b/,
   destructuring: /(?:const|let|var)\s*[[{]/,
   default_params: /function[^(]*\([^)]*=[^)]*\)/,
-  generators: /function\s*\*|yield\s+/,
-
-  promise:
-    /\b(?:new\s+)?Promise\b|\bPromise\s*\.\s*(?:resolve|reject|all|race)\s*\(/,
-  promise_resolve: /Promise\.resolve\s*\(/,
-  promise_reject: /Promise\.reject\s*\(/,
-  map: /\bnew\s+Map\b/,
-  set: /\bnew\s+Set\b/,
-  weakmap: /\bnew\s+WeakMap\b/,
-  weakset: /\bnew\s+WeakSet\b/,
-  symbol: /\bSymbol\s*\(/,
-  proxy: /\bnew\s+Proxy\b/,
-  reflect: /\bReflect\s*\./,
-
-  exponentiation: /\*\*/,
-
-  async_await:
-    /\b(?:async\s+function|async\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>|await\s)/,
-
+  async_await: /\b(?:async\s+function|async\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>|await\s)/,
   async_iteration: /\bfor\s+await\s*\(/,
   rest_spread_properties: /\{[^}]*\.\.\.[^.]/,
-
-  array_flat: /\.(?:flat|flatMap)\s*\(/,
-
-  optional_chaining: /\?\./,
-  nullish_coalescing: /\?\?/,
   bigint: /\b\d+n\b/,
-  promise_allSettled: /Promise\.allSettled\s*\(/,
-  globalThis: /\bglobalThis\b/,
-
-  logical_assignment: /(?:\|\|=|&&=|\?\?=)/,
   numeric_separators: /\b\d+_\d+/,
-  string_replaceAll: /\.replaceAll\s*\(/,
-  promise_any: /Promise\.any\s*\(/,
-
   class_fields: /#[a-zA-Z_$]/,
   private_fields: /#[a-zA-Z_$]/,
   static_blocks: /\bstatic\s*\{/,
-  array_at: /\.at\s*\(/,
-  object_hasOwn: /Object\.hasOwn\s*\(/,
   top_level_await: /^[^{]*\bawait\s/m,
-
-  array_findLast: /\.findLast\s*\(/,
-  array_findLastIndex: /\.findLastIndex\s*\(/,
-  array_toReversed: /\.toReversed\s*\(/,
-  array_toSorted: /\.toSorted\s*\(/,
-  array_toSpliced: /\.toSpliced\s*\(/,
-  array_with: /\.with\s*\(/,
   hashbang: /^#!/,
-
   regexp_v_flag: /\/[^/]*\/[gimsuvy]*v[gimsuvy]*/,
-  array_fromAsync: /Array\.fromAsync\s*\(/,
-  promise_withResolvers: /Promise\.withResolvers\s*\(/,
-  object_groupBy: /Object\.groupBy\s*\(/,
-  map_groupBy: /Map\.groupBy\s*\(/,
-
-  temporal: /Temporal\./,
   regexp_duplicate_named_groups: /\(\?<([^>]+)>.*\(\?<\1>/,
-  set_methods:
-    /\.(?:intersection|union|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\s*\(/,
+  set_methods: /\.(?:intersection|union|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\s*\(/,
 };
 
 export const FEATURE_VERSIONS: Record<string, string> = {

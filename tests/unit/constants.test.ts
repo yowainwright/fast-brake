@@ -4,8 +4,9 @@ import {
   VERSION_ORDER,
   MDN_URLS,
   FEATURE_PATTERNS,
-  QUICK_PATTERNS,
-  FEATURE_VERSIONS
+  FEATURE_STRINGS,
+  FEATURE_VERSIONS,
+  FEATURE_STRINGS
 } from '../../src/constants';
 
 describe('Constants', () => {
@@ -159,41 +160,43 @@ describe('Constants', () => {
     });
   });
 
-  describe('QUICK_PATTERNS', () => {
-    test('should be valid RegExp patterns', () => {
-      for (const [_name, pattern] of Object.entries(QUICK_PATTERNS)) {
-        expect(pattern).toBeInstanceOf(RegExp);
+  describe('FEATURE_STRINGS', () => {
+    test('should have string arrays for features', () => {
+      for (const [_name, patterns] of Object.entries(FEATURE_STRINGS)) {
+        expect(Array.isArray(patterns)).toBe(true);
+        patterns.forEach(pattern => {
+          expect(typeof pattern).toBe('string');
+        });
       }
     });
 
-    test('should have patterns for each ES version', () => {
-      const expectedVersions = [
-        'arrow_functions', 'template_literals', 'classes',
-        'async_await', 'optional_chaining', 'nullish_coalescing',
-        'class_fields', 'array_at'
+    test('should have patterns for major features', () => {
+      const expectedFeatures = [
+        'arrow_functions', 'template_literals', 'async_await',
+        'optional_chaining', 'nullish_coalescing', 'class_fields', 'array_at'
       ];
       
-      for (const version of expectedVersions) {
-        expect(QUICK_PATTERNS).toHaveProperty(version);
+      for (const feature of expectedFeatures) {
+        expect(FEATURE_STRINGS).toHaveProperty(feature);
       }
     });
 
     test('should match ES2015 features', () => {
-      expect('=>').toMatch(QUICK_PATTERNS.arrow_functions);
-      expect('`template`').toMatch(QUICK_PATTERNS.template_literals);
-      expect('class MyClass').toMatch(QUICK_PATTERNS.classes);
+      expect(FEATURE_STRINGS.arrow_functions).toContain('=>');
+      expect(FEATURE_STRINGS.template_literals).toContain('`');
+      expect('class MyClass').toMatch(FEATURE_PATTERNS.classes);
     });
 
     test('should match ES2020 features', () => {
-      expect('obj?.prop').toMatch(QUICK_PATTERNS.optional_chaining);
-      expect('a ?? b').toMatch(QUICK_PATTERNS.nullish_coalescing);
-      expect('123n').toMatch(QUICK_PATTERNS.bigint);
+      expect(FEATURE_STRINGS.optional_chaining).toContain('?.');
+      expect(FEATURE_STRINGS.nullish_coalescing).toContain('??');
+      expect('123n').toMatch(FEATURE_PATTERNS.bigint);
     });
 
     test('should match ES2022 features', () => {
-      expect('#private').toMatch(QUICK_PATTERNS.class_fields);
-      expect('arr.at(-1)').toMatch(QUICK_PATTERNS.array_at);
-      expect('Object.hasOwn(obj, "prop")').toMatch(QUICK_PATTERNS.object_hasOwn);
+      expect(FEATURE_STRINGS.class_fields.some(p => '#private'.includes(p))).toBe(true);
+      expect(FEATURE_STRINGS.array_at).toContain('.at(');
+      expect(FEATURE_STRINGS.object_hasOwn).toContain('Object.hasOwn(');
     });
   });
 
@@ -247,20 +250,27 @@ describe('Constants', () => {
   });
 
   describe('Pattern consistency', () => {
-    test('FEATURE_PATTERNS and QUICK_PATTERNS should have overlapping features', () => {
-      const featurePatternKeys = new Set(Object.keys(FEATURE_PATTERNS));
-      const quickPatternKeys = new Set(Object.keys(QUICK_PATTERNS));
+    test('FEATURE_PATTERNS and FEATURE_STRINGS should cover different features', () => {
+      const patternKeys = new Set(Object.keys(FEATURE_PATTERNS));
+      const stringKeys = new Set(Object.keys(FEATURE_STRINGS));
       
-      // Some features should be in both
-      const commonFeatures = ['arrow_functions', 'optional_chaining', 'nullish_coalescing'];
-      for (const feature of commonFeatures) {
-        expect(featurePatternKeys.has(feature)).toBe(true);
-        expect(quickPatternKeys.has(feature)).toBe(true);
-      }
+      expect(patternKeys.has('classes')).toBe(true);
+      expect(patternKeys.has('for_of')).toBe(true);
+      expect(patternKeys.has('destructuring')).toBe(true);
+      
+      expect(stringKeys.has('arrow_functions')).toBe(true);
+      expect(stringKeys.has('optional_chaining')).toBe(true);
+      expect(stringKeys.has('nullish_coalescing')).toBe(true);
     });
 
-    test('All QUICK_PATTERNS features should have versions', () => {
-      for (const feature of Object.keys(QUICK_PATTERNS)) {
+    test('All FEATURE_STRINGS features should have versions', () => {
+      for (const feature of Object.keys(FEATURE_STRINGS)) {
+        expect(FEATURE_VERSIONS).toHaveProperty(feature);
+      }
+    });
+    
+    test('All FEATURE_PATTERNS features should have versions', () => {
+      for (const feature of Object.keys(FEATURE_PATTERNS)) {
         expect(FEATURE_VERSIONS).toHaveProperty(feature);
       }
     });

@@ -43,7 +43,6 @@ export function detect(
   const opts: DetectionOptions = {
     target: options?.target || "esnext",
     throwOnFirst: options?.throwOnFirst,
-    includeLoc: options?.includeLoc,
   };
   return detectFeatures(code, opts);
 }

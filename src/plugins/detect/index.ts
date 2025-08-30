@@ -1,14 +1,16 @@
 import { Plugin } from "../types";
-import { QUICK_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "./constants";
+import { FEATURE_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "../../constants";
 
 export const detectPlugin: Plugin = {
   name: "es-detect",
-  patterns: Object.entries(QUICK_PATTERNS).map(([name, pattern]) => ({
-    name,
-    pattern,
-    message: `${FEATURE_VERSIONS[name]} feature: ${name}`,
-    severity: "info" as const,
-  })),
+  patterns: [
+    ...Object.entries(FEATURE_PATTERNS).map(([name, pattern]) => ({
+      name,
+      pattern,
+      message: `${FEATURE_VERSIONS[name]} feature: ${name}`,
+      severity: "info" as const,
+    })),
+  ],
   validate: (_context, matches) => {
     let highestVersion = "es5";
     let highestIndex = 0;

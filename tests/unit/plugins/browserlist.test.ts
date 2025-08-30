@@ -77,11 +77,13 @@ describe("Browserlist Plugin", () => {
 
   test("should have constants", () => {
     const {
-      QUICK_PATTERNS,
+      FEATURE_STRINGS,
+      FEATURE_PATTERNS,
       FEATURE_VERSIONS,
       ES_VERSIONS,
     } = require("../../../src/plugins/browserlist/constants");
-    expect(QUICK_PATTERNS).toBeDefined();
+    expect(FEATURE_STRINGS).toBeDefined();
+    expect(FEATURE_PATTERNS).toBeDefined();
     expect(FEATURE_VERSIONS).toBeDefined();
     expect(ES_VERSIONS).toBeDefined();
   });

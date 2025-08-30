@@ -1,10 +1,10 @@
 import { Plugin, PluginPattern } from "../types";
-import { QUICK_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "./constants";
+import { FEATURE_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "../../constants";
 
 export function createESVersionPlugin(targetVersion: string = "es5"): Plugin {
   const patterns: PluginPattern[] = [];
 
-  for (const [featureName, pattern] of Object.entries(QUICK_PATTERNS)) {
+  for (const [featureName, pattern] of Object.entries(FEATURE_PATTERNS)) {
     const version = FEATURE_VERSIONS[featureName];
     patterns.push({
       name: featureName,
@@ -56,7 +56,7 @@ export const es16 = es2025;
 
 export const esAll: Plugin = {
   name: "es-all",
-  patterns: Object.entries(QUICK_PATTERNS).map(([name, pattern]) => ({
+  patterns: Object.entries(FEATURE_PATTERNS).map(([name, pattern]) => ({
     name,
     pattern,
     message: `ES feature "${name}" detected (${FEATURE_VERSIONS[name]})`,
@@ -67,7 +67,7 @@ export const esAll: Plugin = {
 
 export const esDetect: Plugin = {
   name: "es-detect",
-  patterns: Object.entries(QUICK_PATTERNS).map(([name, pattern]) => ({
+  patterns: Object.entries(FEATURE_PATTERNS).map(([name, pattern]) => ({
     name,
     pattern,
     message: `${FEATURE_VERSIONS[name]} feature: ${name}`,

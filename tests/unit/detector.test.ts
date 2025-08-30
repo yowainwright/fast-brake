@@ -19,44 +19,23 @@ describe("Detector", () => {
       expect(arrowFunc?.version).toBe("es2015");
     });
 
-    test("should include location data when requested", () => {
+    test("should not include location data by default", () => {
       const detector = new Detector();
       const code = `const arrow = () => {
   return "hello";
 };`;
 
-      const featuresWithoutLoc = detector.scan(code);
-      const featuresWithLoc = detector.scan(code, { includeLoc: true });
-
-      const withoutLoc = featuresWithoutLoc.find(
+      const features = detector.scan(code);
+      const arrowFunc = features.find(
         (f) => f.name === "arrow_functions",
       );
-      const withLoc = featuresWithLoc.find((f) => f.name === "arrow_functions");
 
-      expect(withoutLoc?.loc).toBeUndefined();
-      expect(withLoc?.loc).toBeDefined();
-      expect(withLoc?.loc?.start).toEqual({ line: 1, column: 18 });
-      expect(withLoc?.loc?.end).toEqual({ line: 1, column: 20 });
-      expect(withLoc?.loc?.offset).toBe(17);
-      expect(withLoc?.loc?.length).toBe(2);
+      expect(arrowFunc?.loc).toBeUndefined();
+      expect(arrowFunc?.line).toBeUndefined();
+      expect(arrowFunc?.column).toBeUndefined();
+      expect(arrowFunc?.snippet).toBeUndefined();
     });
 
-    test("should calculate multiline location correctly", () => {
-      const detector = new Detector();
-      const code = `function example() {
-  const str = \`
-    multiline
-    template
-  \`;
-}`;
-
-      const features = detector.scan(code, { includeLoc: true });
-      const template = features.find((f) => f.name === "template_literals");
-
-      expect(template?.loc).toBeDefined();
-      expect(template?.loc?.start.line).toBe(2);
-      expect(template?.loc?.end.line).toBe(2);
-    });
 
     test("should detect template literals", () => {
       const detector = new Detector();
@@ -132,23 +111,6 @@ describe("Detector", () => {
       expect(staticBlock?.version).toBe("es2022");
     });
 
-    test("should include line and column info", () => {
-      const detector = new Detector();
-      const code = "\n\n  const fn = () => {}";
-      const features = detector.scan(code);
-
-      const arrowFunc = features.find((f) => f.name === "arrow_functions");
-      expect(arrowFunc?.line).toBe(3);
-      expect(arrowFunc?.column).toBeGreaterThan(0);
-    });
-
-    test("should include code snippet", () => {
-      const detector = new Detector();
-      const features = detector.scan("const fn = () => {}");
-
-      const arrowFunc = features.find((f) => f.name === "arrow_functions");
-      expect(arrowFunc?.snippet).toBe("const fn = () => {}");
-    });
   });
 
   describe("detect method", () => {
@@ -203,7 +165,7 @@ describe("Detector", () => {
       }).toThrow();
     });
 
-    test("should include line info in error", () => {
+    test("should include feature info in error", () => {
       const detector = new Detector();
       const code = "\n\nconst x = () => {}";
 
@@ -211,7 +173,10 @@ describe("Detector", () => {
         detector.check(code, { target: "es5", throwOnFirst: true });
         expect(true).toBe(false); // Should not reach here
       } catch (error: any) {
-        expect(error.message).toContain("line");
+        expect(error.message).toContain("arrow_functions");
+        expect(error.message).toContain("requires");
+        expect(error.message).toContain("es2015");
+        expect(error.message).toContain("target is es5");
       }
     });
   });

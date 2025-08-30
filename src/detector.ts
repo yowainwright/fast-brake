@@ -1,68 +1,51 @@
-import { QUICK_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "./constants";
+import { FEATURE_STRINGS, FEATURE_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "./constants";
 import type { DetectedFeature, DetectionOptions } from "./types";
 export type { DetectedFeature, DetectionOptions } from "./types";
 
 export class Detector {
   private compiledPatterns: Map<string, RegExp>;
+  private featureStrings: Record<string, string[]>;
 
   constructor() {
     this.compiledPatterns = new Map();
-    for (const [name, pattern] of Object.entries(QUICK_PATTERNS)) {
+    for (const [name, pattern] of Object.entries(FEATURE_PATTERNS)) {
       this.compiledPatterns.set(name, pattern);
     }
+    this.featureStrings = FEATURE_STRINGS;
   }
 
   scan(code: string, options?: Partial<DetectionOptions>): DetectedFeature[] {
     const detected: DetectedFeature[] = [];
-    const includeLoc = options?.includeLoc ?? false;
 
-    for (const [featureName, pattern] of this.compiledPatterns.entries()) {
+    for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
       const featureVersion = FEATURE_VERSIONS[featureName];
+      if (!featureVersion) continue;
 
-      pattern.lastIndex = 0;
-      const match = pattern.exec(code);
-      if (match) {
-        const upToMatch = code.substring(0, match.index);
-        const lineNum = (upToMatch.match(/\n/g) || []).length + 1;
-        const lastNewline = upToMatch.lastIndexOf("\n");
-        const column = match.index - lastNewline;
-
-        const lineStart = lastNewline + 1;
-        const lineEnd = code.indexOf("\n", match.index);
-        const endPos = lineEnd === -1 ? code.length : lineEnd;
-        const maxSnippetEnd = Math.min(lineStart + 50, endPos);
-        const rawSnippet = code.substring(lineStart, maxSnippetEnd);
-        const cleanSnippet = rawSnippet.replace(/\n/g, " ");
-        const snippet = cleanSnippet.trim();
-
+      const hasFeature = patterns.some(pattern => code.includes(pattern));
+      if (hasFeature) {
         const feature: DetectedFeature = {
           name: featureName,
           version: featureVersion,
-          line: lineNum,
-          column: column,
-          snippet: snippet,
         };
 
-        if (includeLoc) {
-          const matchEnd = match.index + match[0].length;
-          const upToEnd = code.substring(0, matchEnd);
-          const endLineNum = (upToEnd.match(/\n/g) || []).length + 1;
-          const lastNewlineBeforeEnd = upToEnd.lastIndexOf("\n");
-          const endColumn = matchEnd - lastNewlineBeforeEnd;
+        detected.push(feature);
 
-          feature.loc = {
-            start: {
-              line: lineNum,
-              column: column,
-            },
-            end: {
-              line: endLineNum,
-              column: endColumn,
-            },
-            offset: match.index,
-            length: match[0].length,
-          };
+        if (options?.throwOnFirst) {
+          return detected;
         }
+      }
+    }
+
+    for (const [featureName, pattern] of this.compiledPatterns.entries()) {
+      const featureVersion = FEATURE_VERSIONS[featureName];
+      if (!featureVersion) continue;
+
+      pattern.lastIndex = 0;
+      if (pattern.test(code)) {
+        const feature: DetectedFeature = {
+          name: featureName,
+          version: featureVersion,
+        };
 
         detected.push(feature);
 
@@ -80,19 +63,43 @@ export class Detector {
   }
 
   check(code: string, options: DetectionOptions): boolean {
-    const detected = this.detect(code, options);
     const targetIndex = VERSION_ORDER.indexOf(options.target);
 
-    for (const feature of detected) {
-      const featureIndex = VERSION_ORDER.indexOf(feature.version);
+    for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
+      const featureVersion = FEATURE_VERSIONS[featureName];
+      if (!featureVersion) continue;
+      
+      const featureIndex = VERSION_ORDER.indexOf(featureVersion);
+      
       if (featureIndex > targetIndex) {
-        if (options.throwOnFirst) {
-          throw new Error(
-            `Feature "${feature.name}" requires ${feature.version} but target is ${options.target}` +
-              (feature.line ? ` at line ${feature.line}` : ""),
-          );
+        const hasFeature = patterns.some(pattern => code.includes(pattern));
+        if (hasFeature) {
+          if (options.throwOnFirst) {
+            throw new Error(
+              `Feature "${featureName}" requires ${featureVersion} but target is ${options.target}`,
+            );
+          }
+          return false;
         }
-        return false;
+      }
+    }
+
+    for (const [featureName, pattern] of this.compiledPatterns.entries()) {
+      const featureVersion = FEATURE_VERSIONS[featureName];
+      if (!featureVersion) continue;
+      
+      const featureIndex = VERSION_ORDER.indexOf(featureVersion);
+      
+      if (featureIndex > targetIndex) {
+        pattern.lastIndex = 0;
+        if (pattern.test(code)) {
+          if (options.throwOnFirst) {
+            throw new Error(
+              `Feature "${featureName}" requires ${featureVersion} but target is ${options.target}`,
+            );
+          }
+          return false;
+        }
       }
     }
 

@@ -13,41 +13,36 @@ export const ES_VERSIONS = {
   es2025: { chrome: 125, firefox: 125, safari: 18 },
 };
 
-export const QUICK_PATTERNS: Record<string, RegExp> = {
-  arrow_functions: /=>/,
-  template_literals: /`/,
+export const FEATURE_STRINGS: Record<string, string[]> = {
+  arrow_functions: ["=>"],
+  template_literals: ["`"],
+  let_const: ["let ", "const "],
+  spread_rest: ["..."],
+  exponentiation: ["**"],
+  async_await: ["async ", "await "],
+  async_iteration: ["for await"],
+  array_flat: [".flat(", ".flatMap("],
+  optional_chaining: ["?."],
+  nullish_coalescing: ["??"],
+  globalThis: ["globalThis"],
+  logical_assignment: ["||=", "&&=", "??="],
+  string_replaceAll: [".replaceAll("],
+  promise_any: ["Promise.any("],
+  array_at: [".at("],
+  promise_allSettled: ["Promise.allSettled("],
+};
+
+export const FEATURE_PATTERNS: Record<string, RegExp> = {
   classes: /\bclass\s+[a-zA-Z_$]/,
-  let_const: /\b(?:let|const)\s+/,
-  spread_rest: /\.\.\./,
   for_of: /\bfor\s*\([^)]*\bof\b/,
   destructuring: /(?:const|let|var)\s*[[{]/,
   default_params: /function[^(]*\([^)]*=[^)]*\)/,
-
-  exponentiation: /\*\*/,
-
-  async_await:
-    /\b(?:async\s+function|async\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>|await\s)/,
-
-  async_iteration: /\bfor\s+await\s*\(/,
   rest_spread_properties: /\{[^}]*\.\.\.[^.]/,
-
-  array_flat: /\.(?:flat|flatMap)\s*\(/,
-
-  optional_chaining: /\?\./,
-  nullish_coalescing: /\?\?/,
   bigint: /\b\d+n\b/,
-  promise_allSettled: /Promise\.allSettled\s*\(/,
-  globalThis: /\bglobalThis\b/,
-
-  logical_assignment: /(?:\|\|=|&&=|\?\?=)/,
   numeric_separators: /\b\d+_\d+/,
-  string_replaceAll: /\.replaceAll\s*\(/,
-  promise_any: /Promise\.any\s*\(/,
-
   class_fields: /#[a-zA-Z_$]/,
   private_fields: /#[a-zA-Z_$]/,
   static_blocks: /\bstatic\s*\{/,
-  array_at: /\.at\s*\(/,
   object_hasOwn: /Object\.hasOwn\s*\(/,
   top_level_await: /^[^{]*\bawait\s/m,
 
