@@ -95,21 +95,12 @@ function loadTestCases(): TestCase[] {
 }
 
 const parsers = {
-  'fast-brake (pattern)': {
-    parse: (code: string) => detect(code, { quick: true }),
-    description: 'Pattern matching + tokenization',
+  'fast-brake': {
+    parse: (code: string) => detect(code),
+    description: 'Pattern matching',
     validate: (code: string) => {
       const features = detect(code);
       const version = getMinimumESVersion(code);
-      return { features: features.length, version };
-    }
-  },
-  'fast-brake (full)': {
-    parse: (code: string) => detect(code, { quick: false }),
-    description: 'Full analysis mode',
-    validate: (code: string) => {
-      const features = detect(code, { quick: false });
-      const version = getMinimumESVersion(code, { quick: false });
       return { features: features.length, version };
     }
   },
@@ -343,7 +334,7 @@ async function main() {
       }
     }
     
-    const baseline = results.find(r => r.parser === 'fast-brake (pattern)')?.timeMs || 1;
+    const baseline = results.find(r => r.parser === 'fast-brake')?.timeMs || 1;
     results.forEach(r => {
       r.relativeSpeed = baseline / r.timeMs;
     });
@@ -376,23 +367,23 @@ async function main() {
   
   console.log(pc.bold(pc.cyan('\n📈 Summary\n')));
   
-  const fastBrakePatternAvg = Array.from(allResults.values())
-    .map(results => results.find(r => r.parser === 'fast-brake (pattern)')?.opsPerSec || 0)
+  const fastBrakeAvg = Array.from(allResults.values())
+    .map(results => results.find(r => r.parser === 'fast-brake')?.opsPerSec || 0)
     .reduce((a, b) => a + b, 0) / allResults.size;
   
   const babelAvg = Array.from(allResults.values())
     .map(results => results.find(r => r.parser === '@babel/parser')?.opsPerSec || 0)
     .reduce((a, b) => a + b, 0) / allResults.size;
   
-  console.log(pc.green(`✓ fast-brake (pattern): ${fastBrakePatternAvg.toFixed(0)} ops/sec average`));
+  console.log(pc.green(`✓ fast-brake: ${fastBrakeAvg.toFixed(0)} ops/sec average`));
   console.log(pc.yellow(`✓ @babel/parser: ${babelAvg.toFixed(0)} ops/sec average`));
-  console.log(pc.bold(`✓ Speed advantage: ${(fastBrakePatternAvg / babelAvg).toFixed(1)}x faster\n`));
+  console.log(pc.bold(`✓ Speed advantage: ${(fastBrakeAvg / babelAvg).toFixed(1)}x faster\n`));
   
   console.log(pc.bold(pc.cyan('⚖️  Trade-offs\n')));
   console.log(pc.gray('fast-brake achieves its speed through:'));
   console.log(pc.gray('  • Pattern matching instead of full AST parsing'));
   console.log(pc.gray('  • Targeted feature detection vs complete syntax analysis'));
-  console.log(pc.gray('  • Optimized tokenization for specific ES features'));
+  console.log(pc.gray('  • Optimized pattern matching for ES features'));
   console.log(pc.gray('  • Zero runtime dependencies\n'));
   
   console.log(pc.gray('This makes it ideal for:'));

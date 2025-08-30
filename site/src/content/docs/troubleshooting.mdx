@@ -3,341 +3,167 @@ title: Troubleshooting & FAQ
 description: Common issues, debugging tips, and frequently asked questions for fast-brake
 ---
 
-## Frequently Asked Questions
+## Understanding fast-brake
 
 ### What is fast-brake?
 
-fast-brake is an ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. It uses a two-phase detection system that can be faster than traditional AST parsers for its intended service to brake fast!
+fast-brake is an ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. It uses high-performance pattern matching that can be significantly faster than traditional AST parsers for compatibility checking.
 
-### Why is fast-brake faster than other tools?
+### How does fast-brake work?
 
-fast-brake uses a unique **two-phase detection system**:
-1. **Phase 1**: Lightning-fast regex pattern matching for initial feature detection
-2. **Phase 2**: Intelligent tokenizer validation for accurate detection
+fast-brake uses **optimized pattern matching** with a plugin architecture for maximum performance:
+- **Pattern Matching**: Lightning-fast regex-based feature detection
+- **Plugin System**: Load only the detection rules you need (up to 85x faster)
+- **Optional Location Data**: AST-like location information when needed
 
-This approach avoids the overhead of full AST parsing while maintaining 99.9% accuracy.
+This approach makes it ideal for build tools, linters, and CI/CD pipelines where performance is critical.
 
-### When should I use quick mode vs full mode?
+### Performance Modes
 
-**Quick Mode** (`{ quick: true }`):
-- ✅ **Faster** than full mode (~0.013ms per file)
-- ✅ Perfect for **development builds** and **hot reloading**
-- ⚠️ Pattern-based detection without tokenizer validation
-- ✅ Use when speed is critical
+**Plugin Mode** (recommended):
+-  **Up to 85x faster** than baseline
+-  Perfect for **development builds** and **hot reloading**
+-  Target specific ES versions for maximum speed
 
-**Full Mode** (default):
-- ✅ **High accuracy** with tokenizer validation
-- ✅ **Still 2x faster** than AST parsers (~0.055ms per file)
-- ✅ **Recommended** for production builds and CI/CD
-- ✅ Use when accuracy is critical
-
-### Does fast-brake work with TypeScript?
-
-Yes! fast-brake works with TypeScript code and includes full TypeScript definitions. It analyzes the JavaScript syntax patterns regardless of whether the code is in `.js` or `.ts` files.
-
-### What ES versions are supported?
-
-fast-brake supports **ES5 through ES2025** with comprehensive coverage:
-- **ES2015**: Arrow functions, classes, template literals, let/const, destructuring, etc.
-- **ES2016**: Exponentiation operator (**)
-- **ES2017**: Async/await
-- **ES2018**: Async iteration, rest/spread properties
-- **ES2019**: Array.flat(), Array.flatMap()
-- **ES2020**: Optional chaining (?.), nullish coalescing (??), BigInt
-- **ES2021**: Logical assignment (||=, &&=, ??=), numeric separators
-- **ES2022**: Private fields (#), static blocks, Array.at(), Object.hasOwn()
-- **ES2023**: Array.findLast(), Array.toReversed(), Array.toSorted(), hashbang (#!)
-- **ES2024**: RegExp v flag, Array.fromAsync(), Promise.withResolvers, Object.groupBy()
-- **ES2025**: Temporal API, Set methods (intersection, union, difference, etc.)
-
-### Can I extend fast-brake with custom features?
-
-Yes! fast-brake is designed to be extensible. You can create custom detectors and add your own feature patterns. See the [Advanced Features](/advanced-features) documentation for examples.
+**Full Detection Mode**:
+-  **Comprehensive coverage** of all ES features
+-  **Still 3-4x faster** than AST parsers
+-  Ideal for **production builds** and **CI/CD pipelines**
 
 ## Common Issues
 
-### Quick Mode Detection Characteristics
+### 1. False Positives in Strings/Comments
 
-**Problem:** Quick mode detects ES features in strings or comments.
+**Problem**: Features detected in strings or comments.
 
 ```javascript
-// This code is actually ES5 compatible
-const code = `
-  var message = "This => looks like an arrow function";
-  // This => comment also looks suspicious
-`;
-
-const features = detect(code, { quick: true });
-console.log(features); // May show arrow_functions
+const code = '"const arrow = () => {}"'; // String contains arrow function
 ```
 
-**Solution:** Use full mode for accurate results:
+**Solution**: fast-brake's patterns are designed to minimize false positives, but some edge cases may occur. For critical production use, consider validating results.
+
+### 2. Performance Not Meeting Expectations
+
+**Problem**: Detection is slower than expected.
+
+**Solution**: Use targeted plugins for maximum performance:
 
 ```javascript
-const features = detect(code, { quick: false }); // default
-console.log(features); // [] - correctly identifies as ES5
-```
-
-**When to use each mode:**
-- **Quick mode**: Development builds, hot reloading, when speed matters most
-- **Full mode**: Production builds, CI/CD, when accuracy is critical
-
-### Unexpected Feature Detection
-
-**Problem:** fast-brake detects features you don't think are there.
-
-**Solution:** Use the detailed output to understand what was detected:
-
-```javascript
+// Slow - runs all patterns
 const features = detect(code);
+
+// Fast - targeted detection (up to 85x faster!)
+import { detectWithPlugins } from 'fast-brake';
+const features = detectWithPlugins(code, ['es2015']);
+```
+
+### 3. Missing Feature Detection
+
+**Problem**: A specific ES feature isn't being detected.
+
+**Solution**: Check if the feature is supported:
+
+```javascript
+import { QUICK_PATTERNS } from 'fast-brake/constants';
+
+// Check available patterns
+console.log(Object.keys(QUICK_PATTERNS));
+
+// For unsupported features, consider contributing!
+```
+
+### 4. Incorrect Version Mapping
+
+**Problem**: Feature is detected but mapped to wrong ES version.
+
+**Solution**: Verify the version mapping:
+
+```javascript
+import { FEATURE_VERSIONS } from 'fast-brake/constants';
+
+console.log(FEATURE_VERSIONS['optional_chaining']); // 'es2020'
+```
+
+## Debugging Techniques
+
+### 1. Verbose Output
+
+Enable detailed detection information:
+
+```javascript
+const features = detect(code, { includeLoc: true });
+
 features.forEach(feature => {
   console.log(`Feature: ${feature.name}`);
   console.log(`Version: ${feature.version}`);
-  console.log(`Location: line ${feature.line}, column ${feature.column}`);
+  console.log(`Location: line ${feature.loc.start.line}, column ${feature.loc.start.column}`);
   console.log(`Snippet: ${feature.snippet}`);
-  console.log('---');
 });
 ```
 
-**Common causes:**
-- Template literals (backticks) in regular strings
-- Arrow function syntax in regex patterns
-- ES features in code comments
+### 2. Pattern Testing
 
-### Performance Issues
+Test individual patterns:
 
-**Problem:** fast-brake seems slower than expected.
-
-**Solutions:**
-
-1. **Use quick mode for development:**
 ```javascript
-// Development - prioritize speed
-const features = detect(code, { quick: true });
-```
+import { QUICK_PATTERNS } from 'fast-brake/constants';
 
-2. **Reuse detector instances:**
-```javascript
-import { getDetector } from 'fast-brake';
+const pattern = QUICK_PATTERNS.arrow_functions;
+const matches = code.match(pattern);
 
-const detector = getDetector(); // Singleton
-const results = files.map(file => detector.detect(file.content));
-```
-
-3. **Process files in batches:**
-```javascript
-// Instead of processing all files at once
-const batchSize = 100;
-for (let i = 0; i < files.length; i += batchSize) {
-  const batch = files.slice(i, i + batchSize);
-  const results = batch.map(file => detect(file.content));
-  // Process results...
+if (matches) {
+  console.log('Pattern matched:', matches[0]);
+  console.log('At position:', matches.index);
 }
 ```
 
-### Memory Usage Issues
+### 3. Plugin Debugging
 
-**Problem:** High memory usage when processing large codebases.
-
-**Solution:** Use streaming processing:
+Debug specific plugins:
 
 ```javascript
-async function* processLargeCodebase(files) {
-  const detector = getDetector();
-  
-  for (const file of files) {
-    // Process one file at a time
-    const result = detector.detect(file.content, { quick: true });
-    
-    // Yield minimal data
-    yield {
-      path: file.path,
-      featureCount: result.length,
-      minVersion: getMinimumESVersion(file.content, { quick: true })
-    };
-  }
-}
+import { loadPlugin } from 'fast-brake/plugins';
 
-// Usage
-for await (const result of processLargeCodebase(files)) {
-  console.log(result);
-}
+const plugin = loadPlugin(['es2015']);
+const results = plugin.detect(code);
+
+console.log('Plugin patterns:', Object.keys(plugin.patterns));
+console.log('Detection results:', results);
 ```
 
-### TypeScript Import Issues
+## Performance Optimization
 
-**Problem:** Cannot import fast-brake in TypeScript.
-
-```typescript
-// Error: Cannot find module 'fast-brake'
-import { detect } from 'fast-brake';
-```
-
-**Solutions:**
-
-1. **Install type definitions (if needed):**
-```bash
-npm install --save-dev @types/fast-brake
-```
-
-2. **Use require syntax:**
-```typescript
-const { detect } = require('fast-brake');
-```
-
-3. **Add to tsconfig.json:**
-```json
-{
-  "compilerOptions": {
-    "moduleResolution": "node",
-    "esModuleInterop": true
-  }
-}
-```
-
-### Build Tool Integration Issues
-
-**Problem:** fast-brake doesn't work in webpack/rollup/vite.
-
-**Solution:** Ensure proper configuration:
-
-**Webpack:**
-```javascript
-// webpack.config.js
-module.exports = {
-  resolve: {
-    fallback: {
-      "fs": false,
-      "path": false
-    }
-  }
-};
-```
-
-**Vite:**
-```javascript
-// vite.config.js
-export default {
-  define: {
-    global: 'globalThis'
-  }
-};
-```
-
-**Rollup:**
-```javascript
-// rollup.config.js
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-
-export default {
-  plugins: [
-    nodeResolve({
-      preferBuiltins: false
-    })
-  ]
-};
-```
-
-## Debugging
-
-### Enable Debug Mode
-
-For detailed information about what fast-brake is doing:
+### 1. Use Targeted Plugins
 
 ```javascript
-// Set environment variable
-process.env.DEBUG = 'fast-brake*';
+// Development - fast feedback
+const features = detectWithPlugins(code, ['es2015']);
 
-// Or use custom logging
-import { detect } from 'fast-brake';
-
-function debugDetection(code, options) {
-  console.log('Input code length:', code.length);
-  console.log('Options:', options);
-  
-  const start = performance.now();
-  const features = detect(code, options);
-  const duration = performance.now() - start;
-  
-  console.log('Features found:', features.length);
-  console.log('Detection time:', duration.toFixed(3), 'ms');
-  console.log('Features:', features.map(f => f.name));
-  
-  return features;
-}
+// Production - comprehensive
+const features = detectWithPlugins(code, ['all']);
 ```
 
-### Tokenizer Debugging
-
-To understand how the tokenizer processes your code:
+### 2. Batch Processing
 
 ```javascript
-import { Tokenizer } from 'fast-brake/tokenizer';
+const detector = getDetector(); // Reuse singleton
 
-function debugTokenization(code) {
-  const tokenizer = new Tokenizer(code);
-  const allTokens = tokenizer.tokenize();
-  const codeTokens = tokenizer.getCodeTokens();
-  
-  console.log('=== Tokenization Debug ===');
-  console.log(`Total tokens: ${allTokens.length}`);
-  console.log(`Code tokens: ${codeTokens.length}`);
-  console.log(`Filtered out: ${allTokens.length - codeTokens.length}`);
-  
-  // Show what was filtered out
-  const filtered = allTokens.filter(t => 
-    !codeTokens.some(ct => ct.start === t.start)
-  );
-  
-  console.log('\nFiltered tokens (strings/comments):');
-  filtered.forEach(token => {
-    console.log(`  ${token.type}: "${token.value}" at line ${token.line}`);
+const results = files.map(file => ({
+  path: file.path,
+  features: detector.detect(file.content)
+}));
+```
+
+### 3. Early Exit Strategy
+
+```javascript
+try {
+  fastBrake(code, { 
+    target: 'es5',
+    throwOnFirst: true // Exit on first incompatible feature
   });
-}
-
-// Usage
-debugTokenization(`
-  const arrow = () => {};
-  const str = "This => is not an arrow function";
-  // This => is also not an arrow function
-`);
-```
-
-### Performance Profiling
-
-To identify performance bottlenecks:
-
-```javascript
-function profileDetection(code, iterations = 1000) {
-  console.log('=== Performance Profile ===');
-  
-  // Warm up
-  for (let i = 0; i < 10; i++) {
-    detect(code, { quick: true });
-    detect(code, { quick: false });
-  }
-  
-  // Profile quick mode
-  const quickStart = performance.now();
-  for (let i = 0; i < iterations; i++) {
-    detect(code, { quick: true });
-  }
-  const quickTime = performance.now() - quickStart;
-  
-  // Profile full mode
-  const fullStart = performance.now();
-  for (let i = 0; i < iterations; i++) {
-    detect(code, { quick: false });
-  }
-  const fullTime = performance.now() - fullStart;
-  
-  console.log(`Quick mode: ${(quickTime / iterations).toFixed(3)}ms per call`);
-  console.log(`Full mode: ${(fullTime / iterations).toFixed(3)}ms per call`);
-  console.log(`Speed difference: ${(fullTime / quickTime).toFixed(1)}x`);
-  
-  // Memory usage
-  const memUsage = process.memoryUsage();
-  console.log(`Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+} catch (error) {
+  console.error('Incompatible:', error.feature);
 }
 ```
 
@@ -345,140 +171,91 @@ function profileDetection(code, iterations = 1000) {
 
 ### "ES feature requires X but target is Y"
 
-**Meaning:** The code contains a feature that requires a newer ES version than your target.
+This error means your code uses features from a newer ES version than your target.
 
-**Example:**
-```
-ES feature "arrow_functions" requires es2015 but target is es5 at line 1:11
+```javascript
+// Code uses arrow functions (ES2015)
+const fn = () => {};
+
+// But target is ES5
+fastBrake(code, { target: 'es5' });
+// Error: ES feature "arrow_functions" requires es2015 but target is es5
 ```
 
 **Solutions:**
-1. **Update target version:**
+1. Update your target version
+2. Transpile the code before checking
+3. Use a polyfill for the feature
+
+### "Unknown plugin"
+
+This error occurs when requesting a non-existent plugin.
+
 ```javascript
-check(code, { target: 'es2015' }); // Instead of 'es5'
+detectWithPlugins(code, ['es2030']); // Error: Unknown plugin
 ```
 
-2. **Transpile the code:**
+**Solution**: Check available plugins:
+- es5, es2015, es2016, es2017, es2018, es2019, es2020, es2021, es2022, es2023, es2024, es2025
+- all, browser, telemetry, detect
+
+## Integration Issues
+
+### Build Tool Integration
+
+**Webpack**:
 ```javascript
-// Use Babel or similar to convert to target version
-const transpiledCode = babel.transform(code, {
-  presets: [['@babel/preset-env', { targets: 'es5' }]]
-});
-```
-
-3. **Use polyfills:**
-```javascript
-// Add polyfills for missing features
-import 'core-js/features/array/includes';
-```
-
-### "Cannot read property 'X' of undefined"
-
-**Meaning:** Internal error, usually due to malformed input.
-
-**Solutions:**
-1. **Validate input:**
-```javascript
-if (typeof code !== 'string' || code.length === 0) {
-  throw new Error('Code must be a non-empty string');
-}
-```
-
-2. **Use try-catch:**
-```javascript
-try {
-  const features = detect(code, options);
-} catch (error) {
-  console.error('Detection failed:', error.message);
-  // Fallback to quick mode or return empty array
-}
-```
-
-### "Maximum call stack size exceeded"
-
-**Meaning:** Usually caused by extremely large files or infinite recursion.
-
-**Solutions:**
-1. **Process in chunks:**
-```javascript
-function detectLargeFile(code, chunkSize = 10000) {
-  const chunks = [];
-  for (let i = 0; i < code.length; i += chunkSize) {
-    chunks.push(code.slice(i, i + chunkSize));
+module.exports = {
+  module: {
+    rules: [{
+      test: /\.js$/,
+      enforce: 'pre',
+      loader: 'fast-brake-loader',
+      options: {
+        target: 'es2015',
+        plugins: ['es2015'] // Optimize performance
+      }
+    }]
   }
-  
-  return chunks.flatMap(chunk => detect(chunk, { quick: true }));
-}
+};
 ```
 
-2. **Use quick mode:**
+**Rollup**:
 ```javascript
-// Quick mode is less likely to cause stack overflow
-const features = detect(code, { quick: true });
+import { fastBrake } from 'fast-brake';
+
+export default {
+  plugins: [{
+    name: 'fast-brake',
+    transform(code) {
+      try {
+        fastBrake(code, { target: 'es2015' });
+        return null;
+      } catch (error) {
+        this.error(error.message);
+      }
+    }
+  }]
+};
 ```
 
-## Best Practices
+### CI/CD Integration
 
-### 1. Choose the Right Mode
-
-```javascript
-// Development builds - speed matters
-const devFeatures = detect(code, { quick: true });
-
-// Production builds - accuracy matters
-const prodFeatures = detect(code, { quick: false });
-
-// CI/CD - fail fast on incompatibility
-try {
-  fastBrake(code, { target: 'es2018', throwOnFirst: true });
-} catch (error) {
-  console.error('Build failed:', error.message);
-  process.exit(1);
-}
+**GitHub Actions**:
+```yaml
+- name: Check ES Compatibility
+  run: |
+    npx fast-brake src/**/*.js --target es2015 --plugins es2015
 ```
 
-### 2. Reuse Detector Instances
-
-```javascript
-// Good - reuse singleton
-const detector = getDetector();
-const results = files.map(file => detector.detect(file.content));
-
-// Bad - creates new instances
-const results = files.map(file => detect(file.content));
-```
-
-### 3. Handle Errors Gracefully
-
-```javascript
-function robustDetection(code, options) {
-  try {
-    return detect(code, { ...options, quick: false });
-  } catch (error) {
-    console.warn('Full mode failed, falling back to quick mode');
-    try {
-      return detect(code, { ...options, quick: true });
-    } catch (quickError) {
-      console.error('Both modes failed:', quickError.message);
-      return [];
+**Pre-commit Hook**:
+```json
+{
+  "husky": {
+    "hooks": {
+      "pre-commit": "fast-brake --target es2018"
     }
   }
-}
-```
-
-### 4. Monitor Performance
-
-```javascript
-function monitoredDetection(code, options) {
-  const start = performance.now();
-  const features = detect(code, options);
-  const duration = performance.now() - start;
-  
-  if (duration > 10) { // Log slow detections
-    console.warn(`Slow detection: ${duration.toFixed(2)}ms for ${code.length} chars`);
-  }
-  
-  return features;
 }
 ```
 
@@ -486,118 +263,40 @@ function monitoredDetection(code, options) {
 
 ### Resources
 
-- **GitHub Issues**: [Report bugs and request features](https://github.com/yowainwright/fast-brake/issues)
-- **Discussions**: [Ask questions and share ideas](https://github.com/yowainwright/fast-brake/discussions)
-- **Documentation**: [Complete API reference](/api-reference)
-- **Examples**: [Advanced usage patterns](/advanced-features)
+1. **GitHub Issues**: [Report bugs or request features](https://github.com/yowainwright/fast-brake/issues)
+2. **Documentation**: [Full API Reference](/api-reference)
+3. **Examples**: [Code examples and recipes](https://github.com/yowainwright/fast-brake/tree/main/examples)
 
-### Before Filing an Issue
+### Debug Checklist
 
-1. **Update to latest version:**
-```bash
-npm update fast-brake
-```
+When reporting issues, please include:
 
-2. **Check existing issues:**
-Search for similar problems in the GitHub issues.
+- [ ] fast-brake version
+- [ ] Node.js version
+- [ ] Code sample that reproduces the issue
+- [ ] Expected vs actual behavior
+- [ ] Performance metrics (if relevant)
+- [ ] Plugin configuration used
 
-3. **Create minimal reproduction:**
-```javascript
-// Minimal example that reproduces the issue
-const { detect } = require('fast-brake');
+### Community Support
 
-const code = `/* your problematic code here */`;
-const result = detect(code, { target: 'es5' });
-console.log(result);
-```
+- **Discord**: Join our community for real-time help
+- **Stack Overflow**: Tag questions with `fast-brake`
+- **Twitter**: Follow [@yowainwright](https://twitter.com/yowainwright) for updates
 
-4. **Include environment info:**
-- Node.js version: `node --version`
-- fast-brake version: `npm list fast-brake`
-- Operating system
-- Build tool (if applicable)
+## FAQ
 
-### Issue Template
+**Q: Why is fast-brake faster than AST parsers?**
+A: fast-brake uses optimized pattern matching instead of building a full AST, focusing only on feature detection.
 
-When reporting issues, include:
+**Q: Can fast-brake replace ESLint?**
+A: No, fast-brake is specifically for ES feature detection, not general linting.
 
-```markdown
-**Environment:**
-- Node.js version: 
-- fast-brake version: 
-- Operating system: 
-- Build tool: 
+**Q: Does fast-brake support TypeScript?**
+A: fast-brake focuses on JavaScript. For TypeScript, strip types first using a tool like `esbuild`.
 
-**Expected behavior:**
-What you expected to happen
+**Q: How accurate is pattern matching?**
+A: Very accurate for real-world code. Edge cases exist but are rare in production code.
 
-**Actual behavior:**
-What actually happened
-
-**Code to reproduce:**
-```javascript
-// Minimal code that reproduces the issue
-```
-
-**Error message (if any):**
-```
-Full error message and stack trace
-```
-
-**Additional context:**
-Any other relevant information
-```
-
-## Migration Guide
-
-### From Other ES Detection Tools
-
-If you're migrating from other tools:
-
-1. **From ESLint parsers:**
-```javascript
-// Before (ESLint)
-const { parse } = require('@babel/parser');
-const ast = parse(code);
-// Complex AST traversal...
-
-// After (fast-brake)
-const { detect } = require('fast-brake');
-const features = detect(code);
-```
-
-2. **From Babel parser:**
-```javascript
-// Before (Babel)
-const babel = require('@babel/core');
-const result = babel.transform(code, { code: false });
-// Check AST for features...
-
-// After (fast-brake)
-const { getMinimumESVersion } = require('fast-brake');
-const minVersion = getMinimumESVersion(code);
-```
-
-3. **From Acorn parser:**
-```javascript
-// Before (Acorn)
-const acorn = require('acorn');
-const ast = acorn.parse(code, { ecmaVersion: 2022 });
-// Walk AST...
-
-// After (fast-brake)
-const { check } = require('fast-brake');
-const isCompatible = check(code, { target: 'es2022' });
-```
-
-### Performance Comparison
-
-| Tool | 1000 Files | Memory |
-|------|------------|---------|
-| **fast-brake (Quick)** | **13ms** | **4MB** |
-| **fast-brake (Full)** | **55ms** | **4MB** |
-| Babel Parser | ~100ms | ~15MB |
-| ESLint Parser | ~120ms | ~18MB |
-| Acorn Parser | ~80ms | ~12MB |
-
-The migration to fast-brake typically results in significant performance improvements while maintaining or improving accuracy.
+**Q: Can I add custom feature detection?**
+A: Yes! Create custom plugins or extend the detector class. See [Advanced Features](/advanced-features).

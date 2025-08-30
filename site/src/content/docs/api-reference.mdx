@@ -26,7 +26,7 @@ import { fastBrake } from 'fast-brake';
 
 try {
   fastBrake('const x = () => {}', { target: 'es5' });
-  console.log('✅ Code is compatible');
+  console.log(' Code is compatible');
 } catch (error) {
   console.error('❌ Compatibility error:', error.message);
   // "ES feature "arrow_functions" requires es2015 but target is es5 at line 1:11"
@@ -110,9 +110,9 @@ console.log(isES2015Compatible); // true
 
 // Use in conditional logic
 if (check(userCode, { target: 'es2018' })) {
-  console.log('✅ Code is ES2018 compatible');
+  console.log(' Code is ES2018 compatible');
 } else {
-  console.log('⚠️ Code requires transpilation for ES2018');
+  console.log(' Code requires transpilation for ES2018');
 }
 ```
 
@@ -216,34 +216,36 @@ const minVersion = getMinimumESVersion(code, { quick: true });
 ```
 
 **Characteristics:**
-- ⚡ **Ultra-fast**: ~0.013ms per file
-- ⚠️ Pattern-based detection only
-- 🎯 **Use case**: Development builds, hot reloading
+-  **Ultra-fast**: ~0.013ms per file
+-  Pattern-based detection only
+-  **Use case**: Development builds, hot reloading
 
-### Full Mode (Default)
+### Plugin Mode (Recommended)
 
-**High accuracy** with tokenizer validation for accurate detection.
+**Maximum performance** with targeted detection using plugins.
 
 ```javascript
-import { detect, check, getMinimumESVersion } from 'fast-brake';
+import { detectWithPlugins, checkWithPlugins } from 'fast-brake';
 
-// Full detection - maximum accuracy (default)
-const features = detect(code); // quick: false is default
-const isCompatible = check(code, { target: 'es5' });
-const minVersion = getMinimumESVersion(code);
+// Targeted detection - up to 85x faster!
+const features = detectWithPlugins(code, ['es2015']);
+const isCompatible = checkWithPlugins(code, ['es2015']);
+
+// Comprehensive detection
+const allFeatures = detectWithPlugins(code, ['all']);
 
 // Perfect for:
-// - Production builds
-// - CI/CD pipelines
-// - Linting and code analysis
-// - When accuracy is critical
+// - Development builds with known targets
+// - Hot reloading
+// - CI/CD with specific ES version targets
+// - Maximum performance requirements
 ```
 
 **Characteristics:**
-- 🎯 **High accuracy**: With tokenizer validation
-- ⚡ **Still fast**: ~0.055ms per file (2x faster than AST parsers)
-- 🛡️ **Tokenizer validation**: Ignores features in strings/comments
-- 🎯 **Use case**: Production builds, CI/CD, linting
+-  **Ultra-fast**: Up to 85x faster with single plugins
+-  **Targeted detection**: Load only what you need
+-  **Flexible**: Combine multiple plugins
+-  **Use case**: Development, hot reloading, CI/CD
 
 ## Feature Detection Reference
 
@@ -340,7 +342,7 @@ class FastBrakePlugin {
                 getVersionIndex(f.version) > getVersionIndex(this.target)
               );
               
-              console.warn(`⚠️ ${filename} contains incompatible features:`, 
+              console.warn(` ${filename} contains incompatible features:`, 
                 incompatible.map(f => f.name));
             }
           });
@@ -411,13 +413,13 @@ async function validateCompatibility() {
     .filter(file => file.endsWith('.js') || file.endsWith('.ts'))
     .map(file => join(srcDir, file));
   
-  console.log(`🔍 Checking ${files.length} files for ${target} compatibility...`);
+  console.log(` Checking ${files.length} files for ${target} compatibility...`);
   
   for (const file of files) {
     try {
       const code = readFileSync(file, 'utf-8');
       fastBrake(code, { target });
-      console.log(`✅ ${file}`);
+      console.log(` ${file}`);
     } catch (error) {
       console.error(`❌ ${file}: ${error.message}`);
       hasErrors = true;
@@ -428,7 +430,7 @@ async function validateCompatibility() {
     console.error(`\n❌ Compatibility check failed for target ${target}`);
     process.exit(1);
   } else {
-    console.log(`\n✅ All files are ${target} compatible`);
+    console.log(`\n All files are ${target} compatible`);
   }
 }
 

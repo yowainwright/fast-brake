@@ -1,88 +1,83 @@
 ---
 title: Architecture
-description: "Deep dive into fast-brake's revolutionary two-phase detection system, including the detector, tokenizer, and pattern matching engine"
+description: "Deep dive into fast-brake's high-performance pattern matching system and plugin architecture"
 ---
 
 ## How fast-brake Works
 
-fast-brake revolutionizes ES feature detection through its **two-phase detection system** that combines the speed of pattern matching with the accuracy of tokenizer validation.
+fast-brake revolutionizes ES feature detection through **high-performance pattern matching** and a flexible plugin architecture.
 
 ```mermaid
 graph TD
-    A[JavaScript Code] --> B[Phase 1: Quick Pattern Matching]
+    A[JavaScript Code] --> B[Pattern Matching Engine]
     B --> C[Regex-based Feature Detection]
-    C --> D[Initial Feature Candidates]
-    D --> E{Quick Mode?}
-    E -->|Yes| F[Return Quick Results]
-    E -->|No| G[Phase 2: Tokenizer Validation]
-    G --> H[Tokenize Code]
-    H --> I[Validate Features]
-    I --> J[Validate Features]
-    J --> K[Add Token-based Features]
-    K --> L[Return Accurate Results]
+    C --> D[Feature Results]
+    D --> E{Include Location?}
+    E -->|Yes| F[Calculate Location Data]
+    E -->|No| G[Return Results]
+    F --> G[Return Results]
 ```
 
-This approach can deliver up to **7x faster performance** than traditional AST parsers while maintaining high accuracy.
+This approach delivers up to **85x faster performance** with targeted plugins compared to traditional AST parsers.
 
 ## Core Architecture Components
 
 ### 1. Detector Engine (`src/detector.ts`)
 
-The **Detector** is the main orchestrator that manages the two-phase detection process.
+The **Detector** is the main engine that performs pattern-based feature detection.
 
 ```typescript
 class Detector {
-  // Phase 1: Lightning-fast regex scanning
-  quickScan(code: string): DetectedFeature[]
-  
-  // Phase 2: Accurate tokenizer validation
-  accurateScan(code: string, quickFeatures: DetectedFeature[]): DetectedFeature[]
+  // High-performance pattern scanning
+  scan(code: string, options?: DetectionOptions): DetectedFeature[]
   
   // Main detection method
   detect(code: string, options: DetectionOptions): DetectedFeature[]
+  
+  // Check compatibility
+  check(code: string, options: DetectionOptions): boolean
+  
+  // Get minimum ES version
+  getMinimumVersion(code: string): string
 }
 ```
 
 **Key Responsibilities:**
-- Orchestrates the two-phase detection process
 - Manages compiled regex patterns for optimal performance
-- Validates features using tokenizer analysis
-- Provides singleton instance for performance optimization
+- Performs single-pass pattern matching
+- Provides location data when requested
+- Singleton instance for performance optimization
 
-### 2. Tokenizer Engine (`src/tokenizer.ts`)
+### 2. Plugin System (`src/plugins/`)
 
-The **Tokenizer** provides intelligent code analysis to accurately detect features in code.
+The **Plugin System** allows targeted detection for specific use cases.
 
 ```typescript
-class Tokenizer {
-  // Tokenize JavaScript code with state tracking
-  tokenize(): Token[]
-  
-  // Get code tokens (excluding strings/comments)
-  getCodeTokens(): Token[]
-  
-  // Track tokenizer state for accurate detection
-  private state: TokenState
+interface Plugin {
+  patterns: Record<string, RegExp>
+  detect(code: string): PluginResult[]
+  check(code: string): boolean
 }
 ```
 
-**Key Features:**
-- **State-aware tokenization**: Tracks strings, comments, regex, and template literals
-- **Accurate detection**: Validates ES features in actual code contexts
-- **Token-based feature detection**: Identifies imports, exports, and complex patterns
-- **Performance optimized**: Minimal memory allocation and fast scanning
+**Available Plugins:**
+- **ES Version Plugins**: es5, es2015, es2016, etc.
+- **All Plugin**: Detects all ES features
+- **Browser Plugin**: Browser compatibility checking
+- **Telemetry Plugin**: Analytics detection
+- **Detect Plugin**: Auto-detect minimum version
 
 ### 3. Pattern Engine (`src/constants.ts`)
 
 The **Pattern Engine** contains optimized regex patterns and feature mappings.
 
 ```typescript
-// Quick detection patterns (Phase 1)
+// Quick detection patterns
 export const QUICK_PATTERNS: Record<string, RegExp> = {
   arrow_functions: /=>/,
   template_literals: /`/,
   optional_chaining: /\?\./,
-  // ... 30+ patterns
+  // ... 40+ patterns
 };
 
 // Feature version mappings
@@ -99,11 +94,11 @@ export const FEATURE_VERSIONS: Record<string, string> = {
 - **Hierarchical organization**: Patterns grouped by ES version
 - **Performance tuning**: Optimized for common cases first
 
-## Two-Phase Detection Deep Dive
+## Pattern Matching Deep Dive
 
-### Phase 1: Quick Pattern Matching
+### High-Performance Detection
 
-**Objective**: Lightning-fast initial feature detection using regex patterns.
+**Objective**: Lightning-fast feature detection using optimized regex patterns.
 
 ```javascript
 // Example: Detecting arrow functions
@@ -120,41 +115,40 @@ if (matches) {
 ```
 
 **Characteristics:**
-- ⚡ **Ultra-fast**: ~0.013ms per file
-- 🎯 **High recall**: Catches most features
+-  **Ultra-fast**: ~0.001ms with targeted plugins
+-  **High accuracy**: Carefully crafted patterns
+-  **Single-pass**: Processes code once
 
 **Use Cases:**
 - Development builds with hot reloading
 - Build tools where speed is critical
-- Initial feature screening
+- CI/CD pipelines for compatibility checking
 
-### Phase 2: Tokenizer Validation
+### Location Data Support
 
-**Objective**: Validate features and add token-based feature detection.
+Provides optional AST-like location information.
 
 ```javascript
-// Example: Validating arrow functions
-const tokens = tokenizer.getCodeTokens(); // Excludes strings/comments
-const hasArrowFunction = tokens.some(token => token.value === '=>');
-
-if (hasArrowFunction) {
-  // Confirmed: arrow function in actual code
-  validatedFeatures.push(feature);
-}
+// Example: Getting location data
+const features = detect(code, { includeLoc: true });
+// Returns:
+// {
+//   name: 'arrow_functions',
+//   version: 'es2015',
+//   loc: {
+//     start: { line: 1, column: 15 },
+//     end: { line: 1, column: 17 },
+//     offset: 14,
+//     length: 2
+//   }
+// }
 ```
 
-**Validation Process:**
-1. **Tokenize code**: Parse into tokens with context awareness
-2. **Filter code tokens**: Exclude strings, comments, and regex
-3. **Validate features**: Check if patterns exist in actual code
-4. **Add token features**: Detect imports, exports, generators
-5. **Merge results**: Combine validated quick features with token features
-
 **Characteristics:**
-- 🎯 **High accuracy**: With tokenizer validation
-- 🛡️ **Context-aware**: Understands strings, comments, regex
-- 📈 **Additional detection**: Finds features missed by regex
-- ⚡ **Still fast**: ~0.055ms per file (2x faster than AST parsers)
+-  **Precise locations**: Line, column, offset, and length
+-  **Optional feature**: No overhead unless requested
+-  **AST compatibility**: Similar to parser output
+-  **Minimal overhead**: Calculated only when needed
 
 ## Performance Optimizations
 
@@ -214,10 +208,10 @@ if (options.throwOnFirst && featureIndex > targetIndex) {
 ### 4. Memory Efficiency
 
 ```typescript
-// Reuse token arrays and minimize allocations
-const tokens: Token[] = [];
-// ... populate tokens in-place
-return tokens; // Return same array reference
+// Minimal allocations for location data
+if (options.includeLoc) {
+  feature.loc = calculateLocation(match);
+}
 ```
 
 **Benefits:**
@@ -227,111 +221,70 @@ return tokens; // Return same array reference
 
 ## Feature Detection Strategies
 
-### Regex-Based Detection (Phase 1)
+### Simple Patterns
 
-**Simple Patterns:**
 ```typescript
 arrow_functions: /=>/,
 template_literals: /`/,
 optional_chaining: /\?\./,
+nullish_coalescing: /\?\?/,
 ```
 
-**Complex Patterns:**
+### Complex Patterns
+
 ```typescript
 async_await: /\b(?:async\s+function|async\s*(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*=>|await\s)/,
 destructuring: /(?:const|let|var)\s*[[{]/,
+private_fields: /#[a-zA-Z_$][a-zA-Z0-9_$]*/,
 top_level_await: /^[^{]*\bawait\s/m
 ```
 
-### Token-Based Detection (Phase 2)
+### Pattern Categories
 
-**Import/Export Detection:**
-```typescript
-if (token.value === 'import' && next && (next.value === '(' || next.value === '{')) {
-  features.push({
-    name: 'import',
-    version: 'es2015',
-    line: token.line,
-    column: token.column
-  });
-}
-```
+**ES2015 Features:**
+- Arrow functions, classes, template literals
+- Let/const, destructuring, spread/rest
+- For-of loops, generators, imports/exports
 
-**Generator Detection:**
-```typescript
-if (token.value === 'function' && next && next.value === '*') {
-  features.push({
-    name: 'generators',
-    version: 'es2015',
-    line: token.line,
-    column: token.column
-  });
-}
-```
+**ES2020+ Features:**
+- Optional chaining, nullish coalescing
+- Private fields, static blocks
+- Top-level await, logical assignment
 
-## Tokenizer State Management
+## Plugin Architecture
 
-The tokenizer maintains state to correctly handle different code contexts:
+Plugins enable targeted detection for specific use cases:
 
 ```typescript
-enum TokenState {
-  NORMAL = 0,
-  STRING_SINGLE = 1,
-  STRING_DOUBLE = 2,
-  TEMPLATE = 3,
-  COMMENT_LINE = 4,
-  COMMENT_BLOCK = 5,
-  REGEX = 6
-}
+// Use specific plugins for maximum performance
+import { detectWithPlugins } from 'fast-brake';
+
+// Single ES version - 85x faster!
+const features = detectWithPlugins(code, ['es2015']);
+
+// All ES versions
+const features = detectWithPlugins(code, ['all']);
+
+// Browser compatibility
+const features = detectWithPlugins(code, ['browser:defaults']);
 ```
 
-### State Transitions
+Plugin benefits:
+- **Targeted detection**: Load only what you need
+- **Maximum performance**: Single plugin can be 85x faster
+- **Composable**: Combine multiple plugins
+- **Extensible**: Create custom plugins
 
-```mermaid
-stateDiagram-v2
-    [*] --> NORMAL
-    NORMAL --> STRING_SINGLE: '
-    NORMAL --> STRING_DOUBLE: "
-    NORMAL --> TEMPLATE: `
-    NORMAL --> COMMENT_LINE: //
-    NORMAL --> COMMENT_BLOCK: /*
-    NORMAL --> REGEX: /pattern/
-    
-    STRING_SINGLE --> NORMAL: ' (unescaped)
-    STRING_DOUBLE --> NORMAL: " (unescaped)
-    TEMPLATE --> NORMAL: ` (unescaped)
-    COMMENT_LINE --> NORMAL: \n
-    COMMENT_BLOCK --> NORMAL: */
-    REGEX --> NORMAL: / (end)
-```
+### Plugin Performance Comparison
 
-### Context-Aware Processing
-
-```typescript
-// Skip ES features in non-code contexts
-if (this.state === TokenState.STRING_SINGLE || 
-    this.state === TokenState.STRING_DOUBLE ||
-    this.state === TokenState.COMMENT_LINE ||
-    this.state === TokenState.COMMENT_BLOCK) {
-  // Don't detect features in strings/comments
-  continue;
-}
-```
+| Plugin Configuration | Ops/sec | Relative Speed | Use Case |
+|---------------------|---------|----------------|----------|
+| **Single ES2015** | 1,063,499 | 85.2x | Known target version |
+| **All ES Versions** | 980,954 | 78.6x | Comprehensive checking |
+| **Browser Defaults** | 947,381 | 75.9x | Browser compatibility |
+| **Full Detection** | 12,488 | 1.0x | All features, all versions |
 
 ## Error Handling Architecture
-
-### Graceful Degradation
-
-```typescript
-try {
-  // Try full mode first
-  return this.accurateScan(code, quickFeatures);
-} catch (error) {
-  // Fallback to quick mode on tokenizer errors
-  console.warn('Tokenizer failed, falling back to quick mode');
-  return quickFeatures;
-}
-```
 
 ### Detailed Error Information
 
@@ -360,19 +313,17 @@ export const QUICK_PATTERNS = {
 
 export const FEATURE_VERSIONS = {
   // ... existing versions
-  new_feature: 'es2023',
+  new_feature: 'es2025',
 };
 ```
 
-2. **Add tokenizer validation:**
+2. **Add to plugin system:**
 ```typescript
-private validateFeature(feature: DetectedFeature, tokens: Token[]): boolean {
-  switch (feature.name) {
-    case 'new_feature':
-      return tokens.some(t => /* validation logic */);
-    // ... other cases
-  }
-}
+// Create a new plugin in src/plugins/
+export const myPlugin: Plugin = {
+  patterns: { /* your patterns */ },
+  detect: (code) => { /* detection logic */ }
+};
 ```
 
 ### Custom Detection Logic
@@ -403,13 +354,13 @@ import BenchmarkData from "../../components/docs/BenchmarkData";
 
 | Approach | 1000 Files | Single File | Memory |
 |----------|------------|-------------|---------|
-| **fast-brake (Quick)** | **13ms** | **0.013ms** | **4MB** |
-| **fast-brake (Full)** | **55ms** | **0.055ms** | **4MB** |
+| **fast-brake (plugin)** | **1ms** | **0.001ms** | **2MB** |
+| **fast-brake (all)** | **80ms** | **0.080ms** | **4MB** |
 | Babel Parser | ~100ms | ~2ms | ~15MB |
 | ESLint Parser | ~120ms | ~2.5ms | ~18MB |
 | Acorn Parser | ~80ms | ~1.8ms | ~12MB |
 
-*Live results above show single-file performance on ES2015 test code. Detailed analysis includes batch processing and memory usage.*
+*Results show performance with optimized plugins vs full detection.*
 
 ### Scalability Characteristics
 
@@ -433,46 +384,46 @@ graph LR
 
 ## Best Practices
 
-### When to Use Quick Mode
+### Development Builds
 
 ```javascript
-// Development builds - speed over accuracy
-const features = detect(code, { quick: true });
+// Development builds - use targeted plugins
+const features = detectWithPlugins(code, ['es2015']);
 
 // Hot reloading - fast feedback
-if (check(code, { target: 'es5', quick: true })) {
+if (checkWithPlugins(code, ['es2015'])) {
   // Continue with hot reload
 }
 ```
 
-### When to Use Full Mode
+### Production Builds
 
 ```javascript
-// Production builds - accuracy critical
-const features = detect(code, { quick: false });
+// Production builds - comprehensive detection
+const features = detectWithPlugins(code, ['all']);
 
-// CI/CD pipelines - accurate detection
-fastBrake(code, { target: 'es2018', quick: false });
+// CI/CD pipelines - browser compatibility
+const features = detectWithPlugins(code, ['all', 'browser:defaults']);
 
-// Code analysis - detailed reporting
-const analysis = detect(codebase, { quick: false });
+// Code analysis - with location data
+const analysis = detect(codebase, { includeLoc: true });
 ```
 
 ### Performance Optimization Tips
 
-1. **Reuse detector instances:**
+1. **Use targeted plugins:**
+```javascript
+// Development: targeted plugin
+const devFeatures = detectWithPlugins(code, ['es2015']);
+
+// Production: comprehensive detection
+const prodFeatures = detectWithPlugins(code, ['all']);
+```
+
+2. **Reuse detector instances:**
 ```javascript
 const detector = getDetector(); // Singleton
 const results = files.map(file => detector.detect(file.content));
-```
-
-2. **Use appropriate mode:**
-```javascript
-// Development: quick mode
-const devFeatures = detect(code, { quick: true });
-
-// Production: full mode
-const prodFeatures = detect(code, { quick: false });
 ```
 
 3. **Batch processing:**
@@ -484,4 +435,4 @@ const results = files.map(file => ({
 }));
 ```
 
-The fast-brake architecture demonstrates how intelligent design choices can deliver both exceptional performance and high accuracy, making it the ideal choice for modern JavaScript tooling.
+The fast-brake architecture demonstrates how optimized pattern matching and plugin architecture can deliver exceptional performance without sacrificing accuracy, making it the ideal choice for modern JavaScript tooling.

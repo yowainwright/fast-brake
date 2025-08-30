@@ -9,19 +9,58 @@ import {
 import type { DetectionOptions } from "../../src/types";
 
 describe("Detector", () => {
-  describe("quickScan", () => {
+  describe("scan", () => {
     test("should detect arrow functions", () => {
       const detector = new Detector();
-      const features = detector.quickScan("const fn = () => {}");
+      const features = detector.scan("const fn = () => {}");
 
       const arrowFunc = features.find((f) => f.name === "arrow_functions");
       expect(arrowFunc).toBeDefined();
       expect(arrowFunc?.version).toBe("es2015");
     });
 
+    test("should include location data when requested", () => {
+      const detector = new Detector();
+      const code = `const arrow = () => {
+  return "hello";
+};`;
+
+      const featuresWithoutLoc = detector.scan(code);
+      const featuresWithLoc = detector.scan(code, { includeLoc: true });
+
+      const withoutLoc = featuresWithoutLoc.find(
+        (f) => f.name === "arrow_functions",
+      );
+      const withLoc = featuresWithLoc.find((f) => f.name === "arrow_functions");
+
+      expect(withoutLoc?.loc).toBeUndefined();
+      expect(withLoc?.loc).toBeDefined();
+      expect(withLoc?.loc?.start).toEqual({ line: 1, column: 18 });
+      expect(withLoc?.loc?.end).toEqual({ line: 1, column: 20 });
+      expect(withLoc?.loc?.offset).toBe(17);
+      expect(withLoc?.loc?.length).toBe(2);
+    });
+
+    test("should calculate multiline location correctly", () => {
+      const detector = new Detector();
+      const code = `function example() {
+  const str = \`
+    multiline
+    template
+  \`;
+}`;
+
+      const features = detector.scan(code, { includeLoc: true });
+      const template = features.find((f) => f.name === "template_literals");
+
+      expect(template?.loc).toBeDefined();
+      expect(template?.loc?.start.line).toBe(2);
+      expect(template?.loc?.end.line).toBe(2);
+    });
+
     test("should detect template literals", () => {
       const detector = new Detector();
-      const features = detector.quickScan("const str = `hello ${name}`");
+      const features = detector.scan("const str = `hello ${name}`");
 
       const template = features.find((f) => f.name === "template_literals");
       expect(template).toBeDefined();
@@ -30,7 +69,7 @@ describe("Detector", () => {
 
     test("should detect async/await", () => {
       const detector = new Detector();
-      const features = detector.quickScan(
+      const features = detector.scan(
         "async function test() { await promise; }",
       );
 
@@ -41,7 +80,7 @@ describe("Detector", () => {
 
     test("should detect optional chaining", () => {
       const detector = new Detector();
-      const features = detector.quickScan("obj?.prop?.method()");
+      const features = detector.scan("obj?.prop?.method()");
 
       const optChaining = features.find((f) => f.name === "optional_chaining");
       expect(optChaining).toBeDefined();
@@ -50,7 +89,7 @@ describe("Detector", () => {
 
     test("should detect nullish coalescing", () => {
       const detector = new Detector();
-      const features = detector.quickScan("const value = a ?? b");
+      const features = detector.scan("const value = a ?? b");
 
       const nullish = features.find((f) => f.name === "nullish_coalescing");
       expect(nullish).toBeDefined();
@@ -59,7 +98,7 @@ describe("Detector", () => {
 
     test("should detect BigInt literals", () => {
       const detector = new Detector();
-      const features = detector.quickScan("const big = 123n");
+      const features = detector.scan("const big = 123n");
 
       const bigint = features.find((f) => f.name === "bigint");
       expect(bigint).toBeDefined();
@@ -68,7 +107,7 @@ describe("Detector", () => {
 
     test("should detect logical assignment", () => {
       const detector = new Detector();
-      const features = detector.quickScan("a ||= b; c &&= d; e ??= f");
+      const features = detector.scan("a ||= b; c &&= d; e ??= f");
 
       const logical = features.find((f) => f.name === "logical_assignment");
       expect(logical).toBeDefined();
@@ -77,7 +116,7 @@ describe("Detector", () => {
 
     test("should detect private fields", () => {
       const detector = new Detector();
-      const features = detector.quickScan("class C { #private = 1; }");
+      const features = detector.scan("class C { #private = 1; }");
 
       const privateField = features.find((f) => f.name === "class_fields");
       expect(privateField).toBeDefined();
@@ -86,7 +125,7 @@ describe("Detector", () => {
 
     test("should detect static blocks", () => {
       const detector = new Detector();
-      const features = detector.quickScan("class C { static { } }");
+      const features = detector.scan("class C { static { } }");
 
       const staticBlock = features.find((f) => f.name === "static_blocks");
       expect(staticBlock).toBeDefined();
@@ -96,7 +135,7 @@ describe("Detector", () => {
     test("should include line and column info", () => {
       const detector = new Detector();
       const code = "\n\n  const fn = () => {}";
-      const features = detector.quickScan(code);
+      const features = detector.scan(code);
 
       const arrowFunc = features.find((f) => f.name === "arrow_functions");
       expect(arrowFunc?.line).toBe(3);
@@ -105,75 +144,17 @@ describe("Detector", () => {
 
     test("should include code snippet", () => {
       const detector = new Detector();
-      const features = detector.quickScan("const fn = () => {}");
+      const features = detector.scan("const fn = () => {}");
 
       const arrowFunc = features.find((f) => f.name === "arrow_functions");
       expect(arrowFunc?.snippet).toBe("const fn = () => {}");
     });
   });
 
-  describe("accurateScan", () => {
-    test("should validate arrow functions", () => {
-      const detector = new Detector();
-      const quickFeatures = detector.quickScan("const fn = () => {}");
-      const validated = detector.accurateScan(
-        "const fn = () => {}",
-        quickFeatures,
-      );
-
-      expect(validated.find((f) => f.name === "arrow_functions")).toBeDefined();
-    });
-
-    test("should detect imports from tokens", () => {
-      const detector = new Detector();
-      const quickFeatures = detector.quickScan('import { x } from "mod"');
-      const validated = detector.accurateScan(
-        'import { x } from "mod"',
-        quickFeatures,
-      );
-
-      expect(validated.find((f) => f.name === "import")).toBeDefined();
-    });
-
-    test("should detect exports from tokens", () => {
-      const detector = new Detector();
-      const quickFeatures = detector.quickScan("export default class {}");
-      const validated = detector.accurateScan(
-        "export default class {}",
-        quickFeatures,
-      );
-
-      expect(validated.find((f) => f.name === "export")).toBeDefined();
-    });
-
-    test("should detect generators from tokens", () => {
-      const detector = new Detector();
-      const quickFeatures = detector.quickScan("function* gen() {}");
-      const validated = detector.accurateScan(
-        "function* gen() {}",
-        quickFeatures,
-      );
-
-      expect(validated.find((f) => f.name === "generators")).toBeDefined();
-    });
-
-    test("should filter out false positives in strings", () => {
-      const detector = new Detector();
-      const code = '"const arrow = () => {}"';
-      const quickFeatures = detector.quickScan(code);
-      const validated = detector.accurateScan(code, quickFeatures);
-
-      // Quick scan might find it, but accurate scan should filter it
-      expect(
-        validated.find((f) => f.name === "arrow_functions"),
-      ).toBeUndefined();
-    });
-  });
-
   describe("detect method", () => {
-    test("should use quick mode when specified", () => {
+    test("should detect features", () => {
       const detector = new Detector();
-      const options: DetectionOptions = { target: "es5", quick: true };
+      const options: DetectionOptions = { target: "es5" };
       const features = detector.detect("() => {}", options);
 
       expect(features.length).toBeGreaterThan(0);
@@ -282,7 +263,7 @@ describe("Detector", () => {
       const detector = new Detector();
       const code = "() => {}";
 
-      const version = detector.getMinimumVersion(code, { quick: true });
+      const version = detector.getMinimumVersion(code);
       expect(version).toBe("es2015");
     });
   });
@@ -316,7 +297,7 @@ describe("Detector", () => {
   describe("ES2016 features", () => {
     test("should detect exponentiation operator", () => {
       const detector = new Detector();
-      const features = detector.quickScan("2 ** 3");
+      const features = detector.scan("2 ** 3");
 
       const exp = features.find((f) => f.name === "exponentiation");
       expect(exp).toBeDefined();
@@ -327,7 +308,7 @@ describe("Detector", () => {
   describe("ES2018 features", () => {
     test("should detect async iteration", () => {
       const detector = new Detector();
-      const features = detector.quickScan("for await (const x of y) {}");
+      const features = detector.scan("for await (const x of y) {}");
 
       const asyncIter = features.find((f) => f.name === "async_iteration");
       expect(asyncIter).toBeDefined();
@@ -336,7 +317,7 @@ describe("Detector", () => {
 
     test("should detect rest spread properties", () => {
       const detector = new Detector();
-      const features = detector.quickScan("const {...rest} = obj");
+      const features = detector.scan("const {...rest} = obj");
 
       const restSpread = features.find(
         (f) => f.name === "rest_spread_properties",
@@ -349,7 +330,7 @@ describe("Detector", () => {
   describe("ES2019 features", () => {
     test("should detect Array.flat", () => {
       const detector = new Detector();
-      const features = detector.quickScan("arr.flat()");
+      const features = detector.scan("arr.flat()");
 
       const flat = features.find((f) => f.name === "array_flat");
       expect(flat).toBeDefined();
@@ -358,7 +339,7 @@ describe("Detector", () => {
 
     test("should detect Array.flatMap", () => {
       const detector = new Detector();
-      const features = detector.quickScan("arr.flatMap(x => x)");
+      const features = detector.scan("arr.flatMap(x => x)");
 
       const flatMap = features.find((f) => f.name === "array_flat");
       expect(flatMap).toBeDefined();
@@ -369,7 +350,7 @@ describe("Detector", () => {
   describe("ES2021 features", () => {
     test("should detect numeric separators", () => {
       const detector = new Detector();
-      const features = detector.quickScan("const n = 1_000_000");
+      const features = detector.scan("const n = 1_000_000");
 
       const numSep = features.find((f) => f.name === "numeric_separators");
       expect(numSep).toBeDefined();
@@ -378,7 +359,7 @@ describe("Detector", () => {
 
     test("should detect String.replaceAll", () => {
       const detector = new Detector();
-      const features = detector.quickScan('str.replaceAll("a", "b")');
+      const features = detector.scan('str.replaceAll("a", "b")');
 
       const replaceAll = features.find((f) => f.name === "string_replaceAll");
       expect(replaceAll).toBeDefined();
@@ -387,7 +368,7 @@ describe("Detector", () => {
 
     test("should detect Promise.any", () => {
       const detector = new Detector();
-      const features = detector.quickScan("Promise.any([p1, p2])");
+      const features = detector.scan("Promise.any([p1, p2])");
 
       const promiseAny = features.find((f) => f.name === "promise_any");
       expect(promiseAny).toBeDefined();
@@ -398,7 +379,7 @@ describe("Detector", () => {
   describe("ES2022 features", () => {
     test("should detect Array.at", () => {
       const detector = new Detector();
-      const features = detector.quickScan("arr.at(-1)");
+      const features = detector.scan("arr.at(-1)");
 
       const arrayAt = features.find((f) => f.name === "array_at");
       expect(arrayAt).toBeDefined();
@@ -407,7 +388,7 @@ describe("Detector", () => {
 
     test("should detect Object.hasOwn", () => {
       const detector = new Detector();
-      const features = detector.quickScan('Object.hasOwn(obj, "prop")');
+      const features = detector.scan('Object.hasOwn(obj, "prop")');
 
       const hasOwn = features.find((f) => f.name === "object_hasOwn");
       expect(hasOwn).toBeDefined();
@@ -416,7 +397,7 @@ describe("Detector", () => {
 
     test("should detect top-level await", () => {
       const detector = new Detector();
-      const features = detector.quickScan('await fetch("/api")');
+      const features = detector.scan('await fetch("/api")');
 
       const topAwait = features.find((f) => f.name === "top_level_await");
       expect(topAwait).toBeDefined();

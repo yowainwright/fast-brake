@@ -1,10 +1,10 @@
-# Fast Brake 💨
+# Fast Brake 
 
-**Fast braking js feature detection** Fast brake Analyzes JavaScript code to detect syntax such as ECMAscript api features or Telemetry and fail using a two-phase detection system.
+**Fast braking js feature detection** Fast brake Analyzes JavaScript code to detect syntax such as ECMAscript api features or Telemetry using high-performance pattern matching.
 
 ## Why Fast Brake?
 
-Traditional JavaScript compatibility tools rely on AST parsers process js files. **Fast Brake** uses pattern matching combined with tokenizer validation to achieve the similar accuracy in way that is often faster considering it's goal—to fail.
+Traditional JavaScript compatibility tools rely on AST parsers to process js files. **Fast Brake** uses optimized pattern matching to achieve fast detection, designed to fail quickly on incompatible features.
 
 Perfect for:
 - **Build tools** - Validate code compatibility before bundling
@@ -14,15 +14,14 @@ Perfect for:
 
 ## Features
 
-- **Fast** - Often process files faster than AST parsers
+- **Fast** - Process files faster than AST parsers
 - **Zero Runtime Dependencies** - Lightweight and secure
-- **Two-Phase Detection** - Quick pattern matching + accurate tokenizer validation
+- **Pattern Matching** - Optimized regex-based detection
 - **ES5 to ES2025** - Comprehensive feature coverage (40+ features)
 - **Programmatic API** - Simple, intuitive interface
 - **Performance First** - Optimized for speed
-- **Accurate Detection** - Tokenizer validates features in actual code
-- **Plugin enabled** - Mix and max what matters to you.
-- **Simple interface** - Just a few files and 
+- **Plugin enabled** - Mix and match what matters to you
+- **Simple interface** - Clean and straightforward API 
 
 ## Installation
 
@@ -53,26 +52,21 @@ const minVersion = getMinimumESVersion('const x = () => {}');
 console.log(minVersion); // 'es2015'
 ```
 
-## Two-Phase Detection System
+## Pattern-Based Detection
 
-fast-brake uses a **two-phase detection system** for speed and accuracy:
+fast-brake uses **optimized pattern matching** for maximum speed:
 
-### Phase 1: Quick Pattern Matching
-- **Very fast** pattern matching feature detection
-- Scans code for ES feature patterns in milliseconds
-- Provides initial feature candidates
-
-### Phase 2: Tokenizer Validation
-- **Validates features** in actual code contexts
-- Validates features using tokenization
-- Adds additional features detected through token analysis (imports, exports, etc.)
+- **High-performance regex patterns** - Carefully crafted patterns for each ES feature
+- **Single-pass scanning** - Processes code once for all features
+- **Early exit optimization** - Stops on first incompatible feature when configured
+- **Minimal overhead** - No AST construction or tokenization
 
 ```javascript
-// Quick mode: Phase 1 only (fastest pattern matching)
-const quickFeatures = detect(code, { quick: true });
+// Detect all ES features in code
+const features = detect(code);
 
-// Full mode: Phase 1 + Phase 2 (recommended, with tokenizer validation)
-const accurateFeatures = detect(code, { quick: false }); // default
+// Stop on first incompatible feature (fastest)
+fastBrake(code, { target: 'es5', throwOnFirst: true });
 ```
 
 ## Supported ES Features
@@ -305,61 +299,61 @@ Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 104,991 | 0.010 | 1.0x | ✅ es5 |
-| **Meriyah** | 68,770 | 0.015 | 0.7x | ✅ parsed |
-| **Cherow** | 60,829 | 0.016 | 0.6x | ✅ parsed |
-| **Esprima** | 42,263 | 0.024 | 0.4x | ✅ parsed |
-| **Acorn** | 40,971 | 0.024 | 0.4x | ✅ parsed |
-| **Espree** | 29,722 | 0.034 | 0.3x | ✅ parsed |
-| **@babel/parser** | 21,681 | 0.046 | 0.2x | ✅ parsed |
-| **fast-brake (full)** | 18,694 | 0.053 | 0.2x | ✅ es5 |
+| **fast-brake (pattern)** | 104,991 | 0.010 | 1.0x |  es5 |
+| **Meriyah** | 68,770 | 0.015 | 0.7x |  parsed |
+| **Cherow** | 60,829 | 0.016 | 0.6x |  parsed |
+| **Esprima** | 42,263 | 0.024 | 0.4x |  parsed |
+| **Acorn** | 40,971 | 0.024 | 0.4x |  parsed |
+| **Espree** | 29,722 | 0.034 | 0.3x |  parsed |
+| **@babel/parser** | 21,681 | 0.046 | 0.2x |  parsed |
+| **fast-brake (full)** | 18,694 | 0.053 | 0.2x |  es5 |
 
 ### Parser Comparison - ES2015 (ES6) File (711B)
 Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 74,883 | 0.013 | 1.0x | ✅ es2015 |
-| **Meriyah** | 63,671 | 0.016 | 0.9x | ✅ parsed |
-| **Cherow** | 63,665 | 0.016 | 0.9x | ✅ parsed |
+| **fast-brake (pattern)** | 74,883 | 0.013 | 1.0x |  es2015 |
+| **Meriyah** | 63,671 | 0.016 | 0.9x |  parsed |
+| **Cherow** | 63,665 | 0.016 | 0.9x |  parsed |
 | **Esprima** | 37,768 | 0.026 | 0.5x | ❌ parse error |
 | **Acorn** | 26,842 | 0.037 | 0.4x | ❌ parse error |
-| **@babel/parser** | 19,264 | 0.052 | 0.3x | ✅ parsed |
+| **@babel/parser** | 19,264 | 0.052 | 0.3x |  parsed |
 | **Espree** | 17,640 | 0.057 | 0.2x | ❌ parse error |
-| **fast-brake (full)** | 12,810 | 0.078 | 0.2x | ✅ es2015 |
+| **fast-brake (full)** | 12,810 | 0.078 | 0.2x |  es2015 |
 
 ### Parser Comparison - ES2020 File (798B)
 Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 99,853 | 0.010 | 1.0x | ✅ es2020 |
-| **Meriyah** | 71,870 | 0.014 | 0.7x | ✅ parsed |
-| **@babel/parser** | 30,898 | 0.032 | 0.3x | ✅ parsed |
+| **fast-brake (pattern)** | 99,853 | 0.010 | 1.0x |  es2020 |
+| **Meriyah** | 71,870 | 0.014 | 0.7x |  parsed |
+| **@babel/parser** | 30,898 | 0.032 | 0.3x |  parsed |
 | **Espree** | 31,450 | 0.032 | 0.3x | ❌ parse error |
 | **Acorn** | 29,512 | 0.034 | 0.3x | ❌ parse error |
-| **fast-brake (full)** | 16,407 | 0.061 | 0.2x | ✅ es2020 |
+| **fast-brake (full)** | 16,407 | 0.061 | 0.2x |  es2020 |
 
 ### Parser Comparison - ES2022 File (1181B)
 Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 55,760 | 0.018 | 1.0x | ✅ es2022 |
-| **Meriyah** | 60,343 | 0.017 | 1.1x | ✅ parsed |
+| **fast-brake (pattern)** | 55,760 | 0.018 | 1.0x |  es2022 |
+| **Meriyah** | 60,343 | 0.017 | 1.1x |  parsed |
 | **Acorn** | 32,162 | 0.031 | 0.6x | ❌ parse error |
 | **Espree** | 25,361 | 0.039 | 0.5x | ❌ parse error |
-| **@babel/parser** | 21,553 | 0.046 | 0.4x | ✅ parsed |
-| **fast-brake (full)** | 12,462 | 0.080 | 0.2x | ✅ es2022 |
+| **@babel/parser** | 21,553 | 0.046 | 0.4x |  parsed |
+| **fast-brake (full)** | 12,462 | 0.080 | 0.2x |  es2022 |
 
 ### Parser Comparison - ES2023 File (702B)
 Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 50,923 | 0.020 | 1.0x | ✅ es2023 |
-| **Meriyah** | 75,263 | 0.013 | 1.5x | ✅ parsed |
-| **@babel/parser** | 28,455 | 0.035 | 0.6x | ✅ parsed |
+| **fast-brake (pattern)** | 50,923 | 0.020 | 1.0x |  es2023 |
+| **Meriyah** | 75,263 | 0.013 | 1.5x |  parsed |
+| **@babel/parser** | 28,455 | 0.035 | 0.6x |  parsed |
 | **Acorn** | 32,315 | 0.031 | 0.6x | ❌ parse error |
 | **Espree** | 26,208 | 0.038 | 0.5x | ❌ parse error |
 
@@ -368,7 +362,7 @@ Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 71,428 | 0.014 | 1.0x | ✅ es2024 |
+| **fast-brake (pattern)** | 71,428 | 0.014 | 1.0x |  es2024 |
 | **Meriyah** | 82,333 | 0.012 | 1.2x | ❌ parse error |
 | **@babel/parser** | 26,316 | 0.038 | 0.4x | ❌ parse error |
 | **Acorn** | 30,303 | 0.033 | 0.4x | ❌ parse error |
@@ -379,7 +373,7 @@ Tested on MacBook Pro M4:
 
 | Parser | Ops/sec | Time (ms) | Relative | Status |
 |--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 47,619 | 0.021 | 1.0x | ✅ es2025 |
+| **fast-brake (pattern)** | 47,619 | 0.021 | 1.0x |  es2025 |
 | **Meriyah** | 73,669 | 0.014 | 1.5x | ❌ parse error |
 | **@babel/parser** | 24,156 | 0.041 | 0.5x | ❌ parse error |
 | **Acorn** | 28,571 | 0.035 | 0.6x | ❌ parse error |
