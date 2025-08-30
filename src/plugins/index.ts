@@ -2,9 +2,6 @@ export * from "./types";
 export * from "./manager";
 export * from "./loader";
 
-// Only export functions that enable tree-shaking
-// Don't import plugins directly here
-
 import { PluginManager } from "./manager";
 import { PluginConfig, Plugin, PluginResult } from "./types";
 
