@@ -2,11 +2,25 @@ export const QUICK_PATTERNS: Record<string, RegExp> = {
   arrow_functions: /=>/,
   template_literals: /`/,
   classes: /\bclass\s+[a-zA-Z_$]/,
+  extends: /\bclass\s+\w+\s+extends\s+/,
   let_const: /\b(?:let|const)\s+/,
   spread_rest: /\.\.\./,
   for_of: /\bfor\s*\([^)]*\bof\b/,
   destructuring: /(?:const|let|var)\s*[[{]/,
   default_params: /function[^(]*\([^)]*=[^)]*\)/,
+  generators: /function\s*\*|yield\s+/,
+
+  promise:
+    /\b(?:new\s+)?Promise\b|\bPromise\s*\.\s*(?:resolve|reject|all|race)\s*\(/,
+  promise_resolve: /Promise\.resolve\s*\(/,
+  promise_reject: /Promise\.reject\s*\(/,
+  map: /\bnew\s+Map\b/,
+  set: /\bnew\s+Set\b/,
+  weakmap: /\bnew\s+WeakMap\b/,
+  weakset: /\bnew\s+WeakSet\b/,
+  symbol: /\bSymbol\s*\(/,
+  proxy: /\bnew\s+Proxy\b/,
+  reflect: /\bReflect\s*\./,
 
   exponentiation: /\*\*/,
 

@@ -5,6 +5,7 @@ import {
   getMinimumVersion,
 } from "./detector";
 import { PluginManager, loadPlugin } from "./plugins";
+import { VERSION_ORDER, PARSER_MAPPINGS } from "./constants";
 import type { DetectionOptions, DetectedFeature } from "./detector";
 import type { PluginConfig, Plugin, PluginResult } from "./plugins/types";
 
@@ -65,7 +66,6 @@ export function detect(
 
   const opts: DetectionOptions = {
     target: options?.target || "esnext",
-    quick: options?.quick,
     throwOnFirst: options?.throwOnFirst,
   };
   return detectFeatures(code, opts);
@@ -86,11 +86,8 @@ export function check(
   }
 }
 
-export function getMinimumESVersion(
-  code: string,
-  options?: { quick?: boolean },
-): string {
-  return getMinimumVersion(code, options);
+export function getMinimumESVersion(code: string): string {
+  return getMinimumVersion(code);
 }
 
 export function registerPlugin(name: string, plugin: Plugin): void {
@@ -122,22 +119,7 @@ export function createPlugin(config: {
 }
 
 function getVersionIndex(version: string): number {
-  const versions = [
-    "es5",
-    "es2015",
-    "es2016",
-    "es2017",
-    "es2018",
-    "es2019",
-    "es2020",
-    "es2021",
-    "es2022",
-    "es2023",
-    "es2024",
-    "es2025",
-    "esnext",
-  ];
-  return versions.indexOf(version);
+  return VERSION_ORDER.indexOf(version);
 }
 
 export type { DetectionOptions, DetectedFeature } from "./detector";
@@ -149,8 +131,31 @@ export type {
   PluginContext,
 } from "./plugins/types";
 
-export { ES_VERSIONS, MDN_URLS, FEATURE_PATTERNS } from "./constants";
+export {
+  ES_VERSIONS,
+  MDN_URLS,
+  FEATURE_PATTERNS,
+  PARSER_MAPPINGS,
+  VERSION_ORDER,
+} from "./constants";
 
 export * as plugins from "./plugins";
+
+export function getParserMapping(
+  feature: string,
+  parser: string,
+): string | string[] | undefined {
+  return PARSER_MAPPINGS[parser]?.[feature];
+}
+
+export function toAcornNode(feature: string): string | string[] | undefined {
+  return PARSER_MAPPINGS.ACORN?.[feature];
+}
+
+export function toEsCheckFeature(
+  feature: string,
+): string | string[] | undefined {
+  return PARSER_MAPPINGS.ES_CHECK?.[feature];
+}
 
 export default fastBrake;

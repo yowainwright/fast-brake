@@ -1,4 +1,3 @@
-
 export interface BrowserVersions {
   chrome: number;
   firefox: number;
@@ -21,35 +20,31 @@ export interface SchemaJson {
   esVersions: string[];
 }
 
+export interface Position {
+  line: number;
+  column: number;
+}
+
+export interface Location {
+  start: Position;
+  end: Position;
+  offset?: number;
+  length?: number;
+}
+
 export interface DetectedFeature {
   name: string;
   version: string;
   line?: number;
   column?: number;
   snippet?: string;
+  loc?: Location;
 }
 
 export interface DetectionOptions {
   target: string;
-  quick?: boolean;
   throwOnFirst?: boolean;
-}
-
-export interface Token {
-  type: string;
-  value: string;
-  start: number;
-  end: number;
-  line: number;
-  column: number;
-}
-
-export enum TokenState {
-  NORMAL = 0,
-  STRING_SINGLE = 1,
-  STRING_DOUBLE = 2,
-  TEMPLATE = 3,
-  COMMENT_LINE = 4,
-  COMMENT_BLOCK = 5,
-  REGEX = 6
+  ignorePatterns?: string[];
+  preprocessors?: Array<(code: string) => string>;
+  includeLoc?: boolean;
 }

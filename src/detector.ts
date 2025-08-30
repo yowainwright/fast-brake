@@ -1,4 +1,3 @@
-import { Tokenizer } from "./tokenizer";
 import { QUICK_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "./constants";
 import type { DetectedFeature, DetectionOptions } from "./types";
 export type { DetectedFeature, DetectionOptions } from "./types";
@@ -13,28 +12,12 @@ export class Detector {
     }
   }
 
-  quickScan(
-    code: string,
-    options?: Partial<DetectionOptions>,
-  ): DetectedFeature[] {
+  scan(code: string, options?: Partial<DetectionOptions>): DetectedFeature[] {
     const detected: DetectedFeature[] = [];
-    const targetIndex = options?.target
-      ? VERSION_ORDER.indexOf(options.target)
-      : -1;
-    const shouldCheckCompatibility =
-      options?.target && options.target !== "esnext";
+    const includeLoc = options?.includeLoc ?? false;
 
     for (const [featureName, pattern] of this.compiledPatterns.entries()) {
       const featureVersion = FEATURE_VERSIONS[featureName];
-      const featureIndex = VERSION_ORDER.indexOf(featureVersion);
-
-      const isAlreadySupported =
-        shouldCheckCompatibility &&
-        targetIndex >= 0 &&
-        featureIndex <= targetIndex;
-      if (isAlreadySupported) {
-        continue;
-      }
 
       pattern.lastIndex = 0;
       const match = pattern.exec(code);
@@ -52,13 +35,36 @@ export class Detector {
         const cleanSnippet = rawSnippet.replace(/\n/g, " ");
         const snippet = cleanSnippet.trim();
 
-        detected.push({
+        const feature: DetectedFeature = {
           name: featureName,
           version: featureVersion,
           line: lineNum,
           column: column,
           snippet: snippet,
-        });
+        };
+
+        if (includeLoc) {
+          const matchEnd = match.index + match[0].length;
+          const upToEnd = code.substring(0, matchEnd);
+          const endLineNum = (upToEnd.match(/\n/g) || []).length + 1;
+          const lastNewlineBeforeEnd = upToEnd.lastIndexOf("\n");
+          const endColumn = matchEnd - lastNewlineBeforeEnd;
+
+          feature.loc = {
+            start: {
+              line: lineNum,
+              column: column,
+            },
+            end: {
+              line: endLineNum,
+              column: endColumn,
+            },
+            offset: match.index,
+            length: match[0].length,
+          };
+        }
+
+        detected.push(feature);
 
         if (options?.throwOnFirst) {
           return detected;
@@ -69,173 +75,8 @@ export class Detector {
     return detected;
   }
 
-  accurateScan(
-    code: string,
-    quickFeatures: DetectedFeature[],
-  ): DetectedFeature[] {
-    const tokenizer = new Tokenizer(code);
-    const tokens = tokenizer.tokenize();
-    const codeTokens = tokenizer.getCodeTokens();
-
-    const tokenValueSet = new Set(codeTokens.map((t) => t.value));
-    const hasTemplates = tokens.some((t) => t.type === "template");
-
-    const validated: DetectedFeature[] = [];
-
-    for (const feature of quickFeatures) {
-      if (
-        this.validateFeatureFast(
-          feature,
-          codeTokens,
-          tokenValueSet,
-          hasTemplates,
-        )
-      ) {
-        validated.push(feature);
-      }
-    }
-
-    const additionalFeatures = this.detectFromTokens(codeTokens);
-    validated.push(...additionalFeatures);
-
-    return validated;
-  }
-
-  private validateFeatureFast(
-    feature: DetectedFeature,
-    codeTokens: any[],
-    tokenValues: Set<string>,
-    hasTemplates: boolean,
-  ): boolean {
-    switch (feature.name) {
-      case "arrow_functions":
-        return tokenValues.has("=>");
-      case "spread_rest":
-        return tokenValues.has("...");
-      case "template_literals":
-        return hasTemplates;
-      case "async_await":
-        return tokenValues.has("async") || tokenValues.has("await");
-      case "classes":
-        return tokenValues.has("class");
-      case "let_const":
-        return tokenValues.has("let") || tokenValues.has("const");
-      case "optional_chaining":
-        return tokenValues.has("?.");
-      case "nullish_coalescing":
-        return tokenValues.has("??");
-      case "bigint":
-        return codeTokens.some(
-          (t) => t.type === "number" && t.value.endsWith("n"),
-        );
-      case "private_fields":
-      case "class_fields":
-        return codeTokens.some((t) => t.value.startsWith("#"));
-      case "static_blocks":
-        for (let i = 0; i < codeTokens.length - 1; i++) {
-          if (
-            codeTokens[i].value === "static" &&
-            codeTokens[i + 1].value === "{"
-          ) {
-            return true;
-          }
-        }
-        return false;
-      case "array_at":
-        if (!tokenValues.has("at")) return false;
-        for (let i = 0; i < codeTokens.length - 2; i++) {
-          if (
-            codeTokens[i].value === "." &&
-            codeTokens[i + 1].value === "at" &&
-            codeTokens[i + 2].value === "("
-          ) {
-            return true;
-          }
-        }
-        return false;
-      case "object_hasOwn":
-        if (!tokenValues.has("Object") || !tokenValues.has("hasOwn"))
-          return false;
-        for (let i = 0; i < codeTokens.length - 3; i++) {
-          if (
-            codeTokens[i].value === "Object" &&
-            codeTokens[i + 1].value === "." &&
-            codeTokens[i + 2].value === "hasOwn" &&
-            codeTokens[i + 3].value === "("
-          ) {
-            return true;
-          }
-        }
-        return false;
-      case "for_of":
-        return tokenValues.has("of");
-      case "destructuring":
-        for (let i = 0; i < codeTokens.length - 1; i++) {
-          if (
-            (codeTokens[i].value === "const" ||
-              codeTokens[i].value === "let" ||
-              codeTokens[i].value === "var") &&
-            (codeTokens[i + 1].value === "[" || codeTokens[i + 1].value === "{")
-          ) {
-            return true;
-          }
-        }
-        return false;
-      default:
-        return false;
-    }
-  }
-
-  private detectFromTokens(tokens: any[]): DetectedFeature[] {
-    const detected: DetectedFeature[] = [];
-
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      const next = tokens[i + 1];
-
-      if (
-        token.value === "import" &&
-        next &&
-        (next.value === "(" || next.value === "{" || next.type === "string")
-      ) {
-        detected.push({
-          name: "import",
-          version: "es2015",
-          line: token.line,
-          column: token.column,
-        });
-      }
-
-      if (token.value === "export") {
-        detected.push({
-          name: "export",
-          version: "es2015",
-          line: token.line,
-          column: token.column,
-        });
-      }
-
-      if (token.value === "function" && next && next.value === "*") {
-        detected.push({
-          name: "generators",
-          version: "es2015",
-          line: token.line,
-          column: token.column,
-        });
-      }
-    }
-
-    return detected;
-  }
-
   detect(code: string, options: DetectionOptions): DetectedFeature[] {
-    const quickFeatures = this.quickScan(code, options);
-
-    if (options.quick) {
-      return quickFeatures;
-    }
-
-    return this.accurateScan(code, quickFeatures);
+    return this.scan(code, options);
   }
 
   check(code: string, options: DetectionOptions): boolean {
@@ -258,10 +99,9 @@ export class Detector {
     return true;
   }
 
-  getMinimumVersion(code: string, options?: { quick?: boolean }): string {
+  getMinimumVersion(code: string): string {
     const detected = this.detect(code, {
       target: "esnext",
-      quick: options?.quick,
     });
 
     if (detected.length === 0) {
@@ -303,9 +143,6 @@ export function check(code: string, options: DetectionOptions): boolean {
   return getDetector().check(code, options);
 }
 
-export function getMinimumVersion(
-  code: string,
-  options?: { quick?: boolean },
-): string {
-  return getDetector().getMinimumVersion(code, options);
+export function getMinimumVersion(code: string): string {
+  return getDetector().getMinimumVersion(code);
 }

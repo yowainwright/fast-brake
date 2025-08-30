@@ -62,7 +62,7 @@ describe("fast-brake main API", () => {
 
     test("should work with quick mode", () => {
       const code = "const arrow = () => {}";
-      expect(() => fastBrake(code, { target: "es5", quick: true })).toThrow();
+      expect(() => fastBrake(code, { target: "es5" })).toThrow();
     });
   });
 
@@ -152,7 +152,7 @@ describe("fast-brake main API", () => {
 
     test("should work with quick mode", () => {
       const code = "const arrow = () => {}";
-      const result = check(code, { target: "es5", quick: true });
+      const result = check(code, { target: "es5" });
 
       expect(result).toBe(false);
     });
@@ -288,7 +288,7 @@ describe("fast-brake main API", () => {
     test("should export DetectionOptions type", () => {
       const options: DetectionOptions = {
         target: "es5",
-        quick: true,
+
         throwOnFirst: true,
       };
       expect(options).toBeDefined();
@@ -347,18 +347,14 @@ describe("fast-brake main API", () => {
   });
 
   describe("performance", () => {
-    test("quick mode should be faster than full mode", () => {
+    test("detection should be fast", () => {
       const code = "const x = () => {};".repeat(100);
 
-      const startQuick = performance.now();
-      detect(code, { quick: true });
-      const quickTime = performance.now() - startQuick;
+      const start = performance.now();
+      detect(code);
+      const time = performance.now() - start;
 
-      const startFull = performance.now();
-      detect(code, { quick: false });
-      const fullTime = performance.now() - startFull;
-
-      expect(quickTime).toBeLessThan(fullTime);
+      expect(time).toBeLessThan(10);
     });
 
     test("should handle large files efficiently", () => {
