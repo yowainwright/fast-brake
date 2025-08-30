@@ -20,7 +20,6 @@ async function getPluginEntries() {
   
   // Add utility exports
   entries['plugins/index'] = 'src/plugins/index.ts';
-  entries['plugins/manager'] = 'src/plugins/manager.ts';
   entries['plugins/loader'] = 'src/plugins/loader.ts';
   entries['plugins/types'] = 'src/plugins/types.ts';
   
