@@ -1,5 +1,5 @@
 import { Plugin, PluginConfig, PluginResult, PluginContext } from "./types";
-import { loadPlugin, loadBrowserlistPlugin, registerPlugin } from "./loader";
+import { loadPlugin, registerPlugin } from "./loader";
 
 export class PluginManager {
   private plugins: Plugin[] = [];
@@ -19,23 +19,12 @@ export class PluginManager {
       let plugin: Plugin | null = null;
 
       if (typeof config === "string") {
-        if (config.startsWith("browser:")) {
-          const browserlist = config.substring(8);
-          plugin = await loadBrowserlistPlugin(browserlist);
-        } else {
-          plugin = await loadPlugin(config);
-        }
+        plugin = await loadPlugin(config);
       } else if (Array.isArray(config)) {
         const [name, options] = config;
         let basePlugin: Plugin | null = null;
 
-        if (name === "browserlist") {
-          basePlugin = await loadBrowserlistPlugin(
-            options.browsers || "defaults",
-          );
-        } else {
-          basePlugin = await loadPlugin(name);
-        }
+        basePlugin = await loadPlugin(name);
 
         if (basePlugin) {
           plugin = {

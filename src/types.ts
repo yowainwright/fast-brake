@@ -47,3 +47,6 @@ export interface DetectionOptions {
   ignorePatterns?: string[];
   preprocessors?: Array<(code: string) => string>;
 }
+export interface LocEnrichedFeature extends DetectedFeature {
+  loc: Location;
+}
