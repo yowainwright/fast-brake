@@ -1,74 +1,51 @@
 export * from "./types";
-export * from "./manager";
 export * from "./loader";
 
-// Only export functions that enable tree-shaking
-// Don't import plugins directly here
-
-import { PluginManager } from "./manager";
-import { PluginConfig, Plugin, PluginResult } from "./types";
+import type { Plugin, PluginSpec, PluginMatch } from "../types";
 
 export function createPlugin(config: {
   name: string;
-  patterns: Array<{
-    name: string;
-    pattern: RegExp | string;
-    message?: string;
-    severity?: "error" | "warning" | "info";
-  }>;
-  validate?: (context: any, matches: PluginResult[]) => PluginResult[];
-}): Plugin {
-  return {
-    name: config.name,
-    patterns: config.patterns.map((p) => ({
-      name: p.name,
-      pattern:
-        typeof p.pattern === "string" ? new RegExp(p.pattern) : p.pattern,
-      message: p.message,
-      severity: p.severity,
-    })),
-    validate: config.validate,
-  };
-}
-
-export function loadPlugin(plugins: PluginConfig[]): PluginManager {
-  const manager = new PluginManager();
-  manager.load(plugins);
-  return manager;
-}
-
-export function detect(
-  code: string,
-  plugins: PluginConfig[] = ["es2015"],
-): PluginResult[] {
-  const plugin = loadPlugin(plugins);
-  return plugin.detect(code);
-}
-
-export function check(
-  code: string,
-  plugins: PluginConfig[] = ["es2015"],
-): boolean {
-  const plugin = loadPlugin(plugins);
-  return plugin.check(code);
-}
-
-export function getMinimumESVersion(code: string): string {
-  const plugin = loadPlugin(["detect"]);
-  const results = plugin.detect(code);
-
-  if (results.length > 0 && results[0].message) {
-    const match = results[0].message.match(
-      /Minimum ES version required: (\w+)/,
-    );
-    if (match) {
-      return match[1];
+  description: string;
+  orderedRules: string[];
+  matches: Record<
+    string,
+    {
+      rule: string;
+      strings?: string[];
+      patterns?: Array<{
+        pattern: string;
+        identifier?: string;
+      }>;
     }
+  >;
+}): Plugin {
+  const spec: PluginSpec = {
+    orderedRules: config.orderedRules,
+    matches: {},
+  };
+
+  for (const [matchName, match] of Object.entries(config.matches)) {
+    const pluginMatch: PluginMatch = {
+      rule: match.rule,
+    };
+
+    if (match.strings) {
+      pluginMatch.strings = match.strings;
+    }
+
+    if (match.patterns) {
+      pluginMatch.patterns = match.patterns.map((p) => ({
+        pattern: p.pattern,
+        identifier: p.identifier,
+      }));
+    }
+
+    spec.matches[matchName] = pluginMatch;
   }
 
-  return "es2015";
+  return {
+    name: config.name,
+    description: config.description,
+    spec,
+  };
 }
-
-// For users who want to import specific plugins directly
-// These will be tree-shaken if not used
-export type { Plugin as PluginType } from "./types";

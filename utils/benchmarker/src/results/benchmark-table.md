@@ -1,18 +1,15 @@
-## Performance Comparison
+## Performance Benchmarks
 
-| Parser | Method | Time (ms) | Ops/sec | Relative | Accuracy |
-|--------|--------|-----------|---------|----------|----------|
-| fast-brake (all + browser) | All ES + browserlist | 0.001 | 771109 | 44.1x | all + browser |
-| fast-brake (es2015 only) | Single ES2015 plugin | 0.001 | 731797 | 41.8x | es2015 check |
-| fast-brake (all ES) | All ES versions plugin | 0.002 | 631048 | 36.1x | all versions |
-| fast-brake (es5 only) | Single ES5 plugin | 0.002 | 478116 | 27.3x | es5 check |
-| meriyah | Fast ES parser | 0.015 | 66758 | 3.8x | parsed |
-| cherow | Fast parser | 0.017 | 57947 | 3.3x | parsed |
-| esprima | ECMAScript parser | 0.021 | 48011 | 2.7x | parsed |
-| acorn | Lightweight parser | 0.026 | 38716 | 2.2x | parsed |
-| espree | ESLint parser | 0.033 | 30531 | 1.7x | parsed |
-| @babel/parser | Full AST parser | 0.050 | 20179 | 1.2x | parsed |
-| fast-brake | Pattern matching | 0.057 | 17503 | 1.0x | es2015 |
-
-
-*Benchmarked on 8/29/2025*
+| Parser | Method | Time (ms) | Ops/sec | Relative |
+|--------|--------|-----------|---------|----------|
+| fast-brake | AST parser | 0.002 | 552,385 | **1x** |
+| fast-brake (detect) | AST parser | 0.007 | 139,003 | 0.3x |
+| fast-brake (es5 only) | AST parser | 0.016 | 64,194 | 0.1x |
+| fast-brake (browserlist) | AST parser | 0.016 | 63,239 | 0.1x |
+| cherow | Fast AST | 0.019 | 53,499 | 0.1x |
+| fast-brake (es2015 only) | AST parser | 0.021 | 48,691 | 0.1x |
+| meriyah | Fast AST | 0.021 | 47,350 | 0.1x |
+| esprima | Standard AST | 0.026 | 37,952 | 0.1x |
+| acorn | Lightweight AST | 0.054 | 18,598 | 0x |
+| @babel/parser | Full AST | 0.059 | 16,919 | 0x |
+| espree | ESLint AST | 0.064 | 15,720 | 0x |

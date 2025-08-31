@@ -1,148 +1,340 @@
-import { QUICK_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "./constants";
-import type { DetectedFeature, DetectionOptions } from "./types";
-export type { DetectedFeature, DetectionOptions } from "./types";
+import { readFileSync } from "fs";
+import { TINY_FILE_SIZE, COMPLEXITY_INDICATORS } from "./constants";
+import { loadPlugin } from "./plugins/loader";
+import type {
+  DetectionMode,
+  DetectionMatch,
+  DetectionResult,
+  Plugin,
+  DetectionOptions,
+} from "./types";
 
 export class Detector {
   private compiledPatterns: Map<string, RegExp>;
+  private featureStrings: Record<string, string[]>;
+  private plugin: Plugin | null = null;
+  private initialized = false;
 
   constructor() {
     this.compiledPatterns = new Map();
-    for (const [name, pattern] of Object.entries(QUICK_PATTERNS)) {
-      this.compiledPatterns.set(name, pattern);
+    this.featureStrings = {};
+  }
+
+  async initialize(plugin?: Plugin): Promise<void> {
+    if (this.initialized) return;
+
+    if (plugin) {
+      this.plugin = plugin;
+    } else {
+      this.plugin = await loadPlugin("esversion");
+    }
+
+    if (this.plugin) {
+      this.loadPlugin(this.plugin);
+      this.initialized = true;
     }
   }
 
-  scan(code: string, options?: Partial<DetectionOptions>): DetectedFeature[] {
-    const detected: DetectedFeature[] = [];
-    const includeLoc = options?.includeLoc ?? false;
+  private loadPlugin(plugin: Plugin): void {
+    this.compiledPatterns.clear();
+    this.featureStrings = {};
 
+    for (const [matchName, match] of Object.entries(plugin.spec.matches)) {
+      if ("strings" in match && match.strings) {
+        this.featureStrings[matchName] = match.strings;
+      }
+      if ("patterns" in match && match.patterns) {
+        for (const patternObj of match.patterns) {
+          this.compiledPatterns.set(matchName, new RegExp(patternObj.pattern));
+        }
+      }
+    }
+  }
+
+  private getPluginRule(matchName: string): string | null {
+    if (!this.plugin) return null;
+    const match = this.plugin.spec.matches[matchName];
+    return match ? match.rule : null;
+  }
+
+  detectBoolean(code: string): boolean {
+    const hasStringMatch = this.checkStrings(code);
+    if (hasStringMatch) {
+      return true;
+    }
+
+    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    if (!shouldCheckPatterns) {
+      return false;
+    }
+
+    const hasPatternMatch = this.checkPatterns(code);
+    return hasPatternMatch;
+  }
+
+  detectFast(code: string): DetectionResult {
+    const stringMatch = this.findFirstStringMatch(code);
+    if (stringMatch) {
+      return {
+        hasMatch: true,
+        mode: "fast",
+        firstMatch: stringMatch,
+      };
+    }
+
+    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    if (!shouldCheckPatterns) {
+      return {
+        hasMatch: false,
+        mode: "fast",
+      };
+    }
+
+    const patternMatch = this.findFirstPatternMatch(code);
+    if (patternMatch) {
+      return {
+        hasMatch: true,
+        mode: "fast",
+        firstMatch: patternMatch,
+      };
+    }
+
+    return {
+      hasMatch: false,
+      mode: "fast",
+    };
+  }
+
+  detectDetailed(code: string): DetectionResult {
+    const stringMatch = this.findFirstStringMatchDetailed(code);
+    if (stringMatch) {
+      return {
+        hasMatch: true,
+        mode: "detailed",
+        firstMatch: stringMatch,
+      };
+    }
+
+    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    if (!shouldCheckPatterns) {
+      return {
+        hasMatch: false,
+        mode: "detailed",
+      };
+    }
+
+    const patternMatch = this.findFirstPatternMatchDetailed(code);
+    if (patternMatch) {
+      return {
+        hasMatch: true,
+        mode: "detailed",
+        firstMatch: patternMatch,
+      };
+    }
+
+    return {
+      hasMatch: false,
+      mode: "detailed",
+    };
+  }
+
+  detect(code: string, mode: DetectionMode = "fast"): DetectionResult {
+    switch (mode) {
+      case "boolean":
+        const hasMatch = this.detectBoolean(code);
+        return { hasMatch, mode: "boolean" };
+      case "fast":
+        return this.detectFast(code);
+      case "detailed":
+        return this.detectDetailed(code);
+    }
+  }
+
+  detectFile(filePath: string, mode: DetectionMode = "fast"): DetectionResult {
+    try {
+      const code = readFileSync(filePath, "utf-8");
+      return this.detect(code, mode);
+    } catch {
+      return { hasMatch: false, mode };
+    }
+  }
+
+  private checkStrings(code: string): boolean {
+    for (const patterns of Object.values(this.featureStrings)) {
+      const hasMatch = patterns.some((pattern) => code.includes(pattern));
+      if (hasMatch) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private checkPatterns(code: string): boolean {
+    for (const pattern of this.compiledPatterns.values()) {
+      pattern.lastIndex = 0;
+      const matches = pattern.test(code);
+      if (matches) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private findFirstStringMatch(code: string): DetectionMatch | null {
+    for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
+      for (const pattern of patterns) {
+        const index = code.indexOf(pattern);
+        if (index !== -1) {
+          if (this.plugin) {
+            const rule = this.getPluginRule(featureName);
+            if (!rule) continue;
+
+            return {
+              name: featureName,
+              match: pattern,
+              spec: this.plugin.name,
+              rule,
+              index,
+            };
+          } else {
+            // Legacy mode - use feature name as both spec and rule
+            return {
+              name: featureName,
+              match: pattern,
+              spec: "legacy",
+              rule: featureName,
+              index,
+            };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private findFirstPatternMatch(code: string): DetectionMatch | null {
     for (const [featureName, pattern] of this.compiledPatterns.entries()) {
-      const featureVersion = FEATURE_VERSIONS[featureName];
-
       pattern.lastIndex = 0;
       const match = pattern.exec(code);
       if (match) {
-        const upToMatch = code.substring(0, match.index);
-        const lineNum = (upToMatch.match(/\n/g) || []).length + 1;
-        const lastNewline = upToMatch.lastIndexOf("\n");
-        const column = match.index - lastNewline;
+        if (this.plugin) {
+          const rule = this.getPluginRule(featureName);
+          if (!rule) continue;
 
-        const lineStart = lastNewline + 1;
-        const lineEnd = code.indexOf("\n", match.index);
-        const endPos = lineEnd === -1 ? code.length : lineEnd;
-        const maxSnippetEnd = Math.min(lineStart + 50, endPos);
-        const rawSnippet = code.substring(lineStart, maxSnippetEnd);
-        const cleanSnippet = rawSnippet.replace(/\n/g, " ");
-        const snippet = cleanSnippet.trim();
-
-        const feature: DetectedFeature = {
-          name: featureName,
-          version: featureVersion,
-          line: lineNum,
-          column: column,
-          snippet: snippet,
-        };
-
-        if (includeLoc) {
-          const matchEnd = match.index + match[0].length;
-          const upToEnd = code.substring(0, matchEnd);
-          const endLineNum = (upToEnd.match(/\n/g) || []).length + 1;
-          const lastNewlineBeforeEnd = upToEnd.lastIndexOf("\n");
-          const endColumn = matchEnd - lastNewlineBeforeEnd;
-
-          feature.loc = {
-            start: {
-              line: lineNum,
-              column: column,
-            },
-            end: {
-              line: endLineNum,
-              column: endColumn,
-            },
-            offset: match.index,
-            length: match[0].length,
+          return {
+            name: featureName,
+            match: match[0],
+            spec: this.plugin.name,
+            rule,
+            index: match.index,
           };
-        }
-
-        detected.push(feature);
-
-        if (options?.throwOnFirst) {
-          return detected;
+        } else {
+          // Legacy mode - use feature name as both spec and rule
+          return {
+            name: featureName,
+            match: match[0],
+            spec: "legacy",
+            rule: featureName,
+            index: match.index,
+          };
         }
       }
     }
-
-    return detected;
+    return null;
   }
 
-  detect(code: string, options: DetectionOptions): DetectedFeature[] {
-    return this.scan(code, options);
+  private findFirstStringMatchDetailed(code: string): DetectionMatch | null {
+    for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
+      for (const pattern of patterns) {
+        const index = code.indexOf(pattern);
+        if (index !== -1) {
+          if (this.plugin) {
+            const rule = this.getPluginRule(featureName);
+            if (!rule) continue;
+
+            return {
+              name: featureName,
+              match: pattern,
+              spec: this.plugin.name,
+              rule,
+              index,
+            };
+          } else {
+            // Legacy mode - use feature name as both spec and rule
+            return {
+              name: featureName,
+              match: pattern,
+              spec: "legacy",
+              rule: featureName,
+              index,
+            };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private findFirstPatternMatchDetailed(code: string): DetectionMatch | null {
+    for (const [featureName, pattern] of this.compiledPatterns.entries()) {
+      pattern.lastIndex = 0;
+      const match = pattern.exec(code);
+      if (match) {
+        if (this.plugin) {
+          const rule = this.getPluginRule(featureName);
+          if (!rule) continue;
+
+          return {
+            name: featureName,
+            match: match[0],
+            spec: this.plugin.name,
+            rule,
+            index: match.index,
+          };
+        } else {
+          // Legacy mode - use feature name as both spec and rule
+          return {
+            name: featureName,
+            match: match[0],
+            spec: "legacy",
+            rule: featureName,
+            index: match.index,
+          };
+        }
+      }
+    }
+    return null;
+  }
+
+  private shouldRunPatternDetection(code: string): boolean {
+    const isTinyFile = code.length < TINY_FILE_SIZE;
+    if (isTinyFile) {
+      return false;
+    }
+
+    const hasComplexity = this.hasComplexityIndicators(code);
+    return hasComplexity;
+  }
+
+  private hasComplexityIndicators(code: string): boolean {
+    return COMPLEXITY_INDICATORS.some((indicator) => code.includes(indicator));
   }
 
   check(code: string, options: DetectionOptions): boolean {
-    const detected = this.detect(code, options);
-    const targetIndex = VERSION_ORDER.indexOf(options.target);
-
-    for (const feature of detected) {
-      const featureIndex = VERSION_ORDER.indexOf(feature.version);
-      if (featureIndex > targetIndex) {
-        if (options.throwOnFirst) {
-          throw new Error(
-            `Feature "${feature.name}" requires ${feature.version} but target is ${options.target}` +
-              (feature.line ? ` at line ${feature.line}` : ""),
-          );
-        }
-        return false;
-      }
+    const result = this.detectFast(code);
+    if (!result.hasMatch) {
+      return true;
     }
 
-    return true;
-  }
-
-  getMinimumVersion(code: string): string {
-    const detected = this.detect(code, {
-      target: "esnext",
-    });
-
-    if (detected.length === 0) {
-      return "es2015";
+    const orderedRules = options.orderedRules;
+    if (!orderedRules) {
+      return !result.hasMatch;
     }
 
-    let minVersion = "es2015";
-    let minIndex = VERSION_ORDER.indexOf("es2015");
+    const targetIndex = orderedRules.indexOf(options.target);
+    const matchIndex = orderedRules.indexOf(result.firstMatch!.name);
+    const isCompatible = matchIndex <= targetIndex;
 
-    for (const feature of detected) {
-      const featureIndex = VERSION_ORDER.indexOf(feature.version);
-      if (featureIndex > minIndex) {
-        minIndex = featureIndex;
-        minVersion = feature.version;
-      }
-    }
-
-    return minVersion;
+    return isCompatible;
   }
-}
-
-let detectorInstance: Detector | null = null;
-
-export function getDetector(): Detector {
-  if (!detectorInstance) {
-    detectorInstance = new Detector();
-  }
-  return detectorInstance;
-}
-
-export function detect(
-  code: string,
-  options: DetectionOptions,
-): DetectedFeature[] {
-  return getDetector().detect(code, options);
-}
-
-export function check(code: string, options: DetectionOptions): boolean {
-  return getDetector().check(code, options);
-}
-
-export function getMinimumVersion(code: string): string {
-  return getDetector().getMinimumVersion(code);
 }

@@ -1,5 +1,6 @@
-import { Plugin } from "../types";
-import { QUICK_PATTERNS, FEATURE_VERSIONS, ES_VERSIONS } from "./constants";
+import type { Plugin, PluginMatch } from "../../types";
+import browserlistPlugin from "./schema.json";
+import { ES_VERSIONS } from "../../constants";
 
 export interface BrowserTarget {
   name: string;
@@ -7,21 +8,30 @@ export interface BrowserTarget {
 }
 
 export function createBrowserlistPlugin(browsers: string | string[]): Plugin {
+  const plugin = browserlistPlugin as Plugin;
   const targets = parseBrowserlist(browsers);
+  const minESVersion = getMinESVersionForBrowsers(targets);
+
+  const filteredMatches: Record<string, PluginMatch> = {};
+  const targetIndex = plugin.spec.orderedRules.indexOf(minESVersion);
+
+  if (targetIndex === -1) {
+    return plugin;
+  }
+
+  for (const [matchName, match] of Object.entries(plugin.spec.matches)) {
+    const ruleIndex = plugin.spec.orderedRules.indexOf(match.rule);
+    if (ruleIndex > targetIndex) {
+      filteredMatches[matchName] = match;
+    }
+  }
 
   return {
-    name: "browserlist",
-    patterns: Object.entries(QUICK_PATTERNS).map(([name, pattern]) => ({
-      name,
-      pattern,
-      message: `Feature "${name}" (${FEATURE_VERSIONS[name]}) may not be supported in: ${browsers}`,
-      severity: "error" as const,
-    })),
-    validate: (_context, matches) => {
-      return matches.filter((match) => {
-        const featureVersion = FEATURE_VERSIONS[match.name];
-        return !isFeatureSupportedInBrowsers(featureVersion, targets);
-      });
+    name: `browserlist-${browsers}`,
+    description: `Browser compatibility for: ${browsers}`,
+    spec: {
+      orderedRules: plugin.spec.orderedRules,
+      matches: filteredMatches,
     },
   };
 }

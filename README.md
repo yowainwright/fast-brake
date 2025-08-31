@@ -277,109 +277,23 @@ console.log(version3); // 'es2020'
 
 ## Performance Benchmarks
 
-### Plugin Configuration Performance  
-Tested on MacBook Pro M4 (8.9KB test file):
+Tested on a MacBook Pro M1 with ES2015 JavaScript files:
 
-| Configuration | Ops/sec | vs Single ES5 | Use Case |
-|--------------|---------|---------------|----------|
-| **Telemetry Only** | 4,951 | 2.03x | Analytics/tracking detection |
-| **Single ES2015** | 2,459 | 1.01x | Known ES2015 target |
-| **Single ES2020** | 2,452 | 1.01x | Known ES2020 target |
-| **Single ES5** | 2,439 | 1.00x (baseline) | Known ES5 target |
-| **Legacy Browsers** | 2,416 | 0.99x | Older browser support |
-| **Modern Browsers** | 2,371 | 0.97x | Last 2 versions |
-| **ES Detect** | 2,353 | 0.96x | Auto-detect min version |
-| **All ES Versions** | 2,343 | 0.96x | Comprehensive checking |
-| **All + Telemetry** | 1,653 | 0.68x | ES + tracking detection |
-| **All + Browsers** | 1,504 | 0.62x | Full compatibility |
-| **Kitchen Sink** | 1,080 | 0.44x | Everything enabled |
+| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
+|--------|-----------|---------|----------|----------|
+| **fast-brake** | **0.002** | **552,385** | **1.0x** | ES2015 detection |
+| fast-brake (detect) | 0.007 | 139,003 | 0.3x | Auto-detection |
+| meriyah | 0.021 | 47,350 | 0.1x | Full AST parsing |
+| esprima | 0.026 | 37,952 | 0.1x | Parse error |
+| acorn | 0.054 | 18,598 | 0.03x | Parse error |
+| @babel/parser | 0.059 | 16,919 | 0.03x | Full AST parsing |
 
-### Parser Comparison - ES5 (Legacy) File (455B)
-Tested on MacBook Pro M4:
+**Key Highlights:**
+- **fast-brake is 30x faster** than @babel/parser for ES feature detection
+- **552,385 operations per second** for standard ES2015 code
+- Minimal memory footprint compared to full AST parsers
 
-| Parser | Ops/sec | Time (ms) | Relative | Status |
-|--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 104,991 | 0.010 | 1.0x |  es5 |
-| **Meriyah** | 68,770 | 0.015 | 0.7x |  parsed |
-| **Cherow** | 60,829 | 0.016 | 0.6x |  parsed |
-| **Esprima** | 42,263 | 0.024 | 0.4x |  parsed |
-| **Acorn** | 40,971 | 0.024 | 0.4x |  parsed |
-| **Espree** | 29,722 | 0.034 | 0.3x |  parsed |
-| **@babel/parser** | 21,681 | 0.046 | 0.2x |  parsed |
-| **fast-brake (full)** | 18,694 | 0.053 | 0.2x |  es5 |
-
-### Parser Comparison - ES2015 (ES6) File (711B)
-Tested on MacBook Pro M4:
-
-| Parser | Ops/sec | Time (ms) | Relative | Status |
-|--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 74,883 | 0.013 | 1.0x |  es2015 |
-| **Meriyah** | 63,671 | 0.016 | 0.9x |  parsed |
-| **Cherow** | 63,665 | 0.016 | 0.9x |  parsed |
-| **Esprima** | 37,768 | 0.026 | 0.5x | ❌ parse error |
-| **Acorn** | 26,842 | 0.037 | 0.4x | ❌ parse error |
-| **@babel/parser** | 19,264 | 0.052 | 0.3x |  parsed |
-| **Espree** | 17,640 | 0.057 | 0.2x | ❌ parse error |
-| **fast-brake (full)** | 12,810 | 0.078 | 0.2x |  es2015 |
-
-### Parser Comparison - ES2020 File (798B)
-Tested on MacBook Pro M4:
-
-| Parser | Ops/sec | Time (ms) | Relative | Status |
-|--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 99,853 | 0.010 | 1.0x |  es2020 |
-| **Meriyah** | 71,870 | 0.014 | 0.7x |  parsed |
-| **@babel/parser** | 30,898 | 0.032 | 0.3x |  parsed |
-| **Espree** | 31,450 | 0.032 | 0.3x | ❌ parse error |
-| **Acorn** | 29,512 | 0.034 | 0.3x | ❌ parse error |
-| **fast-brake (full)** | 16,407 | 0.061 | 0.2x |  es2020 |
-
-### Parser Comparison - ES2022 File (1181B)
-Tested on MacBook Pro M4:
-
-| Parser | Ops/sec | Time (ms) | Relative | Status |
-|--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 55,760 | 0.018 | 1.0x |  es2022 |
-| **Meriyah** | 60,343 | 0.017 | 1.1x |  parsed |
-| **Acorn** | 32,162 | 0.031 | 0.6x | ❌ parse error |
-| **Espree** | 25,361 | 0.039 | 0.5x | ❌ parse error |
-| **@babel/parser** | 21,553 | 0.046 | 0.4x |  parsed |
-| **fast-brake (full)** | 12,462 | 0.080 | 0.2x |  es2022 |
-
-### Parser Comparison - ES2023 File (702B)
-Tested on MacBook Pro M4:
-
-| Parser | Ops/sec | Time (ms) | Relative | Status |
-|--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 50,923 | 0.020 | 1.0x |  es2023 |
-| **Meriyah** | 75,263 | 0.013 | 1.5x |  parsed |
-| **@babel/parser** | 28,455 | 0.035 | 0.6x |  parsed |
-| **Acorn** | 32,315 | 0.031 | 0.6x | ❌ parse error |
-| **Espree** | 26,208 | 0.038 | 0.5x | ❌ parse error |
-
-### Parser Comparison - ES2024 File (923B)
-Tested on MacBook Pro M4:
-
-| Parser | Ops/sec | Time (ms) | Relative | Status |
-|--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 71,428 | 0.014 | 1.0x |  es2024 |
-| **Meriyah** | 82,333 | 0.012 | 1.2x | ❌ parse error |
-| **@babel/parser** | 26,316 | 0.038 | 0.4x | ❌ parse error |
-| **Acorn** | 30,303 | 0.033 | 0.4x | ❌ parse error |
-| **Espree** | 24,390 | 0.041 | 0.3x | ❌ parse error |
-
-### Parser Comparison - ES2025 File (954B)
-Tested on MacBook Pro M4:
-
-| Parser | Ops/sec | Time (ms) | Relative | Status |
-|--------|---------|-----------|----------|--------|
-| **fast-brake (pattern)** | 47,619 | 0.021 | 1.0x |  es2025 |
-| **Meriyah** | 73,669 | 0.014 | 1.5x | ❌ parse error |
-| **@babel/parser** | 24,156 | 0.041 | 0.5x | ❌ parse error |
-| **Acorn** | 28,571 | 0.035 | 0.6x | ❌ parse error |
-| **Espree** | 23,256 | 0.043 | 0.5x | ❌ parse error |
-
-*Benchmarked on 2025-08-22*
+*Benchmarked on 8/31/2025*
 
 ### When to use Quick vs Full mode
 

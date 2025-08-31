@@ -1,5 +1,9 @@
 #!/usr/bin/env bun
-import { detectWithPlugins } from 'fast-brake';
+import { Detector } from 'fast-brake';
+import { createESVersionPlugin, getESVersionPlugin } from '../../../src/plugins/esversion';
+import { createBrowserlistPlugin } from '../../../src/plugins/browserlist';
+import { detectPlugin } from '../../../src/plugins/detect';
+import { telemetryPlugin, strictTelemetryPlugin } from '../../../src/plugins/telemetry';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -10,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 interface PluginBenchmark {
   name: string;
-  config: any[];
+  getPlugin: () => any;
   description: string;
 }
 
@@ -26,63 +30,53 @@ interface BenchmarkResult {
 const pluginConfigs: PluginBenchmark[] = [
   {
     name: 'Single ES5',
-    config: ['es5'],
+    getPlugin: () => createESVersionPlugin('es5'),
     description: 'Check ES5 compatibility only'
   },
   {
     name: 'Single ES2015',
-    config: ['es2015'],
+    getPlugin: () => createESVersionPlugin('es2015'),
     description: 'Check ES2015 compatibility only'
   },
   {
     name: 'Single ES2020',
-    config: ['es2020'],
+    getPlugin: () => createESVersionPlugin('es2020'),
     description: 'Check ES2020 compatibility only'
   },
   {
     name: 'All ES Versions',
-    config: ['all'],
+    getPlugin: () => getESVersionPlugin('all'),
     description: 'Check all ES version features'
   },
   {
     name: 'ES Detect',
-    config: ['detect'],
+    getPlugin: () => detectPlugin,
     description: 'Detect minimum ES version'
   },
   {
     name: 'Modern Browsers',
-    config: ['browser:last 2 versions'],
+    getPlugin: () => createBrowserlistPlugin('last 2 versions'),
     description: 'Check modern browser support'
   },
   {
     name: 'Legacy Browsers',
-    config: ['browser:chrome 60, firefox 55, safari 11'],
+    getPlugin: () => createBrowserlistPlugin(['chrome 60', 'firefox 55', 'safari 11']),
     description: 'Check legacy browser support'
   },
   {
-    name: 'All + Browsers',
-    config: ['all', 'browser:defaults'],
-    description: 'All ES features + browser checks'
-  },
-  {
-    name: 'ES5 + ES2015 + ES2020',
-    config: ['es5', 'es2015', 'es2020'],
-    description: 'Multiple specific versions'
+    name: 'Default Browsers',
+    getPlugin: () => createBrowserlistPlugin('defaults'),
+    description: 'Default browser support'
   },
   {
     name: 'Telemetry Detection',
-    config: ['telemetry'],
+    getPlugin: () => telemetryPlugin,
     description: 'Detect tracking/analytics code'
   },
   {
-    name: 'All + Telemetry',
-    config: ['all', 'telemetry'],
-    description: 'All ES + telemetry detection'
-  },
-  {
-    name: 'Kitchen Sink',
-    config: ['all', 'browser:defaults', 'telemetry'],
-    description: 'Everything enabled'
+    name: 'Strict Telemetry',
+    getPlugin: () => strictTelemetryPlugin,
+    description: 'Strict telemetry detection (all errors)'
   }
 ];
 
@@ -109,14 +103,18 @@ function loadTestCode(): string {
   `;
 }
 
-function runBenchmark(
+async function runBenchmark(
   config: PluginBenchmark,
   code: string,
   iterations: number = 1000
-): BenchmarkResult {
+): Promise<BenchmarkResult> {
+  const detector = new Detector();
+  const plugin = config.getPlugin();
+  await detector.initialize(plugin);
+  
   // Warmup
   for (let i = 0; i < 10; i++) {
-    detectWithPlugins(code, config.config);
+    detector.detectFast(code);
   }
 
   const startMem = process.memoryUsage().heapUsed;
@@ -124,8 +122,8 @@ function runBenchmark(
   
   let featuresDetected = 0;
   for (let i = 0; i < iterations; i++) {
-    const results = detectWithPlugins(code, config.config);
-    if (i === 0) featuresDetected = results.length;
+    const result = detector.detectFast(code);
+    if (i === 0) featuresDetected = result.hasMatch ? 1 : 0;
   }
   
   const end = performance.now();
@@ -160,7 +158,7 @@ async function main() {
     process.stdout.write(pc.gray(`  ${config.name.padEnd(20)} - ${config.description.padEnd(40)}`));
     
     try {
-      const result = runBenchmark(config, code);
+      const result = await runBenchmark(config, code);
       results.push(result);
       console.log(pc.green(` ✓ ${result.opsPerSec.toFixed(0)} ops/sec`));
     } catch (e) {
@@ -209,8 +207,8 @@ async function main() {
   
   const singleES5 = results.find(r => r.plugin === 'Single ES5');
   const allES = results.find(r => r.plugin === 'All ES Versions');
-  const allPlusBrowser = results.find(r => r.plugin === 'All + Browsers');
-  const kitchenSink = results.find(r => r.plugin === 'Kitchen Sink');
+  const defaultBrowsers = results.find(r => r.plugin === 'Default Browsers');
+  const strictTelemetry = results.find(r => r.plugin === 'Strict Telemetry');
   
   if (singleES5 && allES) {
     const overhead = ((allES.timeMs - singleES5.timeMs) / singleES5.timeMs * 100).toFixed(1);
@@ -219,18 +217,18 @@ async function main() {
     console.log(pc.gray(`  All ES: ${allES.opsPerSec.toFixed(0)} ops/sec`));
   }
   
-  if (allES && allPlusBrowser) {
-    const overhead = ((allPlusBrowser.timeMs - allES.timeMs) / allES.timeMs * 100).toFixed(1);
+  if (allES && defaultBrowsers) {
+    const overhead = ((defaultBrowsers.timeMs - allES.timeMs) / allES.timeMs * 100).toFixed(1);
     console.log(pc.yellow(`\n• Browser checks add: ${overhead}% overhead`));
     console.log(pc.gray(`  All ES: ${allES.opsPerSec.toFixed(0)} ops/sec`));
-    console.log(pc.gray(`  All + Browser: ${allPlusBrowser.opsPerSec.toFixed(0)} ops/sec`));
+    console.log(pc.gray(`  Default Browsers: ${defaultBrowsers.opsPerSec.toFixed(0)} ops/sec`));
   }
   
-  if (singleES5 && kitchenSink) {
-    const totalOverhead = ((kitchenSink.timeMs - singleES5.timeMs) / singleES5.timeMs * 100).toFixed(1);
-    console.log(pc.yellow(`\n• Kitchen sink vs Single ES5: ${totalOverhead}% overhead`));
+  if (singleES5 && strictTelemetry) {
+    const totalOverhead = ((strictTelemetry.timeMs - singleES5.timeMs) / singleES5.timeMs * 100).toFixed(1);
+    console.log(pc.yellow(`\n• Telemetry vs Single ES5: ${totalOverhead}% overhead`));
     console.log(pc.gray(`  Single ES5: ${singleES5.opsPerSec.toFixed(0)} ops/sec`));
-    console.log(pc.gray(`  Kitchen Sink: ${kitchenSink.opsPerSec.toFixed(0)} ops/sec`));
+    console.log(pc.gray(`  Strict Telemetry: ${strictTelemetry.opsPerSec.toFixed(0)} ops/sec`));
   }
   
   // Comparison with other parsers
@@ -251,7 +249,7 @@ async function main() {
     style: { head: ['cyan'] }
   });
   
-  [singleES5, allES, allPlusBrowser, kitchenSink].forEach(r => {
+  [singleES5, allES, defaultBrowsers, strictTelemetry].forEach(r => {
     if (r) {
       comparisonTable.push([
         r.plugin,

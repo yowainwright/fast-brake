@@ -1,66 +1,90 @@
 [
   {
-    "parser": "cherow",
-    "method": "Fast AST",
-    "timeMs": 0.016,
-    "opsPerSec": 62821,
-    "relative": 1,
-    "accuracy": "parsed"
-  },
-  {
-    "parser": "fast-brake (pattern)",
-    "method": "Pattern matching",
-    "timeMs": 0.017,
-    "opsPerSec": 60008,
+    "parser": "fast-brake",
+    "method": "AST parser",
+    "timeMs": 0.002,
+    "opsPerSec": 552385,
     "relative": 1,
     "accuracy": "es2015"
   },
   {
+    "parser": "fast-brake (detect)",
+    "method": "AST parser",
+    "timeMs": 0.007,
+    "opsPerSec": 139003,
+    "relative": 0.3,
+    "accuracy": "es2015"
+  },
+  {
+    "parser": "fast-brake (es5 only)",
+    "method": "AST parser",
+    "timeMs": 0.016,
+    "opsPerSec": 64194,
+    "relative": 0.1,
+    "accuracy": "es5 check"
+  },
+  {
+    "parser": "fast-brake (browserlist)",
+    "method": "AST parser",
+    "timeMs": 0.016,
+    "opsPerSec": 63239,
+    "relative": 0.1,
+    "accuracy": "browser check"
+  },
+  {
+    "parser": "cherow",
+    "method": "Fast AST",
+    "timeMs": 0.019,
+    "opsPerSec": 53499,
+    "relative": 0.1,
+    "accuracy": "parsed"
+  },
+  {
+    "parser": "fast-brake (es2015 only)",
+    "method": "AST parser",
+    "timeMs": 0.021,
+    "opsPerSec": 48691,
+    "relative": 0.1,
+    "accuracy": "es2015 check"
+  },
+  {
     "parser": "meriyah",
     "method": "Fast AST",
-    "timeMs": 0.017,
-    "opsPerSec": 57816,
-    "relative": 1,
+    "timeMs": 0.021,
+    "opsPerSec": 47350,
+    "relative": 0.1,
     "accuracy": "parsed"
   },
   {
     "parser": "esprima",
     "method": "Standard AST",
-    "timeMs": 0.025,
-    "opsPerSec": 40234,
-    "relative": 0.7,
+    "timeMs": 0.026,
+    "opsPerSec": 37952,
+    "relative": 0.1,
     "accuracy": "parse error"
   },
   {
     "parser": "acorn",
     "method": "Lightweight AST",
-    "timeMs": 0.04,
-    "opsPerSec": 25163,
-    "relative": 0.4,
+    "timeMs": 0.054,
+    "opsPerSec": 18598,
+    "relative": 0,
     "accuracy": "parse error"
   },
   {
     "parser": "@babel/parser",
     "method": "Full AST",
-    "timeMs": 0.052,
-    "opsPerSec": 19365,
-    "relative": 0.3,
+    "timeMs": 0.059,
+    "opsPerSec": 16919,
+    "relative": 0,
     "accuracy": "parsed"
   },
   {
     "parser": "espree",
     "method": "ESLint AST",
-    "timeMs": 0.054,
-    "opsPerSec": 18350,
-    "relative": 0.3,
+    "timeMs": 0.064,
+    "opsPerSec": 15720,
+    "relative": 0,
     "accuracy": "parse error"
-  },
-  {
-    "parser": "fast-brake (full)",
-    "method": "Full analysis",
-    "timeMs": 0.077,
-    "opsPerSec": 12922,
-    "relative": 0.2,
-    "accuracy": "es2015"
   }
 ]

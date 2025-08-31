@@ -1,30 +1,29 @@
-import { Plugin, PluginPattern } from "../types";
-import { QUICK_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "./constants";
+import type { Plugin } from "../../types";
+import esversionPlugin from "./schema.json";
 
 export function createESVersionPlugin(targetVersion: string = "es5"): Plugin {
-  const patterns: PluginPattern[] = [];
+  const plugin = esversionPlugin as Plugin;
 
-  for (const [featureName, pattern] of Object.entries(QUICK_PATTERNS)) {
-    const version = FEATURE_VERSIONS[featureName];
-    patterns.push({
-      name: featureName,
-      pattern: pattern,
-      message: `Feature "${featureName}" requires ${version} but target is ${targetVersion}`,
-      severity: "error",
-    });
+  const filteredMatches: Record<string, any> = {};
+  const targetIndex = plugin.spec.orderedRules.indexOf(targetVersion);
+
+  if (targetIndex === -1) {
+    return plugin;
+  }
+
+  for (const [matchName, match] of Object.entries(plugin.spec.matches)) {
+    const ruleIndex = plugin.spec.orderedRules.indexOf(match.rule);
+    if (ruleIndex > targetIndex) {
+      filteredMatches[matchName] = match;
+    }
   }
 
   return {
     name: `es-version-${targetVersion}`,
-    patterns,
-    validate: (_context, matches) => {
-      const targetIndex = VERSION_ORDER.indexOf(targetVersion);
-
-      return matches.filter((match) => {
-        const featureVersion = FEATURE_VERSIONS[match.name];
-        const featureIndex = VERSION_ORDER.indexOf(featureVersion);
-        return featureIndex > targetIndex;
-      });
+    description: `Checks for features newer than ${targetVersion}`,
+    spec: {
+      orderedRules: plugin.spec.orderedRules,
+      matches: filteredMatches,
     },
   };
 }
@@ -54,50 +53,12 @@ export const es14 = es2023;
 export const es15 = es2024;
 export const es16 = es2025;
 
-export const esAll: Plugin = {
-  name: "es-all",
-  patterns: Object.entries(QUICK_PATTERNS).map(([name, pattern]) => ({
-    name,
-    pattern,
-    message: `ES feature "${name}" detected (${FEATURE_VERSIONS[name]})`,
-    severity: "info" as const,
-  })),
-  validate: (_context, matches) => matches,
-};
+export const esAll: Plugin = esversionPlugin as Plugin;
 
 export const esDetect: Plugin = {
   name: "es-detect",
-  patterns: Object.entries(QUICK_PATTERNS).map(([name, pattern]) => ({
-    name,
-    pattern,
-    message: `${FEATURE_VERSIONS[name]} feature: ${name}`,
-    severity: "info" as const,
-  })),
-  validate: (_context, matches) => {
-    let highestVersion = "es5";
-    let highestIndex = 0;
-
-    for (const match of matches) {
-      const version = FEATURE_VERSIONS[match.name];
-      const index = VERSION_ORDER.indexOf(version);
-      if (index > highestIndex) {
-        highestIndex = index;
-        highestVersion = version;
-      }
-    }
-
-    if (matches.length > 0) {
-      return [
-        {
-          ...matches[0],
-          name: "minimum_version",
-          message: `Minimum ES version required: ${highestVersion}`,
-          severity: "info",
-        },
-      ];
-    }
-    return [];
-  },
+  description: "Detects the minimum ES version required",
+  spec: esversionPlugin.spec,
 };
 
 export function getESVersionPlugin(version: string): Plugin {
@@ -131,3 +92,5 @@ export function getESVersionPlugin(version: string): Plugin {
 
   return plugins[version] || es5;
 }
+
+export default esAll;

@@ -86,6 +86,11 @@
       "types": "./dist/plugins/browserlist/index.d.ts",
       "import": "./dist/plugins/browserlist/index.js",
       "require": "./dist/plugins/browserlist/index.cjs"
+    },
+    "./extensions/loc": {
+      "types": "./dist/extensions/loc.d.ts",
+      "import": "./dist/extensions/loc.js",
+      "require": "./dist/extensions/loc.cjs"
     }
   },
   "files": [

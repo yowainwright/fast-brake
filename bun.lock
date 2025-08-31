@@ -81,20 +81,6 @@
         "typescript": "5.8.3",
       },
     },
-    "utils/generator": {
-      "name": "@fast-brake/generator",
-      "version": "0.0.1",
-      "dependencies": {
-        "fast-brake": "file:../..",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
-        "@types/node": "24.1.0",
-        "oxlint": "^1.11.2",
-        "prettier": "3.6.2",
-        "typescript": "5.8.3",
-      },
-    },
   },
   "packages": {
     "@algolia/abtesting": ["@algolia/abtesting@1.1.0", "", { "dependencies": { "@algolia/client-common": "5.35.0", "@algolia/requester-browser-xhr": "5.35.0", "@algolia/requester-fetch": "5.35.0", "@algolia/requester-node-http": "5.35.0" } }, "sha512-sEyWjw28a/9iluA37KLGu8vjxEIlb60uxznfTUmXImy7H5NvbpSO6yYgmgH5KiD7j+zTUUihiST0jEP12IoXow=="],
@@ -306,8 +292,6 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.9", "", { "os": "win32", "cpu": "x64" }, "sha512-PPOl1mi6lpLNQxnGoyAfschAodRFYXJ+9fs6WHXz7CSWKbOqiMZsubC+BQsVKuul+3vKLuwTHsS2c2y9EoKwxQ=="],
 
     "@fast-brake/benchmarker": ["@fast-brake/benchmarker@workspace:utils/benchmarker"],
-
-    "@fast-brake/generator": ["@fast-brake/generator@workspace:utils/generator"],
 
     "@fontsource-variable/lexend": ["@fontsource-variable/lexend@5.2.9", "", {}, "sha512-m0AmQ/DC7g0VU4PCnh6O+T1aqAHt8QxUBb2h5FtuFHNJlH9U4UT2NZNiy2vYijFQ6c1xKl/yHUyKaHwPJVc3Gw=="],
 
@@ -1988,8 +1972,6 @@
     "@babel/helper-compilation-targets/semver": ["semver@6.3.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA=="],
 
     "@fast-brake/benchmarker/fast-brake": ["fast-brake@file:", { "devDependencies": { "@commitlint/cli": "19.8.1", "@commitlint/config-conventional": "19.8.1", "@types/node": "24.1.0", "codependence": "^1.0.0-1", "husky": "9.1.7", "is-ci": "^4.1.0", "lint-staged": "16.1.2", "oxlint": "^1.11.2", "prettier": "3.6.2", "release-it": "19.0.4", "rimraf": "6.0.1", "tslib": "2.8.1", "tsup": "8.5.0", "turbo": "2.5.5", "typescript": "5.8.3" } }],
-
-    "@fast-brake/generator/fast-brake": ["fast-brake@file:", { "devDependencies": { "@commitlint/cli": "19.8.1", "@commitlint/config-conventional": "19.8.1", "@types/node": "24.1.0", "codependence": "^1.0.0-1", "husky": "9.1.7", "is-ci": "^4.1.0", "lint-staged": "16.1.2", "oxlint": "^1.11.2", "prettier": "3.6.2", "release-it": "19.0.4", "rimraf": "6.0.1", "tslib": "2.8.1", "tsup": "8.5.0", "turbo": "2.5.5", "typescript": "5.8.3" } }],
 
     "@inquirer/core/mute-stream": ["mute-stream@2.0.0", "", {}, "sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA=="],
 
