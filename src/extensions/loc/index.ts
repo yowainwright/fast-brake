@@ -56,12 +56,26 @@ export function findFeatureWithLoc(
   targetLine?: number,
 ): LocEnrichedFeature | null {
   const detector = new Detector();
-  const features = detector.scan(code);
+  const result = detector.detectDetailed(code);
 
-  const feature = features.find(
-    (f) => f.name === featureName && (!targetLine || f.line === targetLine),
-  );
-  if (!feature) return null;
+  const hasNoMatch = !result.hasMatch || !result.firstMatch;
+  if (hasNoMatch) return null;
+
+  const feature: DetectedFeature = {
+    name: result.firstMatch.name,
+    version: result.firstMatch.version,
+    line: targetLine,
+    column: 0,
+    snippet: result.firstMatch.match,
+    index: result.firstMatch.index,
+  };
+
+  const isWrongFeature = feature.name !== featureName;
+  const isWrongLine = targetLine && feature.line !== targetLine;
+
+  if (isWrongFeature || isWrongLine) {
+    return null;
+  }
 
   return enrichWithLoc(code, feature);
 }

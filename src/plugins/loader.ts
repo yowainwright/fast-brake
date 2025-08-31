@@ -1,4 +1,4 @@
-import { Plugin } from "./types";
+import type { Plugin } from "../types";
 
 const pluginCache = new Map<string, Plugin>();
 
@@ -10,7 +10,15 @@ export async function loadPlugin(name: string): Promise<Plugin | null> {
   if (pluginCache.has(name)) {
     return pluginCache.get(name)!;
   }
-  return null;
+
+  try {
+    const plugin = await import(`./${name}.json`);
+    const loadedPlugin = plugin.default || plugin;
+    pluginCache.set(name, loadedPlugin);
+    return loadedPlugin;
+  } catch {
+    return null;
+  }
 }
 
 export function clearPluginCache(): void {

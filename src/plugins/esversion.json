@@ -1,0 +1,387 @@
+{
+  "name": "esversion",
+  "description": "ECMAScript version compatibility checking",
+  "spec": {
+    "orderedRules": [
+      "es5",
+      "es2015",
+      "es2016",
+      "es2017",
+      "es2018",
+      "es2019",
+      "es2020",
+      "es2021",
+      "es2022",
+      "es2023",
+      "es2024",
+      "es2025",
+      "esnext"
+    ],
+    "matches": {
+      "arrow_functions": {
+        "rule": "es2015",
+        "strings": ["=>"]
+      },
+      "template_literals": {
+        "rule": "es2015",
+        "strings": ["`"]
+      },
+      "classes": {
+        "rule": "es2015",
+        "strings": ["class "]
+      },
+      "let_const": {
+        "rule": "es2015",
+        "strings": ["let ", "const "]
+      },
+      "spread_rest": {
+        "rule": "es2015",
+        "strings": ["..."]
+      },
+      "import": {
+        "rule": "es2015",
+        "strings": ["import "]
+      },
+      "export": {
+        "rule": "es2015",
+        "strings": ["export "]
+      },
+      "promise": {
+        "rule": "es2015",
+        "strings": ["Promise"]
+      },
+      "promise_resolve": {
+        "rule": "es2015",
+        "strings": ["Promise.resolve("]
+      },
+      "promise_reject": {
+        "rule": "es2015",
+        "strings": ["Promise.reject("]
+      },
+      "map": {
+        "rule": "es2015",
+        "strings": ["new Map"]
+      },
+      "set": {
+        "rule": "es2015",
+        "strings": ["new Set"]
+      },
+      "weakmap": {
+        "rule": "es2015",
+        "strings": ["new WeakMap"]
+      },
+      "weakset": {
+        "rule": "es2015",
+        "strings": ["new WeakSet"]
+      },
+      "symbol": {
+        "rule": "es2015",
+        "strings": ["Symbol("]
+      },
+      "proxy": {
+        "rule": "es2015",
+        "strings": ["new Proxy"]
+      },
+      "reflect": {
+        "rule": "es2015",
+        "strings": ["Reflect."]
+      },
+      "extends": {
+        "rule": "es2015",
+        "strings": [" extends "]
+      },
+      "generators": {
+        "rule": "es2015",
+        "strings": ["function*", "yield "]
+      },
+      "for_of": {
+        "rule": "es2015",
+        "patterns": [
+          {
+            "pattern": "\\bfor\\s*\\([^)]*\\bof\\b",
+            "identifier": "for"
+          }
+        ]
+      },
+      "destructuring": {
+        "rule": "es2015",
+        "patterns": [
+          {
+            "pattern": "(?:const|let|var)\\s*[[{]",
+            "identifier": "const"
+          }
+        ]
+      },
+      "default_params": {
+        "rule": "es2015",
+        "patterns": [
+          {
+            "pattern": "function[^(]*\\([^)]*=[^)]*\\)|(?:\\(|,)\\s*\\w+\\s*=\\s*[^,)]+",
+            "identifier": "function"
+          }
+        ]
+      },
+      "exponentiation": {
+        "rule": "es2016",
+        "strings": ["**"]
+      },
+      "array_includes": {
+        "rule": "es2016",
+        "strings": [".includes("]
+      },
+      "async_await": {
+        "rule": "es2017",
+        "strings": ["async ", "await "]
+      },
+      "object_entries": {
+        "rule": "es2017",
+        "strings": ["Object.entries("]
+      },
+      "object_values": {
+        "rule": "es2017",
+        "strings": ["Object.values("]
+      },
+      "string_padStart": {
+        "rule": "es2017",
+        "strings": [".padStart("]
+      },
+      "string_padEnd": {
+        "rule": "es2017",
+        "strings": [".padEnd("]
+      },
+      "async_iteration": {
+        "rule": "es2018",
+        "strings": ["for await"]
+      },
+      "rest_spread_properties": {
+        "rule": "es2018",
+        "patterns": [
+          {
+            "pattern": "\\{[^}]*\\.\\.\\.[^.]",
+            "identifier": "..."
+          }
+        ]
+      },
+      "promise_finally": {
+        "rule": "es2018",
+        "strings": [".finally("]
+      },
+      "array_flat": {
+        "rule": "es2019",
+        "strings": [".flat(", ".flatMap("]
+      },
+      "object_fromEntries": {
+        "rule": "es2019",
+        "strings": ["Object.fromEntries("]
+      },
+      "string_trimStart": {
+        "rule": "es2019",
+        "strings": [".trimStart("]
+      },
+      "string_trimEnd": {
+        "rule": "es2019",
+        "strings": [".trimEnd("]
+      },
+      "optional_chaining": {
+        "rule": "es2020",
+        "strings": ["?."]
+      },
+      "nullish_coalescing": {
+        "rule": "es2020",
+        "strings": ["??"]
+      },
+      "bigint": {
+        "rule": "es2020",
+        "patterns": [
+          {
+            "pattern": "\\b\\d+n\\b",
+            "identifier": "n"
+          }
+        ]
+      },
+      "promise_allSettled": {
+        "rule": "es2020",
+        "strings": ["Promise.allSettled("]
+      },
+      "globalThis": {
+        "rule": "es2020",
+        "strings": ["globalThis"]
+      },
+      "string_matchAll": {
+        "rule": "es2020",
+        "strings": [".matchAll("]
+      },
+      "import_meta": {
+        "rule": "es2020",
+        "strings": ["import.meta"]
+      },
+      "dynamic_import": {
+        "rule": "es2020",
+        "strings": ["import("]
+      },
+      "logical_assignment": {
+        "rule": "es2021",
+        "strings": ["||=", "&&=", "??="]
+      },
+      "numeric_separators": {
+        "rule": "es2021",
+        "patterns": [
+          {
+            "pattern": "\\b\\d[\\d_]+\\d\\b",
+            "identifier": "_"
+          }
+        ]
+      },
+      "string_replaceAll": {
+        "rule": "es2021",
+        "strings": [".replaceAll("]
+      },
+      "promise_any": {
+        "rule": "es2021",
+        "strings": ["Promise.any("]
+      },
+      "weakref": {
+        "rule": "es2021",
+        "patterns": [
+          {
+            "pattern": "\\bnew\\s+WeakRef\\b",
+            "identifier": "WeakRef"
+          }
+        ]
+      },
+      "finalization_registry": {
+        "rule": "es2021",
+        "patterns": [
+          {
+            "pattern": "\\bnew\\s+FinalizationRegistry\\b",
+            "identifier": "FinalizationRegistry"
+          }
+        ]
+      },
+      "class_fields": {
+        "rule": "es2022",
+        "strings": ["#"]
+      },
+      "private_fields": {
+        "rule": "es2022",
+        "patterns": [
+          {
+            "pattern": "#[a-zA-Z_$][a-zA-Z0-9_$]*",
+            "identifier": "#"
+          }
+        ]
+      },
+      "static_blocks": {
+        "rule": "es2022",
+        "strings": ["static {"]
+      },
+      "array_at": {
+        "rule": "es2022",
+        "strings": [".at("]
+      },
+      "object_hasOwn": {
+        "rule": "es2022",
+        "strings": ["Object.hasOwn("]
+      },
+      "top_level_await": {
+        "rule": "es2022",
+        "patterns": [
+          {
+            "pattern": "^[^{]*\\bawait\\s",
+            "identifier": "await"
+          }
+        ]
+      },
+      "array_findLast": {
+        "rule": "es2023",
+        "strings": [".findLast("]
+      },
+      "array_findLastIndex": {
+        "rule": "es2023",
+        "strings": [".findLastIndex("]
+      },
+      "array_toReversed": {
+        "rule": "es2023",
+        "strings": [".toReversed("]
+      },
+      "array_toSorted": {
+        "rule": "es2023",
+        "strings": [".toSorted("]
+      },
+      "array_toSpliced": {
+        "rule": "es2023",
+        "strings": [".toSpliced("]
+      },
+      "array_with": {
+        "rule": "es2023",
+        "strings": [".with("]
+      },
+      "hashbang": {
+        "rule": "es2023",
+        "patterns": [
+          {
+            "pattern": "^#!",
+            "identifier": "#!"
+          }
+        ]
+      },
+      "array_fromAsync": {
+        "rule": "es2024",
+        "strings": ["Array.fromAsync("]
+      },
+      "promise_withResolvers": {
+        "rule": "es2024",
+        "strings": ["Promise.withResolvers("]
+      },
+      "object_groupBy": {
+        "rule": "es2024",
+        "patterns": [
+          {
+            "pattern": "Object\\.groupBy\\s*\\(",
+            "identifier": "Object.groupBy"
+          }
+        ]
+      },
+      "map_groupBy": {
+        "rule": "es2024",
+        "patterns": [
+          {
+            "pattern": "Map\\.groupBy\\s*\\(",
+            "identifier": "Map.groupBy"
+          }
+        ]
+      },
+      "regexp_v_flag": {
+        "rule": "es2024",
+        "patterns": [
+          {
+            "pattern": "\\/[^/]*\\/[gimsuvy]*v[gimsuvy]*",
+            "identifier": "/v"
+          }
+        ]
+      },
+      "temporal": {
+        "rule": "es2025",
+        "strings": ["Temporal."]
+      },
+      "regexp_duplicate_named_groups": {
+        "rule": "es2025",
+        "patterns": [
+          {
+            "pattern": "\\(\\?<([^>]+)>.*\\(\\?<\\1>",
+            "identifier": "(?<"
+          }
+        ]
+      },
+      "set_methods": {
+        "rule": "es2025",
+        "patterns": [
+          {
+            "pattern": "\\.(?:intersection|union|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\\s*\\(",
+            "identifier": ".intersection"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -46,7 +46,73 @@ export interface DetectionOptions {
   throwOnFirst?: boolean;
   ignorePatterns?: string[];
   preprocessors?: Array<(code: string) => string>;
+  orderedRules?: string[];
 }
 export interface LocEnrichedFeature extends DetectedFeature {
   loc: Location;
+}
+
+export interface CacheEntry<T> {
+  value: T;
+  timestamp: number;
+}
+
+export interface ScanOptions {
+  extensions?: string[];
+  ignorePatterns?: string[];
+  maxDepth?: number;
+  earlyExit?: boolean;
+  limit?: number;
+}
+
+export interface ScanResult {
+  path: string;
+  type: "file" | "directory";
+  extension?: string;
+}
+
+export interface ScanContext {
+  results: ScanResult[];
+  maxDepth: number;
+  earlyExit: boolean;
+  limit?: number;
+  shouldStop: boolean;
+}
+
+export type DetectionMode = "boolean" | "fast" | "detailed";
+
+export interface DetectionMatch {
+  name: string;
+  match: string;
+  spec: string;
+  rule: string;
+  index?: number;
+}
+
+export interface DetectionResult {
+  hasMatch: boolean;
+  mode: DetectionMode;
+  firstMatch?: DetectionMatch;
+}
+
+export interface PluginPattern {
+  pattern: string;
+  identifier?: string;
+}
+
+export interface PluginMatch {
+  rule: string;
+  strings?: string[];
+  patterns?: PluginPattern[];
+}
+
+export interface PluginSpec {
+  orderedRules: string[];
+  matches: Record<string, PluginMatch>;
+}
+
+export interface Plugin {
+  name: string;
+  description: string;
+  spec: PluginSpec;
 }

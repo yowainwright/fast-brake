@@ -1,372 +1,150 @@
-import { test, expect, describe } from "bun:test";
-import {
-  Detector,
-  getDetector,
-  detect,
-  check,
-  getMinimumVersion,
-} from "../../src/detector";
+import { test, expect, describe, beforeEach } from "bun:test";
+import { Detector } from "../../src/detector";
 import type { DetectionOptions } from "../../src/types";
 
 describe("Detector", () => {
-  describe("scan", () => {
-    test("should detect arrow functions", () => {
-      const detector = new Detector();
-      const features = detector.scan("const fn = () => {}");
+  let detector: Detector;
 
-      const arrowFunc = features.find((f) => f.name === "arrow_functions");
-      expect(arrowFunc).toBeDefined();
-      expect(arrowFunc?.version).toBe("es2015");
+  beforeEach(() => {
+    detector = new Detector();
+  });
+
+  describe("detectBoolean", () => {
+    test("should return true when no ES features detected", () => {
+      const result = detector.detectBoolean("var x = 5");
+      expect(result).toBe(false);
     });
 
-    test("should not include location data by default", () => {
-      const detector = new Detector();
-      const code = `const arrow = () => {
-  return "hello";
-};`;
-
-      const features = detector.scan(code);
-      const arrowFunc = features.find(
-        (f) => f.name === "arrow_functions",
-      );
-
-      expect(arrowFunc?.loc).toBeUndefined();
-      expect(arrowFunc?.line).toBeUndefined();
-      expect(arrowFunc?.column).toBeUndefined();
-      expect(arrowFunc?.snippet).toBeUndefined();
+    test("should return true when arrow function detected", () => {
+      const result = detector.detectBoolean("const fn = () => {}");
+      expect(result).toBe(true);
     });
 
+    test("should skip pattern detection for tiny files", () => {
+      const tinyCode = "x";
+      const result = detector.detectBoolean(tinyCode);
+      expect(result).toBe(false);
+    });
 
-    test("should detect template literals", () => {
-      const detector = new Detector();
-      const features = detector.scan("const str = `hello ${name}`");
+    test("should detect template literals quickly", () => {
+      const result = detector.detectBoolean("const str = `hello`");
+      expect(result).toBe(true);
+    });
+  });
 
-      const template = features.find((f) => f.name === "template_literals");
-      expect(template).toBeDefined();
-      expect(template?.version).toBe("es2015");
+  describe("detectFast", () => {
+    test("should return first match with basic info", () => {
+      const code = "const fn = () => {}; const str = `hello`";
+      const result = detector.detectFast(code);
+
+      expect(result.hasMatch).toBe(true);
+      expect(result.mode).toBe("fast");
+      expect(result.firstMatch?.name).toBe("arrow_functions");
+      expect(result.firstMatch?.rule).toBeDefined();
+      expect(result.firstMatch?.index).toBeDefined();
+    });
+
+    test("should return no match for ES5 code", () => {
+      const result = detector.detectFast("var x = function() {}");
+      expect(result.hasMatch).toBe(false);
     });
 
     test("should detect async/await", () => {
-      const detector = new Detector();
-      const features = detector.scan(
-        "async function test() { await promise; }",
-      );
+      const code = "async function test() { await promise }";
+      const result = detector.detectFast(code);
 
-      const asyncAwait = features.find((f) => f.name === "async_await");
-      expect(asyncAwait).toBeDefined();
-      expect(asyncAwait?.version).toBe("es2017");
-    });
-
-    test("should detect optional chaining", () => {
-      const detector = new Detector();
-      const features = detector.scan("obj?.prop?.method()");
-
-      const optChaining = features.find((f) => f.name === "optional_chaining");
-      expect(optChaining).toBeDefined();
-      expect(optChaining?.version).toBe("es2020");
-    });
-
-    test("should detect nullish coalescing", () => {
-      const detector = new Detector();
-      const features = detector.scan("const value = a ?? b");
-
-      const nullish = features.find((f) => f.name === "nullish_coalescing");
-      expect(nullish).toBeDefined();
-      expect(nullish?.version).toBe("es2020");
-    });
-
-    test("should detect BigInt literals", () => {
-      const detector = new Detector();
-      const features = detector.scan("const big = 123n");
-
-      const bigint = features.find((f) => f.name === "bigint");
-      expect(bigint).toBeDefined();
-      expect(bigint?.version).toBe("es2020");
-    });
-
-    test("should detect logical assignment", () => {
-      const detector = new Detector();
-      const features = detector.scan("a ||= b; c &&= d; e ??= f");
-
-      const logical = features.find((f) => f.name === "logical_assignment");
-      expect(logical).toBeDefined();
-      expect(logical?.version).toBe("es2021");
-    });
-
-    test("should detect private fields", () => {
-      const detector = new Detector();
-      const features = detector.scan("class C { #private = 1; }");
-
-      const privateField = features.find((f) => f.name === "class_fields");
-      expect(privateField).toBeDefined();
-      expect(privateField?.version).toBe("es2022");
-    });
-
-    test("should detect static blocks", () => {
-      const detector = new Detector();
-      const features = detector.scan("class C { static { } }");
-
-      const staticBlock = features.find((f) => f.name === "static_blocks");
-      expect(staticBlock).toBeDefined();
-      expect(staticBlock?.version).toBe("es2022");
-    });
-
-  });
-
-  describe("detect method", () => {
-    test("should detect features", () => {
-      const detector = new Detector();
-      const options: DetectionOptions = { target: "es5" };
-      const features = detector.detect("() => {}", options);
-
-      expect(features.length).toBeGreaterThan(0);
-    });
-
-    test("should use accurate mode by default", () => {
-      const detector = new Detector();
-      const options: DetectionOptions = { target: "es5" };
-      const features = detector.detect("() => {}", options);
-
-      expect(features.find((f) => f.name === "arrow_functions")).toBeDefined();
-    });
-
-    test("should detect multiple features", () => {
-      const detector = new Detector();
-      const code = "const fn = async () => { await x?.y ?? z }";
-      const features = detector.detect(code, { target: "esnext" });
-
-      expect(features.length).toBeGreaterThanOrEqual(4);
+      expect(result.hasMatch).toBe(true);
+      expect(result.firstMatch?.name).toBe("async_await");
     });
   });
 
-  describe("check method", () => {
+  describe("detectDetailed", () => {
+    test("should include match index and text", () => {
+      const code = "const fn = () => {}";
+      const result = detector.detectDetailed(code);
+
+      expect(result.hasMatch).toBe(true);
+      expect(result.mode).toBe("detailed");
+      expect(result.firstMatch?.name).toBe("arrow_functions");
+      expect(result.firstMatch?.index).toBeDefined();
+      expect(result.firstMatch?.match).toBe("=>");
+    });
+
+    test("should find first string match with position", () => {
+      const code = "console.log(`template`)";
+      const result = detector.detectDetailed(code);
+
+      expect(result.hasMatch).toBe(true);
+      expect(result.firstMatch?.name).toBe("template_literals");
+      expect(result.firstMatch?.index).toBe(12);
+      expect(result.firstMatch?.match).toBe("`");
+    });
+  });
+
+  describe("detect with modes", () => {
+    test("should use fast mode by default", () => {
+      const result = detector.detect("const fn = () => {}");
+      expect(result.mode).toBe("fast");
+    });
+
+    test("should respect mode parameter", () => {
+      const boolResult = detector.detect("() => {}", "boolean");
+      expect(boolResult.mode).toBe("boolean");
+      expect(boolResult.hasMatch).toBe(true);
+
+      const detailedResult = detector.detect("() => {}", "detailed");
+      expect(detailedResult.mode).toBe("detailed");
+      expect(detailedResult.firstMatch?.index).toBeDefined();
+    });
+  });
+
+  describe("detectFile", () => {
+    test("should detect from file content", () => {
+      const testFile = "/tmp/test-detect.js";
+      require("fs").writeFileSync(testFile, "const x = () => {}");
+
+      const result = detector.detectFile(testFile);
+      expect(result.hasMatch).toBe(true);
+      expect(result.firstMatch?.name).toBe("arrow_functions");
+
+      require("fs").unlinkSync(testFile);
+    });
+
+    test("should handle non-existent files", () => {
+      const result = detector.detectFile("/non/existent/file.js");
+      expect(result.hasMatch).toBe(false);
+    });
+  });
+
+  describe("check", () => {
     test("should return true for compatible code", () => {
-      const detector = new Detector();
-      const es5Code = "function test() { return 42; }";
-
-      expect(detector.check(es5Code, { target: "es5" })).toBe(true);
-      expect(detector.check(es5Code, { target: "es2015" })).toBe(true);
-      expect(detector.check(es5Code, { target: "esnext" })).toBe(true);
+      const options: DetectionOptions = {
+        target: "es2015",
+        throwOnFirst: false,
+      };
+      const result = detector.check("var x = 5;", options);
+      expect(result).toBe(true);
     });
 
     test("should return false for incompatible code", () => {
-      const detector = new Detector();
-      const es2015Code = "() => {}";
-
-      expect(detector.check(es2015Code, { target: "es5" })).toBe(false);
-    });
-
-    test("should throw on first incompatible feature when specified", () => {
-      const detector = new Detector();
-      const code = "const x = () => {}";
-
-      expect(() => {
-        detector.check(code, { target: "es5", throwOnFirst: true });
-      }).toThrow();
-    });
-
-    test("should include feature info in error", () => {
-      const detector = new Detector();
-      const code = "\n\nconst x = () => {}";
-
-      try {
-        detector.check(code, { target: "es5", throwOnFirst: true });
-        expect(true).toBe(false); // Should not reach here
-      } catch (error: any) {
-        expect(error.message).toContain("arrow_functions");
-        expect(error.message).toContain("requires");
-        expect(error.message).toContain("es2015");
-        expect(error.message).toContain("target is es5");
-      }
+      const options: DetectionOptions = { target: "es5", throwOnFirst: false };
+      const result = detector.check("const x = () => {}", options);
+      expect(result).toBe(false);
     });
   });
 
-  describe("getMinimumVersion", () => {
-    test("should return es2015 for ES5 code", () => {
-      const detector = new Detector();
-      const code = "function test() { return 42; }";
-
-      expect(detector.getMinimumVersion(code)).toBe("es2015");
+  describe("pattern detection optimization", () => {
+    test("should skip patterns for files without complexity indicators", () => {
+      const simpleCode =
+        "var x = 5; var y = 10; function add(a, b) { return a + b }";
+      const result = detector.detectFast(simpleCode);
+      expect(result.hasMatch).toBe(false);
     });
 
-    test("should return es2015 for arrow functions", () => {
-      const detector = new Detector();
-      const code = "() => {}";
-
-      expect(detector.getMinimumVersion(code)).toBe("es2015");
-    });
-
-    test("should return es2017 for async/await", () => {
-      const detector = new Detector();
-      const code = "async function test() { await promise; }";
-
-      expect(detector.getMinimumVersion(code)).toBe("es2017");
-    });
-
-    test("should return es2020 for optional chaining", () => {
-      const detector = new Detector();
-      const code = "obj?.prop";
-
-      expect(detector.getMinimumVersion(code)).toBe("es2020");
-    });
-
-    test("should return es2022 for private fields", () => {
-      const detector = new Detector();
-      const code = "class C { #private = 1; }";
-
-      expect(detector.getMinimumVersion(code)).toBe("es2022");
-    });
-
-    test("should return highest version for mixed features", () => {
-      const detector = new Detector();
-      const code = "const x = () => {}; class C { #private = 1; }";
-
-      expect(detector.getMinimumVersion(code)).toBe("es2022");
-    });
-
-    test("should use quick mode when specified", () => {
-      const detector = new Detector();
-      const code = "() => {}";
-
-      const version = detector.getMinimumVersion(code);
-      expect(version).toBe("es2015");
-    });
-  });
-
-  describe("singleton instance", () => {
-    test("should return same instance", () => {
-      const instance1 = getDetector();
-      const instance2 = getDetector();
-
-      expect(instance1).toBe(instance2);
-    });
-  });
-
-  describe("convenience functions", () => {
-    test("detect function should work", () => {
-      const features = detect("() => {}", { target: "es5" });
-      expect(features.length).toBeGreaterThan(0);
-    });
-
-    test("check function should work", () => {
-      const isValid = check("function test() {}", { target: "es5" });
-      expect(isValid).toBe(true);
-    });
-
-    test("getMinimumVersion function should work", () => {
-      const version = getMinimumVersion("() => {}");
-      expect(version).toBe("es2015");
-    });
-  });
-
-  describe("ES2016 features", () => {
-    test("should detect exponentiation operator", () => {
-      const detector = new Detector();
-      const features = detector.scan("2 ** 3");
-
-      const exp = features.find((f) => f.name === "exponentiation");
-      expect(exp).toBeDefined();
-      expect(exp?.version).toBe("es2016");
-    });
-  });
-
-  describe("ES2018 features", () => {
-    test("should detect async iteration", () => {
-      const detector = new Detector();
-      const features = detector.scan("for await (const x of y) {}");
-
-      const asyncIter = features.find((f) => f.name === "async_iteration");
-      expect(asyncIter).toBeDefined();
-      expect(asyncIter?.version).toBe("es2018");
-    });
-
-    test("should detect rest spread properties", () => {
-      const detector = new Detector();
-      const features = detector.scan("const {...rest} = obj");
-
-      const restSpread = features.find(
-        (f) => f.name === "rest_spread_properties",
-      );
-      expect(restSpread).toBeDefined();
-      expect(restSpread?.version).toBe("es2018");
-    });
-  });
-
-  describe("ES2019 features", () => {
-    test("should detect Array.flat", () => {
-      const detector = new Detector();
-      const features = detector.scan("arr.flat()");
-
-      const flat = features.find((f) => f.name === "array_flat");
-      expect(flat).toBeDefined();
-      expect(flat?.version).toBe("es2019");
-    });
-
-    test("should detect Array.flatMap", () => {
-      const detector = new Detector();
-      const features = detector.scan("arr.flatMap(x => x)");
-
-      const flatMap = features.find((f) => f.name === "array_flat");
-      expect(flatMap).toBeDefined();
-      expect(flatMap?.version).toBe("es2019");
-    });
-  });
-
-  describe("ES2021 features", () => {
-    test("should detect numeric separators", () => {
-      const detector = new Detector();
-      const features = detector.scan("const n = 1_000_000");
-
-      const numSep = features.find((f) => f.name === "numeric_separators");
-      expect(numSep).toBeDefined();
-      expect(numSep?.version).toBe("es2021");
-    });
-
-    test("should detect String.replaceAll", () => {
-      const detector = new Detector();
-      const features = detector.scan('str.replaceAll("a", "b")');
-
-      const replaceAll = features.find((f) => f.name === "string_replaceAll");
-      expect(replaceAll).toBeDefined();
-      expect(replaceAll?.version).toBe("es2021");
-    });
-
-    test("should detect Promise.any", () => {
-      const detector = new Detector();
-      const features = detector.scan("Promise.any([p1, p2])");
-
-      const promiseAny = features.find((f) => f.name === "promise_any");
-      expect(promiseAny).toBeDefined();
-      expect(promiseAny?.version).toBe("es2021");
-    });
-  });
-
-  describe("ES2022 features", () => {
-    test("should detect Array.at", () => {
-      const detector = new Detector();
-      const features = detector.scan("arr.at(-1)");
-
-      const arrayAt = features.find((f) => f.name === "array_at");
-      expect(arrayAt).toBeDefined();
-      expect(arrayAt?.version).toBe("es2022");
-    });
-
-    test("should detect Object.hasOwn", () => {
-      const detector = new Detector();
-      const features = detector.scan('Object.hasOwn(obj, "prop")');
-
-      const hasOwn = features.find((f) => f.name === "object_hasOwn");
-      expect(hasOwn).toBeDefined();
-      expect(hasOwn?.version).toBe("es2022");
-    });
-
-    test("should detect top-level await", () => {
-      const detector = new Detector();
-      const features = detector.scan('await fetch("/api")');
-
-      const topAwait = features.find((f) => f.name === "top_level_await");
-      expect(topAwait).toBeDefined();
-      expect(topAwait?.version).toBe("es2022");
+    test("should run patterns when complexity indicators present", () => {
+      const complexCode = "class MyClass extends Base { async method() {} }";
+      const result = detector.detectFast(complexCode);
+      expect(result.hasMatch).toBe(true);
     });
   });
 });

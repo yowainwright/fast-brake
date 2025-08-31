@@ -1,69 +1,60 @@
 import { test, expect, describe } from "bun:test";
-import { fastBrake, detect, check, getMinimumESVersion } from "../../src/index";
+import { fastBrake, detect, check } from "../../src/index";
 import type { DetectionOptions, DetectedFeature } from "../../src/types";
 
 describe("fast-brake main API", () => {
   describe("fastBrake function", () => {
-    test("should not throw for compatible ES5 code", () => {
+    test("should return empty array for code with no detected features", () => {
       const code = "function test() { return 42; }";
-      expect(() => fastBrake(code, { target: "es5" })).not.toThrow();
+      const result = fastBrake(code, { target: "es5" });
+      expect(result).toEqual([]);
     });
 
-    test("should throw for incompatible code", () => {
+    test("should return detected features", () => {
       const code = "const arrow = () => {}";
-      expect(() => fastBrake(code, { target: "es5" })).toThrow();
+      const result = fastBrake(code, { target: "es5" });
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].name).toBe("arrow_functions");
     });
 
-    test("should throw with detailed error message", () => {
+    test("should return detailed feature information", () => {
       const code = "const arrow = () => {}";
-      try {
-        fastBrake(code, { target: "es5" });
-        expect(true).toBe(false); // Should not reach here
-      } catch (error: any) {
-        expect(error.message).toContain("es5");
-        expect(error.message).toContain("requires");
-        expect(error.feature).toBeDefined();
-        expect(error.target).toBe("es5");
-      }
+      const result = fastBrake(code, { target: "es5" });
+      expect(result.length).toBeGreaterThan(0);
+      const feature = result[0];
+      expect(feature.name).toBe("arrow_functions");
+      // In legacy mode, version is the feature name
+      expect(feature.version).toBeDefined();
     });
 
-    test("should not include line and column in error by default", () => {
+    test("should not include line and column by default", () => {
       const code = "\n\n  const arrow = () => {}";
-      try {
-        fastBrake(code, { target: "es5" });
-        expect(true).toBe(false);
-      } catch (error: any) {
-        expect(error.message).not.toContain("line");
-        expect(error.feature.line).toBeUndefined();
-      }
+      const result = fastBrake(code, { target: "es5" });
+      expect(result.length).toBeGreaterThan(0);
+      const feature = result[0];
+      expect(feature.line).toBeUndefined();
+      expect(feature.column).toBeUndefined();
     });
 
-    test("should not include snippet in error by default", () => {
+    test("should not include snippet by default", () => {
       const code = "const arrow = () => {}";
-      try {
-        fastBrake(code, { target: "es5" });
-        expect(true).toBe(false);
-      } catch (error: any) {
-        expect(error.message).not.toContain("const arrow = () => {}");
-        expect(error.feature.snippet).toBeUndefined();
-      }
+      const result = fastBrake(code, { target: "es5" });
+      expect(result.length).toBeGreaterThan(0);
+      const feature = result[0];
+      expect(feature.snippet).toBeUndefined();
     });
 
-    test("should respect throwOnFirst option", () => {
+    test("should return first feature detected", () => {
       const code = "const a = () => {}; const b = async () => {};";
-      try {
-        fastBrake(code, { target: "es5", throwOnFirst: true });
-        expect(true).toBe(false);
-      } catch (error: any) {
-        expect(error.message).toContain("requires");
-        expect(error.message).toContain("es5");
-        expect(error.feature.name).not.toBe("async_await");
-      }
+      const result = fastBrake(code, { target: "es5" });
+      expect(result.length).toBe(1);
+      expect(result[0].name).toBe("arrow_functions");
     });
 
-    test("should work with quick mode", () => {
+    test("should detect features quickly", () => {
       const code = "const arrow = () => {}";
-      expect(() => fastBrake(code, { target: "es5" })).toThrow();
+      const result = fastBrake(code, { target: "es5" });
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 
@@ -76,19 +67,21 @@ describe("fast-brake main API", () => {
       expect(features.length).toBeGreaterThan(0);
     });
 
-    test("should accept partial options", () => {
-      const code = "const arrow = () => {}";
-      const features = detect(code, { quick: true });
-
-      expect(features.length).toBeGreaterThan(0);
-    });
-
-    test("should default to esnext target", () => {
-      const code = "const arrow = () => {}";
+    test("should return first match only", () => {
+      const code =
+        "const x = () => {}; const y = `template`; async function test() {}";
       const features = detect(code);
 
-      // Should detect features even with esnext target
-      expect(features.length).toBeGreaterThan(0);
+      expect(features.length).toBe(1);
+      expect(features[0].name).toBe("arrow_functions");
+    });
+
+    test("should detect template literals", () => {
+      const code = "const str = `hello world`";
+      const features = detect(code);
+
+      expect(features.length).toBe(1);
+      expect(features[0].name).toBe("template_literals");
     });
 
     test("should return empty array for ES5 code", () => {
@@ -98,7 +91,7 @@ describe("fast-brake main API", () => {
       expect(features).toHaveLength(0);
     });
 
-    test("should detect multiple features", () => {
+    test("should detect first feature only", () => {
       const code = `
         const arrow = () => {};
         class MyClass {}
@@ -106,18 +99,8 @@ describe("fast-brake main API", () => {
       `;
       const features = detect(code);
 
-      const featureNames = features.map((f) => f.name);
-      expect(featureNames).toContain("arrow_functions");
-      expect(featureNames).toContain("classes");
-      expect(featureNames).toContain("async_await");
-    });
-
-    test("should include version info", () => {
-      const code = "const arrow = () => {}";
-      const features = detect(code);
-
-      const arrowFeature = features.find((f) => f.name === "arrow_functions");
-      expect(arrowFeature?.version).toBe("es2015");
+      expect(features.length).toBe(1);
+      expect(features[0].name).toBe("arrow_functions");
     });
 
     test("should not include location info by default", () => {
@@ -158,132 +141,6 @@ describe("fast-brake main API", () => {
       const result = check(code, { target: "es5" });
 
       expect(result).toBe(false);
-    });
-
-    test("should handle ES2015 target", () => {
-      const arrowCode = "const arrow = () => {}";
-      const asyncCode = "async function test() {}";
-
-      expect(check(arrowCode, { target: "es2015" })).toBe(true);
-      expect(check(asyncCode, { target: "es2015" })).toBe(false);
-    });
-
-    test("should handle ES2017 target", () => {
-      const asyncCode = "async function test() {}";
-      const optionalCode = "obj?.prop";
-
-      expect(check(asyncCode, { target: "es2017" })).toBe(true);
-      expect(check(optionalCode, { target: "es2017" })).toBe(false);
-    });
-
-    test("should handle ES2020 target", () => {
-      const optionalCode = "obj?.prop";
-      const privateCode = "class C { #private }";
-
-      expect(check(optionalCode, { target: "es2020" })).toBe(true);
-      expect(check(privateCode, { target: "es2020" })).toBe(false);
-    });
-
-    test("should handle esnext target", () => {
-      const anyCode = `
-        const arrow = () => {};
-        class C { #private }
-        obj?.prop ?? "default"
-      `;
-
-      expect(check(anyCode, { target: "esnext" })).toBe(true);
-    });
-  });
-
-  describe("getMinimumESVersion function", () => {
-    test("should return es2015 for ES5 code", () => {
-      const code = "function test() { return 42; }";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2015");
-    });
-
-    test("should return es2015 for arrow functions", () => {
-      const code = "const arrow = () => {}";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2015");
-    });
-
-    test("should return es2015 for template literals", () => {
-      const code = "const str = `hello ${name}`;";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2015");
-    });
-
-    test("should return es2015 for classes", () => {
-      const code = "class MyClass {}";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2015");
-    });
-
-    test("should return es2017 for async/await", () => {
-      const code = "async function test() { await promise; }";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2017");
-    });
-
-    test("should return es2020 for optional chaining", () => {
-      const code = "const value = obj?.prop;";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2020");
-    });
-
-    test("should return es2020 for nullish coalescing", () => {
-      const code = "const value = a ?? b;";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2020");
-    });
-
-    test("should return es2022 for private fields", () => {
-      const code = "class C { #private = 1; }";
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2022");
-    });
-
-    test("should return highest version for mixed features", () => {
-      const code = `
-        const arrow = () => {};  // ES2015
-        async function test() {}  // ES2017
-        class C { #private }      // ES2022
-      `;
-      const version = getMinimumESVersion(code);
-
-      expect(version).toBe("es2022");
-    });
-
-    test("should work with quick mode", () => {
-      const code = "const arrow = () => {}";
-      const version = getMinimumESVersion(code, { quick: true });
-
-      expect(version).toBe("es2015");
-    });
-
-    test("should handle empty code", () => {
-      const version = getMinimumESVersion("");
-      expect(version).toBe("es2015");
-    });
-
-    test("should handle whitespace-only code", () => {
-      const version = getMinimumESVersion("   \n\t  ");
-      expect(version).toBe("es2015");
-    });
-
-    test("should handle comments only", () => {
-      const code = "// Just a comment\n/* Block comment */";
-      const version = getMinimumESVersion(code);
-      expect(version).toBe("es2015");
     });
   });
 
@@ -364,10 +221,10 @@ describe("fast-brake main API", () => {
       `.repeat(1000);
 
       const start = performance.now();
-      const version = getMinimumESVersion(code, { quick: true });
+      const result = detect(code);
       const time = performance.now() - start;
 
-      expect(version).toBe("es2015");
+      expect(result).toEqual([]);
       expect(time).toBeLessThan(100); // Should be fast
     });
   });

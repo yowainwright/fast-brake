@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["name", "description", "spec"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Plugin identifier"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this plugin checks"
+    },
+    "spec": {
+      "type": "object",
+      "required": ["orderedRules", "matches"],
+      "properties": {
+        "orderedRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Rules in order"
+        },
+        "matches": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["rule"],
+            "allOf": [
+              {
+                "properties": {
+                  "rule": {
+                    "type": "string",
+                    "description": "Which rule this match belongs to"
+                  }
+                }
+              },
+              {
+                "oneOf": [
+                  {
+                    "required": ["strings"],
+                    "properties": {
+                      "strings": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Simple string patterns to match"
+                      }
+                    }
+                  },
+                  {
+                    "required": ["patterns"],
+                    "properties": {
+                      "patterns": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["pattern"],
+                          "properties": {
+                            "pattern": {
+                              "type": "string",
+                              "description": "Regex pattern to match"
+                            },
+                            "identifier": {
+                              "type": "string",
+                              "description": "Quick check before running this pattern"
+                            }
+                          }
+                        },
+                        "description": "Regex patterns with identifiers"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

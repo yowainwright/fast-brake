@@ -37,6 +37,38 @@ export const VERSIONS = VERSION_ORDER;
 
 export const MODULE_ONLY_FEATURES = ["import", "export"];
 
+export const DEFAULT_SCAN_EXTENSIONS = [
+  ".js",
+  ".jsx",
+  ".ts",
+  ".tsx",
+  ".mjs",
+  ".cjs",
+];
+export const DEFAULT_IGNORE_PATHS = [
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  "coverage",
+];
+
+export const TINY_FILE_SIZE = 500;
+export const COMPLEXITY_INDICATORS = [
+  "async",
+  "await",
+  "class",
+  "extends",
+  "?.",
+  "??",
+  "=>",
+  "...",
+  "yield",
+  "import",
+  "export",
+  "#",
+];
+
 export const MDN_URLS = [
   "https://raw.githubusercontent.com/mdn/browser-compat-data/main/javascript/builtins.json",
   "https://raw.githubusercontent.com/mdn/browser-compat-data/main/javascript/statements.json",
@@ -127,13 +159,13 @@ export const FEATURE_PATTERNS: Record<string, RegExp> = {
   numeric_separators: /\b\d[\d_]+\d\b/,
   logical_assignment: /(?:\|\|=|&&=|\?\?=)/,
   exponentiation: /\*\*/,
-  
+
   // Class features
   class_fields: /#[a-zA-Z_$][a-zA-Z0-9_$]*\s*=/,
   class_private_methods: /#[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/,
   private_fields: /#[a-zA-Z_$][a-zA-Z0-9_$]*/,
   static_blocks: /\bstatic\s*\{/,
-  
+
   // Advanced patterns
   destructuring: /(?:const|let|var)\s*[[{]/,
   default_params: /function[^(]*\([^)]*=[^)]*\)|(?:\(|,)\s*\w+\s*=\s*[^,)]+/,
@@ -147,13 +179,12 @@ export const FEATURE_PATTERNS: Record<string, RegExp> = {
   regexp_duplicate_named_groups: /\(\?<([^>]+)>.*\(\?<\1>/,
   set_methods:
     /\.(?:intersection|union|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\s*\(/,
-  
+
   // Patterns from QUICK_PATTERNS that were missing
   rest_spread_properties: /\{[^}]*\.\.\.[^.]/,
   weakref: /\bnew\s+WeakRef\b/,
   finalization_registry: /\bnew\s+FinalizationRegistry\b/,
 };
-
 
 export const FEATURE_VERSIONS: Record<string, string> = {
   arrow_functions: "es2015",
@@ -218,7 +249,7 @@ export const FEATURE_VERSIONS: Record<string, string> = {
   temporal: "es2025",
   regexp_duplicate_named_groups: "es2025",
   set_methods: "es2025",
-  
+
   array_includes: "es2016",
   object_entries: "es2017",
   object_values: "es2017",
@@ -231,7 +262,7 @@ export const FEATURE_VERSIONS: Record<string, string> = {
   promise_finally: "es2018",
   import_meta: "es2020",
   dynamic_import: "es2020",
-  
+
   class: "es2015",
   const: "es2015",
   let: "es2015",
