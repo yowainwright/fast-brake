@@ -1,10 +1,5 @@
 import { readFileSync } from "fs";
-import {
-  FEATURE_PATTERNS,
-  FEATURE_STRINGS,
-  TINY_FILE_SIZE,
-  COMPLEXITY_INDICATORS,
-} from "./constants";
+import { TINY_FILE_SIZE, COMPLEXITY_INDICATORS } from "./constants";
 import { loadPlugin } from "./plugins/loader";
 import type {
   DetectionMode,
@@ -22,14 +17,7 @@ export class Detector {
 
   constructor() {
     this.compiledPatterns = new Map();
-    this.featureStrings = FEATURE_STRINGS;
-    this.initializePatterns();
-  }
-
-  private initializePatterns(): void {
-    for (const [name, pattern] of Object.entries(FEATURE_PATTERNS)) {
-      this.compiledPatterns.set(name, pattern);
-    }
+    this.featureStrings = {};
   }
 
   async initialize(plugin?: Plugin): Promise<void> {

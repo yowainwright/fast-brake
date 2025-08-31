@@ -2,8 +2,17 @@ import { Detector } from "./detector";
 import type { DetectionOptions, DetectedFeature } from "./types";
 
 const detector = new Detector();
+let detectorInitialized = false;
 
-export function fastBrake(code: string): DetectedFeature[] {
+async function ensureInitialized(): Promise<void> {
+  if (!detectorInitialized) {
+    await detector.initialize();
+    detectorInitialized = true;
+  }
+}
+
+export async function fastBrake(code: string): Promise<DetectedFeature[]> {
+  await ensureInitialized();
   const result = detector.detectFast(code);
   if (!result.hasMatch || !result.firstMatch) {
     return [];
@@ -13,7 +22,8 @@ export function fastBrake(code: string): DetectedFeature[] {
   return [{ name: result.firstMatch.name, version: result.firstMatch.rule }];
 }
 
-export function detect(code: string): DetectedFeature[] {
+export async function detect(code: string): Promise<DetectedFeature[]> {
+  await ensureInitialized();
   const result = detector.detectFast(code);
   if (result.firstMatch) {
     // Use the rule as the version for the esversion plugin
@@ -22,7 +32,11 @@ export function detect(code: string): DetectedFeature[] {
   return [];
 }
 
-export function check(code: string, options: DetectionOptions): boolean {
+export async function check(
+  code: string,
+  options: DetectionOptions,
+): Promise<boolean> {
+  await ensureInitialized();
   try {
     return detector.check(code, options);
   } catch {

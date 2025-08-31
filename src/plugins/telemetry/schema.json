@@ -1,0 +1,193 @@
+{
+  "name": "telemetry",
+  "description": "Detects telemetry and tracking code",
+  "spec": {
+    "orderedRules": [
+      "info",
+      "warning",
+      "error"
+    ],
+    "matches": {
+      "google_analytics": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:gtag|ga|_gaq|GoogleAnalyticsObject)\\s*\\(",
+            "identifier": "ga"
+          }
+        ]
+      },
+      "google_tag_manager": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:dataLayer\\.push|GTM-[A-Z0-9]+)\\b",
+            "identifier": "GTM"
+          }
+        ]
+      },
+      "facebook_pixel": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:fbq|_fbq|facebook\\.com\\/tr)\\b",
+            "identifier": "fbq"
+          }
+        ]
+      },
+      "mixpanel": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\bmixpanel\\.\\w+\\s*\\(",
+            "identifier": "mixpanel"
+          }
+        ]
+      },
+      "segment": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:analytics\\.track|analytics\\.identify|analytics\\.page)\\s*\\(",
+            "identifier": "analytics"
+          }
+        ]
+      },
+      "amplitude": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\bamplitude\\.\\w+\\s*\\(",
+            "identifier": "amplitude"
+          }
+        ]
+      },
+      "hotjar": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:hj|_hjSettings|hotjar\\.com)\\b",
+            "identifier": "hj"
+          }
+        ]
+      },
+      "sentry": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "\\b(?:Sentry\\.init|Sentry\\.captureException|@sentry\\/)",
+            "identifier": "Sentry"
+          }
+        ]
+      },
+      "datadog": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "\\b(?:DD_RUM|datadog|ddTrace)\\b",
+            "identifier": "datadog"
+          }
+        ]
+      },
+      "new_relic": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "\\b(?:newrelic|NREUM)\\b",
+            "identifier": "newrelic"
+          }
+        ]
+      },
+      "posthog": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\bposthog\\.\\w+\\s*\\(",
+            "identifier": "posthog"
+          }
+        ]
+      },
+      "plausible": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "\\bplausible\\s*\\(",
+            "identifier": "plausible"
+          }
+        ]
+      },
+      "matomo": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:_paq\\.push|matomo\\.js|piwik\\.js)\\b",
+            "identifier": "_paq"
+          }
+        ]
+      },
+      "heap": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\bheap\\.\\w+\\s*\\(",
+            "identifier": "heap"
+          }
+        ]
+      },
+      "fullstory": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:FS\\.|fullstory\\.com)\\b",
+            "identifier": "FS"
+          }
+        ]
+      },
+      "logrocket": {
+        "rule": "warning",
+        "patterns": [
+          {
+            "pattern": "\\b(?:LogRocket\\.init|logrocket\\.com)\\b",
+            "identifier": "LogRocket"
+          }
+        ]
+      },
+      "rollbar": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "\\b(?:Rollbar\\.init|rollbar\\.com)\\b",
+            "identifier": "Rollbar"
+          }
+        ]
+      },
+      "bugsnag": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "\\b(?:Bugsnag\\.start|bugsnag\\.com)\\b",
+            "identifier": "Bugsnag"
+          }
+        ]
+      },
+      "console_tracking": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "console\\.\\w+\\s*\\([^)]*(?:track|analytics|telemetry|metric)",
+            "identifier": "console"
+          }
+        ]
+      },
+      "custom_tracking": {
+        "rule": "info",
+        "patterns": [
+          {
+            "pattern": "\\b(?:track|telemetry|analytics|metrics?)\\s*\\.\\s*(?:send|push|log|record)\\s*\\(",
+            "identifier": "track"
+          }
+        ]
+      }
+    }
+  }
+}

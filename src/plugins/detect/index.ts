@@ -1,42 +1,17 @@
-import { Plugin } from "../types";
-import { FEATURE_PATTERNS, FEATURE_VERSIONS, VERSION_ORDER } from "../../constants";
+import type { Plugin } from "../../types";
+import detectSchema from "./schema.json";
 
 export const detectPlugin: Plugin = {
   name: "es-detect",
-  patterns: [
-    ...Object.entries(FEATURE_PATTERNS).map(([name, pattern]) => ({
-      name,
-      pattern,
-      message: `${FEATURE_VERSIONS[name]} feature: ${name}`,
-      severity: "info" as const,
-    })),
-  ],
-  validate: (_context, matches) => {
-    let highestVersion = "es5";
-    let highestIndex = 0;
-
-    for (const match of matches) {
-      const version = FEATURE_VERSIONS[match.name];
-      const index = VERSION_ORDER.indexOf(version);
-      if (index > highestIndex) {
-        highestIndex = index;
-        highestVersion = version;
-      }
-    }
-
-    if (matches.length > 0) {
-      return [
-        {
-          ...matches[0],
-          name: "minimum_version",
-          message: `Minimum ES version required: ${highestVersion}`,
-          severity: "info",
-        },
-      ];
-    }
-    return [];
+  description:
+    "Detects minimum ES version required by checking from newest to oldest",
+  spec: {
+    orderedRules: [...detectSchema.spec.orderedRules].reverse(),
+    matches: detectSchema.spec.matches,
   },
 };
 
-export const esDetect = detectPlugin;
 export const detect = detectPlugin;
+export const esDetect = detectPlugin;
+
+export default detectPlugin;

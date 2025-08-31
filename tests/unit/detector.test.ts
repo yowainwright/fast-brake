@@ -5,8 +5,9 @@ import type { DetectionOptions } from "../../src/types";
 describe("Detector", () => {
   let detector: Detector;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     detector = new Detector();
+    await detector.initialize();
   });
 
   describe("detectBoolean", () => {

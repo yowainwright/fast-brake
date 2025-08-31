@@ -4,22 +4,22 @@ import type { DetectionOptions, DetectedFeature } from "../../src/types";
 
 describe("fast-brake main API", () => {
   describe("fastBrake function", () => {
-    test("should return empty array for code with no detected features", () => {
+    test("should return empty array for code with no detected features", async () => {
       const code = "function test() { return 42; }";
-      const result = fastBrake(code, { target: "es5" });
+      const result = await fastBrake(code);
       expect(result).toEqual([]);
     });
 
-    test("should return detected features", () => {
+    test("should return detected features", async () => {
       const code = "const arrow = () => {}";
-      const result = fastBrake(code, { target: "es5" });
+      const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0].name).toBe("arrow_functions");
     });
 
-    test("should return detailed feature information", () => {
+    test("should return detailed feature information", async () => {
       const code = "const arrow = () => {}";
-      const result = fastBrake(code, { target: "es5" });
+      const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
       const feature = result[0];
       expect(feature.name).toBe("arrow_functions");
@@ -27,85 +27,85 @@ describe("fast-brake main API", () => {
       expect(feature.version).toBeDefined();
     });
 
-    test("should not include line and column by default", () => {
+    test("should not include line and column by default", async () => {
       const code = "\n\n  const arrow = () => {}";
-      const result = fastBrake(code, { target: "es5" });
+      const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
       const feature = result[0];
       expect(feature.line).toBeUndefined();
       expect(feature.column).toBeUndefined();
     });
 
-    test("should not include snippet by default", () => {
+    test("should not include snippet by default", async () => {
       const code = "const arrow = () => {}";
-      const result = fastBrake(code, { target: "es5" });
+      const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
       const feature = result[0];
       expect(feature.snippet).toBeUndefined();
     });
 
-    test("should return first feature detected", () => {
+    test("should return first feature detected", async () => {
       const code = "const a = () => {}; const b = async () => {};";
-      const result = fastBrake(code, { target: "es5" });
+      const result = await fastBrake(code);
       expect(result.length).toBe(1);
       expect(result[0].name).toBe("arrow_functions");
     });
 
-    test("should detect features quickly", () => {
+    test("should detect features quickly", async () => {
       const code = "const arrow = () => {}";
-      const result = fastBrake(code, { target: "es5" });
+      const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
     });
   });
 
   describe("detect function", () => {
-    test("should detect features with default options", () => {
+    test("should detect features with default options", async () => {
       const code = "const arrow = () => {}";
-      const features = detect(code);
+      const features = await detect(code);
 
       expect(features).toBeInstanceOf(Array);
       expect(features.length).toBeGreaterThan(0);
     });
 
-    test("should return first match only", () => {
+    test("should return first match only", async () => {
       const code =
         "const x = () => {}; const y = `template`; async function test() {}";
-      const features = detect(code);
+      const features = await detect(code);
 
       expect(features.length).toBe(1);
       expect(features[0].name).toBe("arrow_functions");
     });
 
-    test("should detect template literals", () => {
+    test("should detect template literals", async () => {
       const code = "const str = `hello world`";
-      const features = detect(code);
+      const features = await detect(code);
 
       expect(features.length).toBe(1);
       expect(features[0].name).toBe("template_literals");
     });
 
-    test("should return empty array for ES5 code", () => {
+    test("should return empty array for ES5 code", async () => {
       const code = "function test() { return 42; }";
-      const features = detect(code);
+      const features = await detect(code);
 
       expect(features).toHaveLength(0);
     });
 
-    test("should detect first feature only", () => {
+    test("should detect first feature only", async () => {
       const code = `
         const arrow = () => {};
         class MyClass {}
         async function test() { await promise; }
       `;
-      const features = detect(code);
+      const features = await detect(code);
 
       expect(features.length).toBe(1);
       expect(features[0].name).toBe("arrow_functions");
     });
 
-    test("should not include location info by default", () => {
+    test("should not include location info by default", async () => {
       const code = "\n\nconst arrow = () => {}";
-      const features = detect(code);
+      const features = await detect(code);
 
       const arrowFeature = features.find((f) => f.name === "arrow_functions");
       expect(arrowFeature?.line).toBeUndefined();
@@ -115,37 +115,37 @@ describe("fast-brake main API", () => {
   });
 
   describe("check function", () => {
-    test("should return true for compatible code", () => {
+    test("should return true for compatible code", async () => {
       const code = "function test() { return 42; }";
-      const result = check(code, { target: "es5" });
+      const result = await check(code, { target: "es5" });
 
       expect(result).toBe(true);
     });
 
-    test("should return false for incompatible code", () => {
+    test("should return false for incompatible code", async () => {
       const code = "const arrow = () => {}";
-      const result = check(code, { target: "es5" });
+      const result = await check(code, { target: "es5" });
 
       expect(result).toBe(false);
     });
 
-    test("should not throw even with throwOnFirst", () => {
+    test("should not throw even with throwOnFirst", async () => {
       const code = "const arrow = () => {}";
-      const result = check(code, { target: "es5", throwOnFirst: true });
+      const result = await check(code, { target: "es5", throwOnFirst: true });
 
       expect(result).toBe(false);
     });
 
-    test("should work with quick mode", () => {
+    test("should work with quick mode", async () => {
       const code = "const arrow = () => {}";
-      const result = check(code, { target: "es5" });
+      const result = await check(code, { target: "es5" });
 
       expect(result).toBe(false);
     });
   });
 
   describe("type exports", () => {
-    test("should export DetectionOptions type", () => {
+    test("should export DetectionOptions type", async () => {
       const options: DetectionOptions = {
         target: "es5",
 
@@ -154,7 +154,7 @@ describe("fast-brake main API", () => {
       expect(options).toBeDefined();
     });
 
-    test("should export DetectedFeature type", () => {
+    test("should export DetectedFeature type", async () => {
       const feature: DetectedFeature = {
         name: "test",
         version: "es2015",
@@ -171,57 +171,57 @@ describe("fast-brake main API", () => {
   });
 
   describe("error handling", () => {
-    test("should handle malformed code gracefully", () => {
+    test("should handle malformed code gracefully", async () => {
       const code = "const x = ;"; // Syntax error
 
       // Should still detect const
-      const features = detect(code);
+      const features = await detect(code);
       expect(features.find((f) => f.name === "let_const")).toBeDefined();
     });
 
-    test("should handle very long code", () => {
+    test("should handle very long code", async () => {
       const code = "const x = () => {};".repeat(1000);
 
-      expect(() => {
-        const features = detect(code, { quick: true });
+      await expect(async () => {
+        const features = await detect(code);
         expect(features.length).toBeGreaterThan(0);
       }).not.toThrow();
     });
 
-    test("should handle unicode in code", () => {
+    test("should handle unicode in code", async () => {
       const code = 'const 你好 = () => { return "世界"; }';
 
-      const features = detect(code);
+      const features = await detect(code);
       expect(features.find((f) => f.name === "arrow_functions")).toBeDefined();
     });
 
-    test("should handle mixed line endings", () => {
+    test("should handle mixed line endings", async () => {
       const code = "const a = 1;\r\nconst b = () => {};\rconst c = 3;";
 
-      const features = detect(code);
+      const features = await detect(code);
       expect(features.find((f) => f.name === "arrow_functions")).toBeDefined();
     });
   });
 
   describe("performance", () => {
-    test("detection should be fast", () => {
+    test("detection should be fast", async () => {
       const code = "const x = () => {};".repeat(100);
 
       const start = performance.now();
-      detect(code);
+      await detect(code);
       const time = performance.now() - start;
 
       expect(time).toBeLessThan(10);
     });
 
-    test("should handle large files efficiently", () => {
+    test("should handle large files efficiently", async () => {
       const code = `
         function oldStyle() { return 42; }
         var x = 10;
       `.repeat(1000);
 
       const start = performance.now();
-      const result = detect(code);
+      const result = await detect(code);
       const time = performance.now() - start;
 
       expect(result).toEqual([]);

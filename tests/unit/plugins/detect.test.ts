@@ -1,18 +1,14 @@
 import { describe, test, expect } from "bun:test";
 import { detectPlugin, detect, esDetect } from "../../../src/plugins/detect";
-import {
-  FEATURE_PATTERNS,
-  FEATURE_STRINGS,
-  FEATURE_VERSIONS,
-  VERSION_ORDER,
-} from "../../../src/plugins/detect/constants";
 
 describe("Detect Plugin", () => {
   test("should export detectPlugin", () => {
     expect(detectPlugin).toBeDefined();
     expect(detectPlugin.name).toBe("es-detect");
-    expect(detectPlugin.patterns).toBeDefined();
-    expect(detectPlugin.validate).toBeDefined();
+    expect(detectPlugin.description).toBeDefined();
+    expect(detectPlugin.spec).toBeDefined();
+    expect(detectPlugin.spec.orderedRules).toBeDefined();
+    expect(detectPlugin.spec.matches).toBeDefined();
   });
 
   test("should have correct aliases", () => {
@@ -20,64 +16,58 @@ describe("Detect Plugin", () => {
     expect(detect).toBe(detectPlugin);
   });
 
-  test("should detect minimum required ES version", () => {
-    const matches = [
-      { name: "arrow_functions", message: "", line: 1, column: 1 },
-      { name: "async_await", message: "", line: 2, column: 1 },
-      { name: "optional_chaining", message: "", line: 3, column: 1 },
-    ];
-
-    const result = detectPlugin.validate?.({}, matches) || [];
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe("minimum_version");
-    expect(result[0].message).toBe("Minimum ES version required: es2020");
-    expect(result[0].severity).toBe("info");
+  test("should have reversed order rules (newest to oldest)", () => {
+    const rules = detectPlugin.spec.orderedRules;
+    expect(rules).toBeDefined();
+    expect(rules.length).toBeGreaterThan(0);
+    expect(rules[0]).toBe("esnext");
+    expect(rules[rules.length - 1]).toBe("es5");
   });
 
-  test("should return empty array for no matches", () => {
-    const matches: any[] = [];
+  test("should have matches for ES features", () => {
+    const matches = detectPlugin.spec.matches;
+    expect(matches).toBeDefined();
+    expect(Object.keys(matches).length).toBeGreaterThan(0);
 
-    const result = detectPlugin.validate?.({}, matches) || [];
-    expect(result).toHaveLength(0);
+    expect(matches.arrow_functions).toBeDefined();
+    expect(matches.arrow_functions.rule).toBe("es2015");
+
+    expect(matches.async_await).toBeDefined();
+    expect(matches.async_await.rule).toBe("es2017");
+
+    expect(matches.optional_chaining).toBeDefined();
+    expect(matches.optional_chaining.rule).toBe("es2020");
   });
 
-  test("should detect highest version from multiple features", () => {
-    const matches = [
-      { name: "classes", message: "", line: 1, column: 1 }, // es2015
-      { name: "exponentiation", message: "", line: 2, column: 1 }, // es2016
-      { name: "logical_assignment", message: "", line: 3, column: 1 }, // es2021
-      { name: "array_at", message: "", line: 4, column: 1 }, // es2022
-    ];
+  test("should have string patterns for simple features", () => {
+    const matches = detectPlugin.spec.matches;
 
-    const result = detectPlugin.validate?.({}, matches) || [];
-    expect(result).toHaveLength(1);
-    expect(result[0].message).toBe("Minimum ES version required: es2022");
+    expect(matches.arrow_functions.strings).toContain("=>");
+    expect(matches.template_literals.strings).toContain("`");
+    expect(matches.optional_chaining.strings).toContain("?.");
+    expect(matches.nullish_coalescing.strings).toContain("??");
   });
 
-  test("should have info severity patterns", () => {
-    for (const pattern of detectPlugin.patterns) {
-      expect(pattern.severity).toBe("info");
-      expect(pattern.message).toMatch(/^es\d{4} feature:/);
-    }
+  test("should have regex patterns for complex features", () => {
+    const matches = detectPlugin.spec.matches;
+
+    expect(matches.for_of.patterns).toBeDefined();
+    expect(matches.for_of.patterns[0].pattern).toContain("for");
+
+    expect(matches.destructuring.patterns).toBeDefined();
+    expect(matches.destructuring.patterns[0].pattern).toBeDefined();
   });
 
-  test("should have constants", () => {
-    expect(FEATURE_PATTERNS).toBeDefined();
-    expect(Object.keys(FEATURE_PATTERNS).length).toBeGreaterThan(0);
-    
-    expect(FEATURE_STRINGS).toBeDefined();
-    expect(Object.keys(FEATURE_STRINGS).length).toBeGreaterThan(0);
+  test("should have newest features", () => {
+    const matches = detectPlugin.spec.matches;
 
-    expect(FEATURE_VERSIONS).toBeDefined();
-    expect(Object.keys(FEATURE_VERSIONS).length).toBeGreaterThan(0);
+    expect(matches.temporal).toBeDefined();
+    expect(matches.temporal.rule).toBe("es2025");
 
-    expect(VERSION_ORDER).toBeDefined();
-    expect(VERSION_ORDER.length).toBeGreaterThan(0);
-  });
+    expect(matches.array_fromAsync).toBeDefined();
+    expect(matches.array_fromAsync.rule).toBe("es2024");
 
-  test("patterns should be valid RegExp", () => {
-    for (const pattern of detectPlugin.patterns) {
-      expect(pattern.pattern).toBeInstanceOf(RegExp);
-    }
+    expect(matches.array_findLast).toBeDefined();
+    expect(matches.array_findLast.rule).toBe("es2023");
   });
 });

@@ -12,12 +12,19 @@ export async function loadPlugin(name: string): Promise<Plugin | null> {
   }
 
   try {
-    const plugin = await import(`./${name}.json`);
+    const plugin = await import(`./${name}/schema.json`);
     const loadedPlugin = plugin.default || plugin;
     pluginCache.set(name, loadedPlugin);
     return loadedPlugin;
   } catch {
-    return null;
+    try {
+      const module = await import(`./${name}/index`);
+      const loadedPlugin = module.default || module[name + "Plugin"] || module;
+      pluginCache.set(name, loadedPlugin);
+      return loadedPlugin;
+    } catch {
+      return null;
+    }
   }
 }
 

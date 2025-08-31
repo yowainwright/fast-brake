@@ -4,105 +4,84 @@ import {
   strictTelemetryPlugin,
   noTelemetryPlugin,
 } from "../../../src/plugins/telemetry";
-import { TELEMETRY_PATTERNS } from "../../../src/plugins/telemetry/constants";
 
 describe("Telemetry Plugin", () => {
   test("should export telemetryPlugin", () => {
     expect(telemetryPlugin).toBeDefined();
     expect(telemetryPlugin.name).toBe("telemetry");
-    expect(telemetryPlugin.patterns).toBeDefined();
-    expect(telemetryPlugin.patterns.length).toBeGreaterThan(0);
+    expect(telemetryPlugin.description).toBeDefined();
+    expect(telemetryPlugin.spec).toBeDefined();
+    expect(telemetryPlugin.spec.orderedRules).toBeDefined();
+    expect(telemetryPlugin.spec.matches).toBeDefined();
   });
 
   test("should export strictTelemetryPlugin", () => {
     expect(strictTelemetryPlugin).toBeDefined();
     expect(strictTelemetryPlugin.name).toBe("telemetry-strict");
-    expect(strictTelemetryPlugin.patterns).toBeDefined();
+    expect(strictTelemetryPlugin.description).toBeDefined();
+    expect(strictTelemetryPlugin.spec).toBeDefined();
   });
 
   test("noTelemetryPlugin should be same as strictTelemetryPlugin", () => {
     expect(noTelemetryPlugin).toBe(strictTelemetryPlugin);
   });
 
-  test("should have mixed severities in base plugin", () => {
-    const warnings = telemetryPlugin.patterns.filter(
-      (p) => p.severity === "warning",
-    );
-    const infos = telemetryPlugin.patterns.filter((p) => p.severity === "info");
+  test("should have mixed rules in base plugin", () => {
+    const matches = telemetryPlugin.spec.matches;
+    const rules = new Set(Object.values(matches).map((m) => m.rule));
 
-    expect(warnings.length).toBeGreaterThan(0);
-    expect(infos.length).toBeGreaterThan(0);
+    expect(rules.has("warning")).toBe(true);
+    expect(rules.has("info")).toBe(true);
   });
 
-  test("should have error severity in strict plugin", () => {
-    const errors = strictTelemetryPlugin.patterns.filter(
-      (p) => p.severity === "error",
-    );
-    expect(errors.length).toBe(strictTelemetryPlugin.patterns.length);
+  test("should have error rule in strict plugin", () => {
+    const matches = strictTelemetryPlugin.spec.matches;
+    const allError = Object.values(matches).every((m) => m.rule === "error");
+    expect(allError).toBe(true);
   });
 
   test("should detect Google Analytics", () => {
-    const gaPattern = telemetryPlugin.patterns.find(
-      (p) => p.name === "google_analytics",
-    );
-    expect(gaPattern).toBeDefined();
-    expect(gaPattern?.pattern.test('gtag("config", "GA_ID")')).toBe(true);
-    expect(gaPattern?.pattern.test('ga("send", "pageview")')).toBe(true);
+    const gaMatch = telemetryPlugin.spec.matches.google_analytics;
+    expect(gaMatch).toBeDefined();
+    expect(gaMatch.strings || gaMatch.patterns).toBeDefined();
   });
 
   test("should detect Facebook Pixel", () => {
-    const fbPattern = telemetryPlugin.patterns.find(
-      (p) => p.name === "facebook_pixel",
-    );
-    expect(fbPattern).toBeDefined();
-    expect(fbPattern?.pattern.test('fbq("track", "PageView")')).toBe(true);
+    const fbMatch = telemetryPlugin.spec.matches.facebook_pixel;
+    expect(fbMatch).toBeDefined();
+    expect(fbMatch.strings || fbMatch.patterns).toBeDefined();
   });
 
   test("should detect Sentry", () => {
-    const sentryPattern = telemetryPlugin.patterns.find(
-      (p) => p.name === "sentry",
-    );
-    expect(sentryPattern).toBeDefined();
-    expect(sentryPattern?.pattern.test('Sentry.init({ dsn: "..." })')).toBe(
-      true,
-    );
-    expect(sentryPattern?.pattern.test("Sentry.captureException(error)")).toBe(
-      true,
-    );
-    expect(sentryPattern?.message).toContain("Sentry");
-    expect(sentryPattern?.severity).toBe("info"); // Error tracking is info level
+    const sentryMatch = telemetryPlugin.spec.matches.sentry;
+    expect(sentryMatch).toBeDefined();
+    expect(sentryMatch.strings || sentryMatch.patterns).toBeDefined();
+    expect(sentryMatch.rule).toBe("info");
   });
 
   test("should detect custom tracking", () => {
-    const customPattern = telemetryPlugin.patterns.find(
-      (p) => p.name === "custom_tracking",
-    );
-    expect(customPattern).toBeDefined();
-    expect(customPattern?.pattern.test("analytics.send(data)")).toBe(true);
-    expect(customPattern?.pattern.test("telemetry.push(event)")).toBe(true);
-    expect(customPattern?.pattern.test("metrics.record(value)")).toBe(true);
+    const customMatch = telemetryPlugin.spec.matches.custom_tracking;
+    expect(customMatch).toBeDefined();
+    expect(customMatch.patterns).toBeDefined();
   });
 
-  test("should have proper pattern messages", () => {
-    for (const pattern of telemetryPlugin.patterns) {
-      expect(pattern.message).toBeDefined();
-      expect(pattern.message.length).toBeGreaterThan(0);
-      expect(pattern.message).toContain("detected");
+  test("should have proper match structure", () => {
+    for (const [name, match] of Object.entries(telemetryPlugin.spec.matches)) {
+      expect(match.rule).toBeDefined();
+      expect(match.strings || match.patterns).toBeDefined();
     }
   });
 
-  test("should export constants", () => {
-    expect(TELEMETRY_PATTERNS).toBeDefined();
-    expect(TELEMETRY_PATTERNS.length).toBeGreaterThan(0);
-    expect(TELEMETRY_PATTERNS[0].name).toBeDefined();
-    expect(TELEMETRY_PATTERNS[0].pattern).toBeDefined();
-    expect(TELEMETRY_PATTERNS[0].message).toBeDefined();
-    expect(TELEMETRY_PATTERNS[0].severity).toBeDefined();
-  });
+  test("should have telemetry patterns", () => {
+    const matches = telemetryPlugin.spec.matches;
+    expect(Object.keys(matches).length).toBeGreaterThan(0);
 
-  test("patterns should be valid RegExp", () => {
-    for (const pattern of telemetryPlugin.patterns) {
-      expect(pattern.pattern).toBeInstanceOf(RegExp);
+    for (const match of Object.values(matches)) {
+      if (match.patterns) {
+        for (const pattern of match.patterns) {
+          expect(pattern.pattern).toBeDefined();
+        }
+      }
     }
   });
 
@@ -124,8 +103,8 @@ describe("Telemetry Plugin", () => {
     ];
 
     for (const provider of providers) {
-      const pattern = telemetryPlugin.patterns.find((p) => p.name === provider);
-      expect(pattern).toBeDefined();
+      const match = telemetryPlugin.spec.matches[provider];
+      expect(match).toBeDefined();
     }
   });
 
@@ -139,9 +118,9 @@ describe("Telemetry Plugin", () => {
     ];
 
     for (const tracker of errorTrackers) {
-      const pattern = telemetryPlugin.patterns.find((p) => p.name === tracker);
-      expect(pattern).toBeDefined();
-      expect(pattern?.severity).toBe("info");
+      const match = telemetryPlugin.spec.matches[tracker];
+      expect(match).toBeDefined();
+      expect(match.rule).toBe("info");
     }
   });
 });

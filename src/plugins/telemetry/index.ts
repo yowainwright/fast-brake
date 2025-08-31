@@ -1,19 +1,23 @@
-import { Plugin } from "../types";
-import { TELEMETRY_PATTERNS } from "./constants";
+import type { Plugin } from "../../types";
+import telemetrySchema from "./schema.json";
 
-export const telemetryPlugin: Plugin = {
-  name: "telemetry",
-  patterns: TELEMETRY_PATTERNS,
-};
+export const telemetryPlugin: Plugin = telemetrySchema as Plugin;
 
 export const strictTelemetryPlugin: Plugin = {
   name: "telemetry-strict",
-  patterns: TELEMETRY_PATTERNS.map((p) => ({
-    ...p,
-    severity: "error" as const,
-  })),
+  description: "Strict telemetry detection (all as errors)",
+  spec: {
+    orderedRules: ["error"],
+    matches: Object.entries(telemetrySchema.spec.matches).reduce(
+      (acc, [key, match]) => {
+        acc[key] = { ...match, rule: "error" };
+        return acc;
+      },
+      {} as any,
+    ),
+  },
 };
 
 export const noTelemetryPlugin = strictTelemetryPlugin;
 
-export { TELEMETRY_PATTERNS } from "./constants";
+export default telemetryPlugin;

@@ -1,6 +1,6 @@
 {
-  "name": "esversion",
-  "description": "ECMAScript version compatibility checking",
+  "name": "browserlist",
+  "description": "Browser compatibility checking",
   "spec": {
     "orderedRules": [
       "es5",
@@ -30,13 +30,49 @@
         "rule": "es2015",
         "strings": ["class "]
       },
+      "class": {
+        "rule": "es2015",
+        "patterns": [
+          {
+            "pattern": "\\bclass\\s+[a-zA-Z_$]",
+            "identifier": "class"
+          }
+        ]
+      },
       "let_const": {
         "rule": "es2015",
         "strings": ["let ", "const "]
       },
+      "let": {
+        "rule": "es2015",
+        "patterns": [
+          {
+            "pattern": "\\blet\\s+",
+            "identifier": "let"
+          }
+        ]
+      },
+      "const": {
+        "rule": "es2015",
+        "patterns": [
+          {
+            "pattern": "\\bconst\\s+",
+            "identifier": "const"
+          }
+        ]
+      },
       "spread_rest": {
         "rule": "es2015",
         "strings": ["..."]
+      },
+      "spread_syntax": {
+        "rule": "es2015",
+        "patterns": [
+          {
+            "pattern": "\\.\\.\\.",
+            "identifier": "..."
+          }
+        ]
       },
       "import": {
         "rule": "es2015",
@@ -132,6 +168,33 @@
       "async_await": {
         "rule": "es2017",
         "strings": ["async ", "await "]
+      },
+      "async_function": {
+        "rule": "es2017",
+        "patterns": [
+          {
+            "pattern": "\\basync\\s+function",
+            "identifier": "async"
+          }
+        ]
+      },
+      "async_arrow_function": {
+        "rule": "es2017",
+        "patterns": [
+          {
+            "pattern": "\\basync\\s*(?:\\([^)]*\\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\\s*=>",
+            "identifier": "async"
+          }
+        ]
+      },
+      "await_expression": {
+        "rule": "es2017",
+        "patterns": [
+          {
+            "pattern": "\\bawait\\s",
+            "identifier": "await"
+          }
+        ]
       },
       "object_entries": {
         "rule": "es2017",
@@ -260,13 +323,28 @@
       },
       "class_fields": {
         "rule": "es2022",
-        "strings": ["#"]
+        "strings": ["#"],
+        "patterns": [
+          {
+            "pattern": "#[a-zA-Z_$][a-zA-Z0-9_$]*\\s*=",
+            "identifier": "#"
+          }
+        ]
       },
       "private_fields": {
         "rule": "es2022",
         "patterns": [
           {
             "pattern": "#[a-zA-Z_$][a-zA-Z0-9_$]*",
+            "identifier": "#"
+          }
+        ]
+      },
+      "class_private_methods": {
+        "rule": "es2022",
+        "patterns": [
+          {
+            "pattern": "#[a-zA-Z_$][a-zA-Z0-9_$]*\\s*\\(",
             "identifier": "#"
           }
         ]

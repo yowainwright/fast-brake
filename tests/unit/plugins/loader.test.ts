@@ -14,7 +14,11 @@ describe("Plugin Loader", () => {
   test("should register and load a plugin", async () => {
     const testPlugin: Plugin = {
       name: "test-plugin",
-      patterns: [],
+      description: "Test plugin",
+      spec: {
+        orderedRules: ["es2015"],
+        matches: {},
+      },
     };
 
     registerPlugin("test", testPlugin);
@@ -32,7 +36,11 @@ describe("Plugin Loader", () => {
   test("should cache loaded plugins", async () => {
     const testPlugin: Plugin = {
       name: "cached-plugin",
-      patterns: [],
+      description: "Cached plugin",
+      spec: {
+        orderedRules: [],
+        matches: {},
+      },
     };
 
     registerPlugin("cached", testPlugin);
@@ -47,7 +55,11 @@ describe("Plugin Loader", () => {
   test("should clear cache correctly", async () => {
     const testPlugin: Plugin = {
       name: "clear-test",
-      patterns: [],
+      description: "Clear test plugin",
+      spec: {
+        orderedRules: [],
+        matches: {},
+      },
     };
 
     registerPlugin("clear", testPlugin);
@@ -60,9 +72,21 @@ describe("Plugin Loader", () => {
   });
 
   test("should handle multiple plugins", async () => {
-    const plugin1: Plugin = { name: "plugin-1", patterns: [] };
-    const plugin2: Plugin = { name: "plugin-2", patterns: [] };
-    const plugin3: Plugin = { name: "plugin-3", patterns: [] };
+    const plugin1: Plugin = {
+      name: "plugin-1",
+      description: "Plugin 1",
+      spec: { orderedRules: [], matches: {} },
+    };
+    const plugin2: Plugin = {
+      name: "plugin-2",
+      description: "Plugin 2",
+      spec: { orderedRules: [], matches: {} },
+    };
+    const plugin3: Plugin = {
+      name: "plugin-3",
+      description: "Plugin 3",
+      spec: { orderedRules: [], matches: {} },
+    };
 
     registerPlugin("p1", plugin1);
     registerPlugin("p2", plugin2);
@@ -71,5 +95,15 @@ describe("Plugin Loader", () => {
     expect(await loadPlugin("p1")).toBe(plugin1);
     expect(await loadPlugin("p2")).toBe(plugin2);
     expect(await loadPlugin("p3")).toBe(plugin3);
+  });
+
+  test("should load built-in plugins", async () => {
+    const detect = await loadPlugin("detect");
+    expect(detect).toBeDefined();
+    expect(detect?.name).toBe("detect");
+
+    const telemetry = await loadPlugin("telemetry");
+    expect(telemetry).toBeDefined();
+    expect(telemetry?.name).toBe("telemetry");
   });
 });
