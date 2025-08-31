@@ -21,82 +21,68 @@ interface BenchmarkResult {
 
 const benchmarkData: BenchmarkResult[] = [
   {
-    "parser": "fast-brake (pattern)",
+    "parser": "fast-brake",
     "method": "Pattern matching",
-    "timeMs": 0.014,
-    "opsPerSec": 72812,
+    "timeMs": 0.002,
+    "opsPerSec": 552385,
     "relative": 1.0,
+    "accuracy": "es2015"
+  },
+  {
+    "parser": "fast-brake (detect)",
+    "method": "Auto-detection",
+    "timeMs": 0.007,
+    "opsPerSec": 139003,
+    "relative": 0.252,
     "accuracy": "es2015"
   },
   {
     "parser": "meriyah",
     "method": "Fast ES parser",
-    "timeMs": 0.016,
-    "opsPerSec": 61003,
-    "relative": 0.8,
-    "accuracy": "parsed"
-  },
-  {
-    "parser": "cherow",
-    "method": "Fast parser",
-    "timeMs": 0.018,
-    "opsPerSec": 54067,
-    "relative": 0.7,
+    "timeMs": 0.021,
+    "opsPerSec": 47350,
+    "relative": 0.086,
     "accuracy": "parsed"
   },
   {
     "parser": "esprima",
     "method": "ECMAScript parser",
     "timeMs": 0.026,
-    "opsPerSec": 38320,
-    "relative": 0.5,
+    "opsPerSec": 37952,
+    "relative": 0.069,
     "accuracy": "parse error"
   },
   {
     "parser": "acorn",
     "method": "Lightweight parser",
-    "timeMs": 0.039,
-    "opsPerSec": 25786,
-    "relative": 0.4,
+    "timeMs": 0.054,
+    "opsPerSec": 18598,
+    "relative": 0.034,
     "accuracy": "parse error"
   },
   {
     "parser": "@babel/parser",
     "method": "Full AST parser",
-    "timeMs": 0.052,
-    "opsPerSec": 19152,
-    "relative": 0.3,
-    "accuracy": "parsed"
-  },
-  {
-    "parser": "espree",
-    "method": "ESLint parser",
     "timeMs": 0.059,
-    "opsPerSec": 17036,
-    "relative": 0.2,
-    "accuracy": "parse error"
-  },
-  {
-    "parser": "fast-brake (full)",
-    "method": "Full analysis",
-    "timeMs": 0.086,
-    "opsPerSec": 11606,
-    "relative": 0.2,
-    "accuracy": "es2015"
+    "opsPerSec": 16919,
+    "relative": 0.031,
+    "accuracy": "parsed"
   }
 ];
 
 export function BenchmarkDataTable() {
   const getSpeedColor = (relative: number) => {
     if (relative >= 0.8) return 'text-green-500';
-    if (relative >= 0.5) return 'text-yellow-500';
-    return 'text-gray-500';
+    if (relative >= 0.2) return 'text-yellow-500';
+    if (relative >= 0.05) return 'text-orange-500';
+    return 'text-red-500';
   };
 
   const getSpeedBadge = (relative: number) => {
     if (relative >= 0.8) return 'border border-green-500 text-green-600 dark:text-green-400';
-    if (relative >= 0.5) return 'border border-yellow-500 text-yellow-600 dark:text-yellow-400';
-    return 'border border-gray-400 text-gray-600 dark:text-gray-400';
+    if (relative >= 0.2) return 'border border-yellow-500 text-yellow-600 dark:text-yellow-400';
+    if (relative >= 0.05) return 'border border-orange-500 text-orange-600 dark:text-orange-400';
+    return 'border border-red-400 text-red-600 dark:text-red-400';
   };
 
   return (
@@ -104,7 +90,7 @@ export function BenchmarkDataTable() {
       <div className="flex-1">
         <Table>
           <TableCaption>
-            *Benchmarked on 2025-08-23 with ES2015 test files on Apple M4. All tests run on identical hardware with warm cache.
+            *Benchmarked on 2025-08-31 with ES2015 test files on MacBook Pro M4. All tests run on identical hardware with warm cache.
           </TableCaption>
           <TableHeader>
             <TableRow>
@@ -137,7 +123,9 @@ export function BenchmarkDataTable() {
                     'inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold',
                     getSpeedBadge(result.relative)
                   )}>
-                    {result.relative >= 1 ? `${result.relative.toFixed(1)}x` : `${result.relative.toFixed(1)}x`}
+                    {result.relative >= 1 ? `${result.relative.toFixed(1)}x` : 
+                     result.relative >= 0.1 ? `${result.relative.toFixed(2)}x` : 
+                     `${result.relative.toFixed(3)}x`}
                   </span>
                 </TableCell>
               </TableRow>
@@ -151,7 +139,7 @@ export function BenchmarkDataTable() {
           <div>
             <h3 className="text-2xl font-bold mb-4 font-outfit">
               Built for <span className="bg-clip-text text-transparent" style={{background: 'linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%)', WebkitBackgroundClip: 'text'}}>
-                Real-World Speed
+                Failing Fast!
               </span>
             </h3>
             <p className="text-base text-base-content/80 leading-relaxed">
