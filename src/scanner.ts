@@ -1,6 +1,7 @@
 import { readdirSync, statSync, existsSync } from "fs";
 import { join, extname } from "path";
 import { DEFAULT_SCAN_EXTENSIONS, DEFAULT_IGNORE_PATHS } from "./constants";
+import { fastIndexOf } from "./utils";
 import type { ScanOptions, ScanResult, ScanContext } from "./types";
 
 export class Scanner {
@@ -203,7 +204,7 @@ export class Scanner {
         return true;
       }
 
-      const hasWildcard = pattern.includes("*");
+      const hasWildcard = fastIndexOf(pattern, "*") !== -1;
       if (!hasWildcard) {
         continue;
       }
