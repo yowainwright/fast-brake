@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 import { Detector } from 'fast-brake';
-import { createESVersionPlugin, getESVersionPlugin } from '../../../src/plugins/esversion';
-import { createBrowserlistPlugin } from '../../../src/plugins/browserlist';
-import { detectPlugin } from '../../../src/plugins/detect';
-import { telemetryPlugin, strictTelemetryPlugin } from '../../../src/plugins/telemetry';
+import { createESVersionPlugin, getESVersionPlugin } from 'fast-brake/plugins/esversion';
+import { createBrowserlistPlugin } from 'fast-brake/plugins/browserlist';
+import { detectPlugin } from 'fast-brake/plugins/detect';
+import { telemetryPlugin, strictTelemetryPlugin } from 'fast-brake/plugins/telemetry';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';

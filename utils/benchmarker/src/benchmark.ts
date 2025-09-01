@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 import { detect, Detector } from 'fast-brake';
-import { createESVersionPlugin } from '../../../src/plugins/esversion';
-import { createBrowserlistPlugin } from '../../../src/plugins/browserlist';
-import { detectPlugin } from '../../../src/plugins/detect';
+import { createESVersionPlugin } from 'fast-brake/plugins/esversion';
+import { createBrowserlistPlugin } from 'fast-brake/plugins/browserlist';
+import { detectPlugin } from 'fast-brake/plugins/detect';
 import * as babel from '@babel/parser';
 import * as acorn from 'acorn';
 import * as esprima from 'esprima';

@@ -7,7 +7,7 @@
     "build": "astro build",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,astro}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,astro}\"",
-    "typecheck": "astro check && tsc --noEmit",
+    "typecheck:run": "astro check && tsc --noEmit",
     "lint:run": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "dev": "astro dev",

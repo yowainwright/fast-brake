@@ -87,6 +87,11 @@
       "import": "./dist/plugins/browserlist/index.js",
       "require": "./dist/plugins/browserlist/index.cjs"
     },
+    "./plugins/esversion": {
+      "types": "./dist/plugins/esversion/index.d.ts",
+      "import": "./dist/plugins/esversion/index.js",
+      "require": "./dist/plugins/esversion/index.cjs"
+    },
     "./extensions/loc": {
       "types": "./dist/extensions/loc.d.ts",
       "import": "./dist/extensions/loc.js",
@@ -124,7 +129,7 @@
     "benchmark:run": "bun utils/benchmarker/src/benchmark.ts",
     "benchmark:quick": "bun tests/integration/benchmarks.ts --quick",
     "benchmark:update": "cd utils/benchmarker && bun run benchmark:all",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "turbo run typecheck:run",
     "typecheck:run": "tsc --noEmit",
     "update": "codependence --update && bun install"
   },
