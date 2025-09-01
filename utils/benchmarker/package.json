@@ -16,7 +16,8 @@
     "benchmark": "bun run src/benchmark.ts",
     "benchmark:table": "bun run src/generate-table.ts",
     "benchmark:update": "bun run src/update-benchmarks.ts",
-    "benchmark:all": "bun run benchmark && bun run benchmark:table && bun run benchmark:update"
+    "benchmark:all": "bun run benchmark && bun run benchmark:table && bun run benchmark:update",
+    "update-docs": "bun run src/utils.ts"
   },
   "dependencies": {
     "fast-brake": "file:../..",

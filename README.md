@@ -527,23 +527,82 @@ console.log(locExtension);
 
 ## Performance Benchmarks
 
-Tested on a MacBook Pro M1 with ES2015 JavaScript files:
+<!-- BENCHMARK_START -->
+
+### ES5 (Legacy)
+
+File size: 0.4 KB
 
 | Parser | Time (ms) | Ops/sec | Relative | Accuracy |
 |--------|-----------|---------|----------|----------|
-| **fast-brake** | **0.002** | **552,385** | **1.0x** | ES2015 detection |
-| fast-brake (detect) | 0.007 | 139,003 | 0.3x | Auto-detection |
-| meriyah | 0.021 | 47,350 | 0.1x | Full AST parsing |
-| esprima | 0.026 | 37,952 | 0.1x | Parse error |
-| acorn | 0.054 | 18,598 | 0.03x | Parse error |
-| @babel/parser | 0.059 | 16,919 | 0.03x | Full AST parsing |
+| fast-brake (detect) | 0.009 | 114,934 | 1.0x | none |
+| fast-brake (browserlist) | 0.009 | 112,540 | 1.0x | browser check |
+| fast-brake | 0.010 | 103,830 | 0.9x | none |
+| fast-brake (es2015 only) | 0.010 | 102,295 | 0.9x | es2015 check |
+| fast-brake (es5 only) | 0.017 | 60,398 | 0.5x | es5 check |
+| meriyah | 0.020 | 49,600 | 0.4x | parsed |
+| cherow | 0.021 | 47,448 | 0.4x | parsed |
+| esprima | 0.029 | 34,486 | 0.3x | parsed |
+| acorn | 0.033 | 30,112 | 0.3x | parsed |
+| espree | 0.038 | 26,571 | 0.2x | parsed |
+| @babel/parser | 0.058 | 17,219 | 0.1x | parsed |
 
-**Key Highlights:**
-- **fast-brake is 30x faster** than @babel/parser for ES feature detection
-- **552,385 operations per second** for standard ES2015 code
-- Minimal memory footprint compared to full AST parsers
+### ES2015 (Modern)
 
-*Benchmarked on 8/31/2025*
+File size: 0.7 KB
+
+| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
+|--------|-----------|---------|----------|----------|
+| fast-brake | 0.002 | 599,416 | 1.0x | none |
+| fast-brake (detect) | 0.005 | 197,493 | 0.3x | none |
+| fast-brake (es5 only) | 0.009 | 106,641 | 0.2x | es5 check |
+| fast-brake (browserlist) | 0.015 | 68,742 | 0.1x | browser check |
+| cherow | 0.018 | 54,411 | 0.1x | parsed |
+| meriyah | 0.020 | 50,553 | 0.1x | parsed |
+| fast-brake (es2015 only) | 0.021 | 48,194 | 0.1x | es2015 check |
+| acorn | 0.046 | 21,651 | 0.0x | parsed |
+| @babel/parser | 0.055 | 18,251 | 0.0x | parsed |
+| espree | 0.056 | 17,848 | 0.0x | parsed |
+| esprima | - | - | - | parse error |
+
+### ES2022 (Latest)
+
+File size: 1.2 KB
+
+| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
+|--------|-----------|---------|----------|----------|
+| fast-brake | 0.002 | 596,036 | 1.0x | none |
+| fast-brake (detect) | 0.004 | 230,539 | 0.4x | none |
+| fast-brake (es2015 only) | 0.007 | 143,561 | 0.2x | es2015 check |
+| fast-brake (browserlist) | 0.009 | 112,211 | 0.2x | browser check |
+| fast-brake (es5 only) | 0.009 | 111,852 | 0.2x | es5 check |
+| meriyah | 0.019 | 52,958 | 0.1x | parsed |
+| acorn | 0.036 | 28,045 | 0.0x | parsed |
+| espree | 0.040 | 25,140 | 0.0x | parsed |
+| @babel/parser | 0.045 | 22,044 | 0.0x | parsed |
+| esprima | - | - | - | parse error |
+| cherow | - | - | - | parse error |
+
+### Large File (100x)
+
+File size: 69.4 KB
+
+| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
+|--------|-----------|---------|----------|----------|
+| fast-brake | 0.002 | 665,631 | 1.0x | none |
+| fast-brake (detect) | 0.005 | 211,217 | 0.3x | none |
+| fast-brake (es5 only) | 0.009 | 107,660 | 0.2x | es5 check |
+| fast-brake (browserlist) | 0.648 | 1,544 | 0.0x | browser check |
+| fast-brake (es2015 only) | 0.975 | 1,025 | 0.0x | es2015 check |
+| cherow | 0.991 | 1,009 | 0.0x | parsed |
+| meriyah | 1.044 | 958 | 0.0x | parsed |
+| @babel/parser | - | - | - | parse error |
+| acorn | - | - | - | parse error |
+| esprima | - | - | - | parse error |
+| espree | - | - | - | parse error |
+
+
+<!-- BENCHMARK_END -->
 
 ### When to use Quick vs Full mode
 

@@ -125,10 +125,10 @@
     "test:integration": "turbo run test:integration",
     "test:integration:run": "bun test tests/integration/integration.test.ts --timeout 5000",
     "test:watch": "bun test --watch tests/**/*.test.ts",
-    "benchmark": "turbo run benchmark",
+    "benchmark": "bun run --cwd utils/benchmarker src/benchmark.ts",
     "benchmark:run": "bun utils/benchmarker/src/benchmark.ts",
     "benchmark:quick": "bun tests/integration/benchmarks.ts --quick",
-    "benchmark:update": "cd utils/benchmarker && bun run benchmark:all",
+    "benchmark:update": "bun run --cwd utils/benchmarker update-docs",
     "typecheck": "turbo run typecheck:run",
     "typecheck:run": "tsc --noEmit",
     "update": "codependence --update && bun install"

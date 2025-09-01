@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { getCachedRegex, fastIndexOf, findAllIndices } from "../../src/utils";
+import { getCachedRegex, fastIndexOf } from "../../src/utils";
 
 describe("getCachedRegex", () => {
   test("should return same regex instance for same pattern", () => {
@@ -54,7 +54,7 @@ describe("fastIndexOf", () => {
     expect(result).toBe(-1);
   });
 
-  test("should use Boyer-Moore for long patterns", () => {
+  test("should handle long patterns", () => {
     const longPattern = "this is a very long pattern to search for";
     const text = "some text before " + longPattern + " and after";
     const result = fastIndexOf(text, longPattern);
@@ -71,40 +71,5 @@ describe("fastIndexOf", () => {
     const text = "const regex = /test.*pattern/";
     const result = fastIndexOf(text, ".*");
     expect(result).toBe(19);
-  });
-});
-
-describe("findAllIndices", () => {
-  test("should find all occurrences", () => {
-    const result = findAllIndices("hello hello hello", "hello");
-    expect(result).toEqual([0, 6, 12]);
-  });
-
-  test("should return empty array when no matches", () => {
-    const result = findAllIndices("hello world", "foo");
-    expect(result).toEqual([]);
-  });
-
-  test("should handle single occurrence", () => {
-    const result = findAllIndices("hello world", "world");
-    expect(result).toEqual([6]);
-  });
-
-  test("should handle overlapping patterns", () => {
-    const result = findAllIndices("aaaa", "aa");
-    expect(result).toEqual([0, 2]);
-  });
-
-  test("should handle empty pattern", () => {
-    const result = findAllIndices("hello", "");
-    expect(result).toEqual([]);
-  });
-
-  test("should work with long patterns", () => {
-    const longPattern = "this is a long pattern";
-    const text =
-      longPattern + " some text " + longPattern + " more " + longPattern;
-    const result = findAllIndices(text, longPattern);
-    expect(result).toEqual([0, 33, 61]);
   });
 });

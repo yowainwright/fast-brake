@@ -24,55 +24,7 @@ export function fastIndexOf(
   pattern: string,
   startIndex: number = 0,
 ): number {
-  if (pattern.length === 0) return 0;
-  if (pattern.length <= 10) {
-    return text.indexOf(pattern, startIndex);
-  }
-
-  if (startIndex > 0) {
-    const result = fastIndexOf(text.slice(startIndex), pattern, 0);
-    return result === -1 ? -1 : startIndex + result;
-  }
-
-  const badCharTable = new Map<string, number>();
-  const patternLength = pattern.length;
-
-  for (let i = 0; i < patternLength - 1; i++) {
-    badCharTable.set(pattern[i], patternLength - 1 - i);
-  }
-
-  let shift = 0;
-  const textLength = text.length;
-
-  while (shift <= textLength - patternLength) {
-    let j = patternLength - 1;
-
-    while (j >= 0 && pattern[j] === text[shift + j]) {
-      j--;
-    }
-
-    if (j < 0) {
-      return shift;
-    }
-
-    const badChar = text[shift + j];
-    const badCharShift = badCharTable.get(badChar) || patternLength;
-    shift += Math.max(1, j - patternLength + 1 + badCharShift);
-  }
-
-  return -1;
-}
-
-export function findAllIndices(text: string, pattern: string): number[] {
-  if (pattern.length === 0) return [];
-
-  const indices: number[] = [];
-  let index = fastIndexOf(text, pattern);
-
-  while (index !== -1) {
-    indices.push(index);
-    index = fastIndexOf(text, pattern, index + pattern.length);
-  }
-
-  return indices;
+  // Native indexOf is highly optimized in V8/JSC
+  // Our Boyer-Moore implementation adds overhead that rarely pays off
+  return text.indexOf(pattern, startIndex);
 }
