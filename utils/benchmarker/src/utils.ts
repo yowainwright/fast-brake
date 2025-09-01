@@ -330,7 +330,15 @@ export async function updateSiteDocs(benchmarkData: BenchmarkSet[]): Promise<voi
 }
 
 export async function saveBenchmarkJson(benchmarkData: BenchmarkSet[]): Promise<void> {
-  const jsonPath = join(ROOT_DIR, 'site/src/data/benchmarks.json');
+  // Create data directory if it doesn't exist
+  const dataDir = join(ROOT_DIR, 'site/src/data');
+  try {
+    await Bun.write(join(dataDir, '.gitkeep'), '');
+  } catch {
+    // Directory might not exist, that's ok
+  }
+  
+  const jsonPath = join(dataDir, 'benchmarks.json');
   
   try {
     await writeFile(jsonPath, JSON.stringify(benchmarkData, null, 2));
@@ -338,6 +346,71 @@ export async function saveBenchmarkJson(benchmarkData: BenchmarkSet[]): Promise<
   } catch (error) {
     console.log('ℹ️  Could not write benchmark JSON data');
   }
+}
+
+export async function updateSiteBenchmarkTable(benchmarkData: BenchmarkSet[]): Promise<void> {
+  const tablePath = join(ROOT_DIR, 'site/src/components/home/BenchmarkTable.tsx');
+  
+  try {
+    // Get the first benchmark set (ES2015) for the homepage table
+    const es2015Data = benchmarkData.find(set => set.name.includes('ES2015')) || benchmarkData[0];
+    
+    if (!es2015Data) {
+      console.warn('⚠️  No benchmark data to update site table');
+      return;
+    }
+    
+    // Format the data for the React component
+    const formattedData = es2015Data.results.slice(0, 6).map(result => ({
+      parser: result.name,
+      method: getMethodDescription(result.name),
+      timeMs: result.time === -1 ? 0 : result.time,
+      opsPerSec: result.opsPerSec,
+      relative: result.relative,
+      accuracy: result.accuracy
+    }));
+    
+    const content = await readFile(tablePath, 'utf-8');
+    
+    // Find the benchmarkData array and replace it
+    const dataStart = content.indexOf('const benchmarkData: BenchmarkResult[] = [');
+    const dataEnd = content.indexOf('];', dataStart) + 2;
+    
+    if (dataStart === -1 || dataEnd === 1) {
+      console.warn('⚠️  Could not find benchmarkData array in BenchmarkTable.tsx');
+      return;
+    }
+    
+    const before = content.slice(0, dataStart);
+    const after = content.slice(dataEnd);
+    
+    const newDataString = `const benchmarkData: BenchmarkResult[] = ${JSON.stringify(formattedData, null, 2)};`;
+    
+    const newContent = before + newDataString + after;
+    
+    await writeFile(tablePath, newContent);
+    console.log('✅ Updated site/src/components/home/BenchmarkTable.tsx');
+  } catch (error) {
+    console.log('ℹ️  Could not update site BenchmarkTable.tsx:', error);
+  }
+}
+
+function getMethodDescription(parser: string): string {
+  const methods: Record<string, string> = {
+    'fast-brake': 'Pattern matching',
+    'fast-brake (detect)': 'Auto-detection', 
+    'fast-brake (es5 only)': 'ES5 detection',
+    'fast-brake (es2015 only)': 'ES2015 detection',
+    'fast-brake (browserlist)': 'Browserlist check',
+    '@babel/parser': 'Full AST',
+    'acorn': 'Lightweight AST',
+    'esprima': 'Standard AST',
+    'espree': 'ESLint parser',
+    'meriyah': 'Fast AST',
+    'cherow': 'Fast parser'
+  };
+  
+  return methods[parser] || 'Unknown';
 }
 
 export async function updateDocs(): Promise<void> {
@@ -358,6 +431,7 @@ export async function updateDocs(): Promise<void> {
     await updateRootReadme(markdownTable);
     await updateSiteReadme(markdownTable);
     await updateSiteDocs(benchmarkData);
+    await updateSiteBenchmarkTable(benchmarkData);
     await saveBenchmarkJson(benchmarkData);
     
     console.log('\n✨ Documentation update complete!');

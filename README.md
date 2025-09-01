@@ -535,17 +535,17 @@ File size: 0.4 KB
 
 | Parser | Time (ms) | Ops/sec | Relative | Accuracy |
 |--------|-----------|---------|----------|----------|
-| fast-brake (detect) | 0.009 | 112,857 | 1.0x | none |
-| fast-brake (browserlist) | 0.009 | 111,714 | 1.0x | browser check |
-| fast-brake | 0.009 | 105,621 | 0.9x | none |
-| fast-brake (es2015 only) | 0.010 | 102,473 | 0.9x | es2015 check |
-| fast-brake (es5 only) | 0.017 | 60,269 | 0.5x | es5 check |
-| meriyah | 0.020 | 51,259 | 0.5x | parsed |
-| cherow | 0.021 | 47,241 | 0.4x | parsed |
-| esprima | 0.028 | 36,123 | 0.3x | parsed |
-| acorn | 0.036 | 27,923 | 0.2x | parsed |
-| espree | 0.038 | 25,999 | 0.2x | parsed |
-| @babel/parser | 0.059 | 17,053 | 0.2x | parsed |
+| fast-brake (detect) | 0.009 | 110,509 | 1.0x | none |
+| fast-brake (browserlist) | 0.009 | 107,418 | 1.0x | browser check |
+| fast-brake (es2015 only) | 0.010 | 103,786 | 0.9x | es2015 check |
+| fast-brake | 0.010 | 102,154 | 0.9x | none |
+| fast-brake (es5 only) | 0.016 | 60,722 | 0.5x | es5 check |
+| meriyah | 0.020 | 50,081 | 0.5x | parsed |
+| cherow | 0.022 | 45,132 | 0.4x | parsed |
+| esprima | 0.029 | 34,307 | 0.3x | parsed |
+| acorn | 0.034 | 29,149 | 0.3x | parsed |
+| espree | 0.040 | 25,202 | 0.2x | parsed |
+| @babel/parser | 0.060 | 16,778 | 0.2x | parsed |
 
 ### ES2015 (Modern)
 
@@ -553,16 +553,16 @@ File size: 0.7 KB
 
 | Parser | Time (ms) | Ops/sec | Relative | Accuracy |
 |--------|-----------|---------|----------|----------|
-| fast-brake | 0.002 | 570,953 | 1.0x | none |
-| fast-brake (detect) | 0.005 | 195,864 | 0.3x | none |
-| fast-brake (es5 only) | 0.009 | 109,395 | 0.2x | es5 check |
-| fast-brake (browserlist) | 0.015 | 68,932 | 0.1x | browser check |
-| fast-brake (es2015 only) | 0.018 | 55,821 | 0.1x | es2015 check |
-| cherow | 0.019 | 53,623 | 0.1x | parsed |
-| meriyah | 0.019 | 53,169 | 0.1x | parsed |
-| acorn | 0.046 | 21,804 | 0.0x | parsed |
-| espree | 0.055 | 18,047 | 0.0x | parsed |
-| @babel/parser | 0.059 | 16,994 | 0.0x | parsed |
+| fast-brake | 0.004 | 225,519 | 1.0x | none |
+| fast-brake (detect) | 0.005 | 191,799 | 0.9x | none |
+| fast-brake (es5 only) | 0.014 | 71,126 | 0.3x | es5 check |
+| fast-brake (browserlist) | 0.016 | 61,496 | 0.3x | browser check |
+| fast-brake (es2015 only) | 0.018 | 55,386 | 0.2x | es2015 check |
+| cherow | 0.019 | 53,240 | 0.2x | parsed |
+| meriyah | 0.020 | 51,039 | 0.2x | parsed |
+| acorn | 0.047 | 21,317 | 0.1x | parsed |
+| @babel/parser | 0.056 | 17,905 | 0.1x | parsed |
+| espree | 0.056 | 17,848 | 0.1x | parsed |
 | esprima | - | - | - | parse error |
 
 ### ES2022 (Latest)
@@ -571,15 +571,15 @@ File size: 1.2 KB
 
 | Parser | Time (ms) | Ops/sec | Relative | Accuracy |
 |--------|-----------|---------|----------|----------|
-| fast-brake | 0.002 | 613,701 | 1.0x | none |
-| fast-brake (detect) | 0.004 | 240,161 | 0.4x | none |
-| fast-brake (es2015 only) | 0.007 | 142,753 | 0.2x | es2015 check |
-| fast-brake (browserlist) | 0.009 | 117,364 | 0.2x | browser check |
-| fast-brake (es5 only) | 0.009 | 114,583 | 0.2x | es5 check |
-| meriyah | 0.018 | 54,394 | 0.1x | parsed |
-| acorn | 0.037 | 26,683 | 0.0x | parsed |
-| espree | 0.040 | 24,848 | 0.0x | parsed |
-| @babel/parser | 0.045 | 22,219 | 0.0x | parsed |
+| fast-brake | 0.002 | 589,507 | 1.0x | none |
+| fast-brake (detect) | 0.004 | 242,608 | 0.4x | none |
+| fast-brake (es2015 only) | 0.007 | 143,859 | 0.2x | es2015 check |
+| fast-brake (es5 only) | 0.009 | 108,805 | 0.2x | es5 check |
+| fast-brake (browserlist) | 0.009 | 105,517 | 0.2x | browser check |
+| meriyah | 0.020 | 50,117 | 0.1x | parsed |
+| acorn | 0.037 | 27,354 | 0.0x | parsed |
+| espree | 0.042 | 23,809 | 0.0x | parsed |
+| @babel/parser | 0.045 | 22,266 | 0.0x | parsed |
 | esprima | - | - | - | parse error |
 | cherow | - | - | - | parse error |
 
@@ -589,13 +589,13 @@ File size: 69.4 KB
 
 | Parser | Time (ms) | Ops/sec | Relative | Accuracy |
 |--------|-----------|---------|----------|----------|
-| fast-brake | 0.001 | 694,867 | 1.0x | none |
-| fast-brake (detect) | 0.005 | 201,508 | 0.3x | none |
-| fast-brake (es5 only) | 0.009 | 115,028 | 0.2x | es5 check |
-| fast-brake (browserlist) | 0.646 | 1,548 | 0.0x | browser check |
-| fast-brake (es2015 only) | 0.978 | 1,023 | 0.0x | es2015 check |
-| cherow | 0.982 | 1,019 | 0.0x | parsed |
-| meriyah | 1.039 | 962 | 0.0x | parsed |
+| fast-brake | 0.001 | 696,419 | 1.0x | none |
+| fast-brake (detect) | 0.005 | 209,121 | 0.3x | none |
+| fast-brake (es5 only) | 0.010 | 98,251 | 0.1x | es5 check |
+| fast-brake (browserlist) | 0.682 | 1,467 | 0.0x | browser check |
+| fast-brake (es2015 only) | 0.989 | 1,011 | 0.0x | es2015 check |
+| cherow | 1.019 | 981 | 0.0x | parsed |
+| meriyah | 1.083 | 923 | 0.0x | parsed |
 | @babel/parser | - | - | - | parse error |
 | acorn | - | - | - | parse error |
 | esprima | - | - | - | parse error |

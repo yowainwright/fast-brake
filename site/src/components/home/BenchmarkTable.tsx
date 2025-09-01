@@ -14,49 +14,49 @@ const benchmarkData: BenchmarkResult[] = [
   {
     "parser": "fast-brake",
     "method": "Pattern matching",
-    "timeMs": 0.002,
-    "opsPerSec": 552385,
+    "timeMs": 0.004434207999999955,
+    "opsPerSec": 225519,
     "relative": 1,
-    "accuracy": "es2015"
+    "accuracy": "none"
   },
   {
     "parser": "fast-brake (detect)",
     "method": "Auto-detection",
-    "timeMs": 0.007,
-    "opsPerSec": 139003,
-    "relative": 0.3,
-    "accuracy": "es2015"
+    "timeMs": 0.005213792000000012,
+    "opsPerSec": 191799,
+    "relative": 0.8504765821114354,
+    "accuracy": "none"
   },
   {
-    "parser": "meriyah",
-    "method": "Fast AST",
-    "timeMs": 0.021,
-    "opsPerSec": 47350,
-    "relative": 0.1,
-    "accuracy": "parsed"
+    "parser": "fast-brake (es5 only)",
+    "method": "ES5 detection",
+    "timeMs": 0.014059624999999982,
+    "opsPerSec": 71126,
+    "relative": 0.3153859366803852,
+    "accuracy": "es5 check"
   },
   {
-    "parser": "esprima",
-    "method": "Standard AST",
-    "timeMs": 0.026,
-    "opsPerSec": 37952,
-    "relative": 0.1,
-    "accuracy": "parse error"
+    "parser": "fast-brake (browserlist)",
+    "method": "Browserlist check",
+    "timeMs": 0.016261333000000038,
+    "opsPerSec": 61496,
+    "relative": 0.2726841643301902,
+    "accuracy": "browser check"
   },
   {
-    "parser": "acorn",
-    "method": "Lightweight AST",
-    "timeMs": 0.054,
-    "opsPerSec": 18598,
-    "relative": 0.03,
-    "accuracy": "parse error"
+    "parser": "fast-brake (es2015 only)",
+    "method": "ES2015 detection",
+    "timeMs": 0.018054958,
+    "opsPerSec": 55386,
+    "relative": 0.24559503267744823,
+    "accuracy": "es2015 check"
   },
   {
-    "parser": "@babel/parser",
-    "method": "Full AST",
-    "timeMs": 0.059,
-    "opsPerSec": 16919,
-    "relative": 0.03,
+    "parser": "cherow",
+    "method": "Fast parser",
+    "timeMs": 0.018782916999999996,
+    "opsPerSec": 53240,
+    "relative": 0.2360766434734262,
     "accuracy": "parsed"
   }
 ];
