@@ -1,0 +1,569 @@
+---
+title: Examples
+description: "Real-world examples of using Fast Brake in various scenarios"
+---
+
+## Quick Start Examples
+
+### Basic Detection
+
+```javascript
+import { detect, check, getMinimumESVersion } from 'fast-brake';
+
+// Detect all ES features
+const features = await detect('const x = () => {}');
+console.log(features);
+// [{ name: 'arrow_functions', version: 'es2015' }]
+
+// Check compatibility
+const isES5Compatible = await check('const x = () => {}', { target: 'es5' });
+console.log(isES5Compatible); // false
+
+// Get minimum version
+const minVersion = await getMinimumESVersion('const x = () => {}');
+console.log(minVersion); // 'es2015'
+```
+
+## Build Tool Integration
+
+### Webpack Configuration
+
+```javascript
+// webpack.config.js
+const { check } = require('fast-brake');
+
+module.exports = {
+  module: {
+    rules: [{
+      test: /\.js$/,
+      exclude: /node_modules/,
+      use: async (source, map, meta) => {
+        // Check if code needs transpilation
+        const needsTranspile = !await check(source, { target: 'es2015' });
+        
+        if (needsTranspile) {
+          // Use babel-loader for incompatible code
+          return require('babel-loader').call(this, source, map, meta);
+        }
+        
+        // Return untransformed for compatible code
+        this.callback(null, source, map, meta);
+      }
+    }]
+  }
+};
+```
+
+### Rollup Plugin
+
+```javascript
+// rollup-plugin-fast-brake.js
+import { detect } from 'fast-brake';
+
+export default function fastBrakePlugin(options = {}) {
+  const { target = 'es2015', throwOnIncompatible = false } = options;
+  
+  return {
+    name: 'fast-brake',
+    
+    async transform(code, id) {
+      if (id.includes('node_modules')) return null;
+      
+      const features = await detect(code);
+      const incompatible = features.filter(f => 
+        compareVersions(f.version, target) > 0
+      );
+      
+      if (incompatible.length > 0) {
+        const message = `File ${id} uses features from ${
+          incompatible.map(f => f.version).join(', ')
+        }`;
+        
+        if (throwOnIncompatible) {
+          throw new Error(message);
+        } else {
+          console.warn(message);
+        }
+      }
+      
+      return null;
+    }
+  };
+}
+
+// rollup.config.js
+import fastBrake from './rollup-plugin-fast-brake';
+
+export default {
+  input: 'src/index.js',
+  plugins: [
+    fastBrake({ target: 'es2018', throwOnIncompatible: true })
+  ],
+  output: {
+    file: 'dist/bundle.js',
+    format: 'es'
+  }
+};
+```
+
+### Vite Plugin
+
+```javascript
+// vite-plugin-fast-brake.js
+import { fastBrake } from 'fast-brake';
+
+export default function fastBrakePlugin(options = {}) {
+  return {
+    name: 'vite-plugin-fast-brake',
+    enforce: 'pre',
+    
+    async transform(code, id) {
+      if (!/\.(js|ts|jsx|tsx)$/.test(id)) return;
+      
+      try {
+        await fastBrake(code, options);
+      } catch (error) {
+        this.error(`ES compatibility error in ${id}: ${error.message}`);
+      }
+    }
+  };
+}
+
+// vite.config.js
+import { defineConfig } from 'vite';
+import fastBrake from './vite-plugin-fast-brake';
+
+export default defineConfig({
+  plugins: [
+    fastBrake({ target: 'es2020' })
+  ]
+});
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/es-check.yml
+name: ES Compatibility Check
+
+on: [push, pull_request]
+
+jobs:
+  es-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - run: npm install fast-brake
+      
+      - name: Check ES Compatibility
+        run: |
+          node -e "
+          const { check } = require('fast-brake');
+          const { readFileSync } = require('fs');
+          const { glob } = require('glob');
+          
+          (async () => {
+            const files = glob.sync('src/**/*.js');
+            const target = process.env.ES_TARGET || 'es2018';
+            let hasErrors = false;
+            
+            for (const file of files) {
+              const code = readFileSync(file, 'utf-8');
+              if (!await check(code, { target })) {
+                console.error(\`❌ \${file} is not \${target} compatible\`);
+                hasErrors = true;
+              } else {
+                console.log(\`✅ \${file}\`);
+              }
+            }
+            
+            if (hasErrors) process.exit(1);
+          })();
+          "
+        env:
+          ES_TARGET: es2018
+```
+
+### Pre-commit Hook
+
+```javascript
+// .husky/pre-commit
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check ES compatibility
+node scripts/check-es-compat.js
+
+// scripts/check-es-compat.js
+const { check } = require('fast-brake');
+const { execSync } = require('child_process');
+const { readFileSync } = require('fs');
+
+// Get staged files
+const files = execSync('git diff --cached --name-only --diff-filter=ACM | grep -E "\\.(js|ts)$"')
+  .toString()
+  .trim()
+  .split('\n')
+  .filter(Boolean);
+
+(async () => {
+  const target = 'es2018';
+  let hasErrors = false;
+  
+  for (const file of files) {
+    const code = readFileSync(file, 'utf-8');
+    
+    if (!await check(code, { target })) {
+      console.error(`❌ ${file} uses features newer than ${target}`);
+      hasErrors = true;
+    }
+  }
+  
+  if (hasErrors) {
+    console.error('\nCommit aborted: Fix ES compatibility issues');
+    process.exit(1);
+  }
+  
+  console.log('✅ All files are ES compatible');
+})();
+```
+
+## Plugin Examples
+
+### Custom Security Plugin
+
+```javascript
+import { Detector } from 'fast-brake';
+
+const securityPlugin = {
+  name: "security-audit",
+  description: "Detects security vulnerabilities",
+  spec: {
+    orderedRules: ["critical", "high", "medium"],
+    matches: {
+      "eval_usage": {
+        rule: "critical",
+        strings: ["eval("],
+        patterns: [{ pattern: "\\beval\\s*\\(" }]
+      },
+      "innerHTML": {
+        rule: "high",
+        strings: ["innerHTML"],
+        patterns: [{ pattern: "\\.innerHTML\\s*=" }]
+      },
+      "http_url": {
+        rule: "medium",
+        strings: ["http://"],
+        patterns: [{ pattern: "https?://[^s]" }]
+      }
+    }
+  }
+};
+
+// Use the plugin
+const detector = new Detector({ plugins: [securityPlugin] });
+await detector.initialize();
+
+const code = `
+  eval(userInput);
+  element.innerHTML = data;
+  fetch('http://api.example.com');
+`;
+
+const vulnerabilities = await detector.detect(code);
+console.log('Security issues found:', vulnerabilities);
+```
+
+### Telemetry Detection
+
+```javascript
+import { telemetryPlugin, strictTelemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+// Standard detection
+async function detectTelemetry(code) {
+  const detector = new Detector({ plugins: [telemetryPlugin] });
+  await detector.initialize();
+  
+  const telemetry = await detector.detect(code);
+  
+  if (telemetry.length > 0) {
+    console.log('Telemetry detected:');
+    telemetry.forEach(t => {
+      console.log(`  - ${t.name} at line ${t.line}`);
+    });
+  }
+  
+  return telemetry;
+}
+
+// Strict mode - fail on any telemetry
+async function enforceTelemetryFree(code) {
+  const detector = new Detector({ plugins: [strictTelemetryPlugin] });
+  await detector.initialize();
+  
+  const telemetry = await detector.detect(code);
+  
+  if (telemetry.length > 0) {
+    throw new Error(`Telemetry not allowed: ${telemetry.map(t => t.name).join(', ')}`);
+  }
+}
+```
+
+## Extension Examples
+
+### Adding Location Information
+
+```javascript
+import { Detector } from 'fast-brake';
+import { locExtension } from 'fast-brake/src/extensions/loc';
+import { esAll } from 'fast-brake/src/plugins/esversion';
+
+const detector = new Detector({
+  plugins: [esAll],
+  extensions: [locExtension]
+});
+
+await detector.initialize();
+
+const code = `
+const arrow = () => {
+  return 42;
+};
+
+class MyClass {
+  #private = 'secret';
+}
+`;
+
+const results = await detector.detect(code);
+
+results.forEach(result => {
+  console.log(`Found ${result.name} at:`, result.spec.loc);
+  // {
+  //   start: { line: 2, column: 14 },
+  //   end: { line: 2, column: 19 },
+  //   offset: 15,
+  //   length: 5
+  // }
+});
+```
+
+### Error Handling with throw Extension
+
+```javascript
+import { Detector } from 'fast-brake';
+import { throwExtension } from 'fast-brake/src/extensions/throw';
+
+const detector = new Detector({
+  extensions: [throwExtension],
+  throwOnIncompatible: true
+});
+
+await detector.initialize();
+
+try {
+  // This will throw if incompatible features are found
+  await detector.detect(modernCode, { target: 'es5' });
+} catch (error) {
+  console.error('Incompatible features detected:', error.message);
+  console.error('Details:', error.metadata);
+}
+```
+
+## Real-World Use Cases
+
+### Dynamic Polyfill Loading
+
+```javascript
+import { getMinimumESVersion } from 'fast-brake';
+
+async function loadPolyfills(userCode) {
+  const minVersion = await getMinimumESVersion(userCode);
+  
+  const polyfills = {
+    'es5': [],
+    'es2015': ['promise-polyfill'],
+    'es2017': ['promise-polyfill', 'async-polyfill'],
+    'es2018': ['promise-polyfill', 'async-polyfill', 'object-spread'],
+    'es2019': ['promise-polyfill', 'async-polyfill', 'object-spread', 'array-flat'],
+    'es2020': ['promise-polyfill', 'async-polyfill', 'object-spread', 'array-flat', 'optional-chaining']
+  };
+  
+  const requiredPolyfills = polyfills[minVersion] || [];
+  
+  for (const polyfill of requiredPolyfills) {
+    await import(`./polyfills/${polyfill}.js`);
+  }
+  
+  console.log(`Loaded ${requiredPolyfills.length} polyfills for ${minVersion}`);
+}
+```
+
+### Code Migration Assistant
+
+```javascript
+import { detect } from 'fast-brake';
+
+async function analyzeMigrationNeeds(codebase) {
+  const report = {
+    es2015: [],
+    es2016: [],
+    es2017: [],
+    es2018: [],
+    es2019: [],
+    es2020: [],
+    es2021: [],
+    es2022: []
+  };
+  
+  for (const [file, code] of Object.entries(codebase)) {
+    const features = await detect(code);
+    
+    features.forEach(feature => {
+      if (report[feature.version]) {
+        report[feature.version].push({
+          file,
+          feature: feature.name,
+          line: feature.line,
+          suggestion: getSuggestion(feature.name)
+        });
+      }
+    });
+  }
+  
+  return report;
+}
+
+function getSuggestion(featureName) {
+  const suggestions = {
+    'arrow_functions': 'Consider using function declarations for better debugging',
+    'async_await': 'Ensure error handling with try-catch blocks',
+    'optional_chaining': 'Add fallbacks for older browsers',
+    'private_fields': 'Use TypeScript private keyword for broader compatibility'
+  };
+  
+  return suggestions[featureName] || 'Review compatibility requirements';
+}
+```
+
+### Performance Monitoring
+
+```javascript
+import { detect } from 'fast-brake';
+import { performance } from 'perf_hooks';
+
+async function benchmarkDetection(code, iterations = 100) {
+  const results = [];
+  
+  for (let i = 0; i < iterations; i++) {
+    const start = performance.now();
+    await detect(code);
+    const duration = performance.now() - start;
+    results.push(duration);
+  }
+  
+  const average = results.reduce((a, b) => a + b, 0) / results.length;
+  const min = Math.min(...results);
+  const max = Math.max(...results);
+  
+  console.log(`Detection Performance (${iterations} iterations):`);
+  console.log(`  Average: ${average.toFixed(3)}ms`);
+  console.log(`  Min: ${min.toFixed(3)}ms`);
+  console.log(`  Max: ${max.toFixed(3)}ms`);
+  console.log(`  Ops/sec: ${(1000 / average).toFixed(0)}`);
+  
+  return { average, min, max };
+}
+
+// Usage
+const code = `
+  const data = await fetch('/api');
+  const result = data?.json() ?? {};
+  console.log(\`Result: \${result}\`);
+`;
+
+await benchmarkDetection(code);
+```
+
+## Testing Examples
+
+### Unit Testing with Vitest
+
+```javascript
+// fast-brake.test.js
+import { describe, it, expect } from 'vitest';
+import { detect, check, getMinimumESVersion } from 'fast-brake';
+
+describe('Fast Brake Detection', () => {
+  it('detects arrow functions', async () => {
+    const code = 'const fn = () => {};';
+    const features = await detect(code);
+    
+    expect(features).toContainEqual(
+      expect.objectContaining({
+        name: 'arrow_functions',
+        version: 'es2015'
+      })
+    );
+  });
+  
+  it('checks ES5 compatibility', async () => {
+    const es5Code = 'var x = function() { return 42; };';
+    const es6Code = 'const x = () => 42;';
+    
+    expect(await check(es5Code, { target: 'es5' })).toBe(true);
+    expect(await check(es6Code, { target: 'es5' })).toBe(false);
+  });
+  
+  it('determines minimum ES version', async () => {
+    const code = 'async function getData() { await fetch("/api"); }';
+    const minVersion = await getMinimumESVersion(code);
+    
+    expect(minVersion).toBe('es2017');
+  });
+});
+```
+
+### Integration Testing
+
+```javascript
+// integration.test.js
+import { describe, it, expect } from 'vitest';
+import { Detector } from 'fast-brake';
+import { esAll } from 'fast-brake/src/plugins/esversion';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+import { locExtension } from 'fast-brake/src/extensions/loc';
+
+describe('Integration', () => {
+  it('works with multiple plugins and extensions', async () => {
+    const detector = new Detector({
+      plugins: [esAll, telemetryPlugin],
+      extensions: [locExtension]
+    });
+    
+    await detector.initialize();
+    
+    const code = `
+      const data = await fetch('/api');
+      gtag('config', 'GA_ID');
+    `;
+    
+    const results = await detector.detect(code);
+    
+    // Should detect both ES features and telemetry
+    expect(results.some(r => r.name === 'await')).toBe(true);
+    expect(results.some(r => r.name === 'google_analytics_gtag')).toBe(true);
+    
+    // Should include location data
+    expect(results[0].spec.loc).toBeDefined();
+  });
+});
+```
+

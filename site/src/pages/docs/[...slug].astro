@@ -40,7 +40,16 @@ const { Content, headings } = await doc.render();
       </div>
       <section class="prose prose-sm sm:prose-base md:prose-md mb-10 max-w-none prose-pre:max-w-[90vw] prose-pre:overflow-x-auto">
         <div>
-          <h1>{doc.data.title}</h1>
+          <h1>
+            {doc.data.title.split('Fast Brake').map((part, index, array) => (
+              <>
+                {part}
+                {index < array.length - 1 && (
+                  <span class="text-brand-red" style="font-family: 'Poetsen One', sans-serif;">Fast Brake</span>
+                )}
+              </>
+            ))}
+          </h1>
           <p>{doc.data.description}</p>
         </div>
 

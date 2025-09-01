@@ -12,6 +12,52 @@ const SIDEBAR = [
         title: "Setup",
         href: resolveDocsUrl("setup"),
       },
+      {
+        title: "Examples",
+        href: resolveDocsUrl("examples"),
+      },
+    ],
+  },
+  {
+    title: "Plugins",
+    items: [
+      {
+        title: "Learn the Plugin System",
+        href: resolveDocsUrl("plugins"),
+      },
+      {
+        title: "ES Version",
+        href: resolveDocsUrl("plugins/esversion"),
+      },
+      {
+        title: "Telemetry",
+        href: resolveDocsUrl("plugins/telemetry"),
+      },
+      {
+        title: "Browserlist",
+        href: resolveDocsUrl("plugins/browserlist"),
+      },
+      {
+        title: "Detect",
+        href: resolveDocsUrl("plugins/detect"),
+      },
+      {
+        title: "Making Custom Plugins",
+        href: resolveDocsUrl("plugins/custom"),
+      },
+    ],
+  },
+  {
+    title: "Extensions",
+    items: [
+      {
+        title: "Learn the Extension System",
+        href: resolveDocsUrl("extensions"),
+      },
+      {
+        title: "Making Custom Extensions",
+        href: resolveDocsUrl("extensions/custom"),
+      },
     ],
   },
   {

@@ -2,6 +2,8 @@
 
 Performance benchmarking suite for Fast Brake - compares Fast Brake's performance against popular JavaScript parsers.
 
+Fast brake should be faster for what it does. All the JavaScript parser it's comparing itself against are way more advance form also every, except for what fast-brake does (fail fast).
+
 ## Overview
 
 This package benchmarks Fast Brake's ES feature detection performance against various JavaScript parsers including Babel, Acorn, Esprima, Espree, Meriyah, and Cherow.
@@ -68,6 +70,8 @@ benchmarker/
 ```
 
 ## Parsers Compared
+
+Fast brake compare itself against full parsers that do a lot more. Fast brake only wins for one thing!
 
 - **Fast Brake** - ES feature detection (this project)
 - **@babel/parser** - Babel's JavaScript parser

@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["name", "description", "spec"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the extension"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the extension"
+    },
+    "spec": {
+      "type": "object",
+      "required": ["code", "result"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Code from a matched file"
+        },
+        "result": {
+          "type": "object",
+          "description": "DetectMatch object",
+          "required": ["name", "match", "spec", "rule"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the match"
+            },
+            "match": {
+              "type": "string",
+              "description": "The matched content"
+            },
+            "spec": {
+              "type": "object",
+              "description": "Plugin specification"
+            },
+            "rule": {
+              "type": "string",
+              "description": "Rule that was matched"
+            },
+            "index": {
+              "type": "number",
+              "description": "Optional index of the match"
+            }
+          }
+        }
+      }
+    }
+  }
+}

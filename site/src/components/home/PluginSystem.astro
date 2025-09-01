@@ -1,0 +1,175 @@
+---
+---
+
+<div class="pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="text-center mb-12 lg:mb-16">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight font-outfit">
+        <span class="bg-clip-text text-transparent" style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%); -webkit-background-clip: text;">
+          Plugin-Based
+        </span> Architecture
+      </h2>
+      
+      <p class="mt-4 sm:mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+        Fast Brake uses a flexible plugin system for feature detection. Mix and match plugins or create your own
+        to detect custom patterns, telemetry, or specific JavaScript features.
+      </p>
+    </div>
+
+    <!-- Plugin Schema Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+      <div class="bg-base-200 rounded-2xl p-6 lg:p-8">
+        <h3 class="text-xl font-bold mb-4 font-outfit">Plugin Schema</h3>
+        <pre class="text-sm overflow-x-auto"><code class="language-typescript">{`interface Plugin {
+  name: string;
+  description: string;
+  spec: PluginSpec;
+}
+
+interface PluginSpec {
+  orderedRules: string[];
+  matches: Record<string, PluginMatch>;
+}
+
+interface PluginMatch {
+  rule: string;
+  strings?: string[];
+  patterns?: PluginPattern[];
+}`}</code></pre>
+      </div>
+
+      <div class="bg-base-200 rounded-2xl p-6 lg:p-8">
+        <h3 class="text-xl font-bold mb-4 font-outfit">Example Plugin</h3>
+        <pre class="text-sm overflow-x-auto"><code class="language-javascript">{`const telemetryPlugin = {
+  name: "telemetry-detector",
+  description: "Detects telemetry usage",
+  spec: {
+    orderedRules: ["analytics"],
+    matches: {
+      "google_analytics": {
+        rule: "analytics",
+        strings: ["gtag", "ga("],
+        patterns: [{
+          pattern: "gtag\\('config'",
+          identifier: "gtag_config"
+        }]
+      }
+    }
+  }
+};`}</code></pre>
+      </div>
+    </div>
+
+    <!-- Built-in Plugins -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-6 lg:p-8 mb-12">
+      <h3 class="text-xl font-bold mb-6 font-outfit">Built-in Plugins</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-orange-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <span class="text-orange-500 font-bold">ES</span>
+          </div>
+          <div>
+            <h4 class="font-semibold">ES Version Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Detects ES5 through ES2025 features with 40+ patterns
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-blue-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <span class="text-blue-500 font-bold">📊</span>
+          </div>
+          <div>
+            <h4 class="font-semibold">Telemetry Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Identifies analytics and tracking code patterns
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-green-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <span class="text-green-500 font-bold">🌐</span>
+          </div>
+          <div>
+            <h4 class="font-semibold">Browser Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Checks compatibility with browser versions
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-purple-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <span class="text-purple-500 font-bold">🔍</span>
+          </div>
+          <div>
+            <h4 class="font-semibold">Detect Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Auto-detects minimum required ES version
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extensions Section -->
+    <div class="bg-base-200 rounded-2xl p-6 lg:p-8 mb-12">
+      <h3 class="text-xl font-bold mb-6 font-outfit">Extensions</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        Enhance detection results with powerful extensions that add extra functionality and metadata.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-base-100 rounded-lg p-4">
+          <h4 class="font-semibold mb-2">throw Extension</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            Throws errors when incompatible features are detected, enabling fail-fast behavior
+          </p>
+          <pre class="text-xs overflow-x-auto bg-base-300 p-2 rounded"><code>{`import { throwExtension } from 'fast-brake/src/extensions/throw';
+
+const detector = new Detector({
+  extensions: [throwExtension],
+  throwOnIncompatible: true
+});`}</code></pre>
+        </div>
+
+        <div class="bg-base-100 rounded-lg p-4">
+          <h4 class="font-semibold mb-2">loc Extension</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            Enriches features with precise location information (line, column, offset)
+          </p>
+          <pre class="text-xs overflow-x-auto bg-base-300 p-2 rounded"><code>{`import { locExtension } from 'fast-brake/src/extensions/loc';
+
+const detector = new Detector({
+  extensions: [locExtension]
+});`}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schema Documentation Links -->
+    <div class="text-center">
+      <h3 class="text-xl font-bold mb-4 font-outfit">Learn More</h3>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="/docs/plugins" class="btn btn-outline btn-primary">
+          Plugin Documentation →
+        </a>
+        <a href="/docs/plugins/custom" class="btn btn-outline btn-primary">
+          Write Custom Plugins →
+        </a>
+        <a href="/docs/extensions" class="btn btn-outline btn-primary">
+          Extension Documentation →
+        </a>
+        <a href="/docs/extensions/custom" class="btn btn-outline btn-primary">
+          Write Custom Extensions →
+        </a>
+        <a href="/docs/examples" class="btn btn-outline btn-primary">
+          View Examples →
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

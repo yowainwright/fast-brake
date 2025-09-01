@@ -1,0 +1,574 @@
+---
+title: Writing Custom Extensions
+description: "Create custom extensions to enhance Fast Brake detection results with metadata"
+---
+
+## Overview
+
+Extensions allow you to enhance Fast Brake's detection results with additional metadata, transformations, or functionality. This guide will walk you through creating, testing, and using custom extensions.
+
+## Extension Structure
+
+Every extension follows this structure:
+
+```javascript
+const myExtension = {
+  name: "extension-name",
+  description: "What this extension does",
+  spec: {
+    code: "example code snippet",
+    result: {
+      name: "match-name",
+      match: "matched-text",
+      spec: {
+        // Your custom metadata here
+      },
+      rule: "rule-name",
+      index: 0  // Optional
+    }
+  }
+};
+```
+
+## Step-by-Step Guide
+
+### Step 1: Define Your Enhancement Goals
+
+Before creating an extension, determine:
+- What metadata do you want to add?
+- When should this metadata be applied?
+- How will the metadata be used?
+
+### Step 2: Create the Basic Structure
+
+```javascript
+const myExtension = {
+  name: "my-extension",
+  description: "Adds custom metadata to detection results",
+  spec: {
+    code: "",     // Example code
+    result: {     // Example result
+      name: "",
+      match: "",
+      spec: {},   // Your metadata structure
+      rule: "",
+      index: 0
+    }
+  }
+};
+```
+
+### Step 3: Define Your Metadata Schema
+
+Design the metadata structure in the `spec` property:
+
+```javascript
+spec: {
+  // Your custom metadata
+  severity: "high",
+  category: "security",
+  fixSuggestion: "Use safer alternative",
+  documentation: "https://docs.example.com"
+}
+```
+
+## Complete Examples
+
+### Example 1: Performance Metrics Extension
+
+Add performance metrics to detection results:
+
+```javascript
+const performanceExtension = {
+  name: "performance",
+  description: "Adds performance metrics to detection results",
+  spec: {
+    code: "const data = await fetch('/api');",
+    result: {
+      name: "async-operation",
+      match: "await fetch",
+      spec: {
+        performance: {
+          estimatedTime: "100-500ms",
+          blocking: true,
+          asyncOperation: true,
+          networkDependency: true
+        },
+        optimization: {
+          suggestion: "Consider caching or batching requests",
+          alternativeMethods: ["Promise.all", "concurrent fetching"],
+          cacheable: true
+        }
+      },
+      rule: "es2017",
+      index: 14
+    }
+  }
+};
+
+// Usage
+const detector = new Detector({
+  extensions: [performanceExtension]
+});
+
+const results = await detector.detect(code);
+// Results include performance metadata
+```
+
+### Example 2: Documentation Extension
+
+Link detection results to documentation:
+
+```javascript
+const documentationExtension = {
+  name: "documentation",
+  description: "Adds documentation links and examples to detection results",
+  spec: {
+    code: "class MyComponent extends React.Component {}",
+    result: {
+      name: "react-class-component",
+      match: "extends React.Component",
+      spec: {
+        documentation: {
+          mdn: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes",
+          framework: "https://react.dev/reference/react/Component",
+          migration: "https://react.dev/reference/react/hooks",
+          deprecated: false,
+          preferredAlternative: "Function components with hooks"
+        },
+        examples: {
+          before: "class MyComponent extends React.Component { render() { return <div/>; } }",
+          after: "function MyComponent() { return <div/>; }",
+          explanation: "Function components are simpler and support hooks"
+        }
+      },
+      rule: "react",
+      index: 20
+    }
+  }
+};
+```
+
+### Example 3: Security Analysis Extension
+
+Add security metadata to potentially dangerous patterns:
+
+```javascript
+const securityExtension = {
+  name: "security-analysis",
+  description: "Adds security analysis metadata to detection results",
+  spec: {
+    code: "eval(userInput)",
+    result: {
+      name: "eval-usage",
+      match: "eval(",
+      spec: {
+        security: {
+          severity: "critical",
+          vulnerability: "Code Injection",
+          cwe: "CWE-95",
+          owasp: "A03:2021 – Injection",
+          impact: {
+            confidentiality: "high",
+            integrity: "high",
+            availability: "high"
+          }
+        },
+        remediation: {
+          fix: "Use JSON.parse() for JSON data or Function constructor with limited scope",
+          preventionMethods: [
+            "Input validation",
+            "Use safer alternatives",
+            "Content Security Policy"
+          ],
+          tools: ["ESLint no-eval rule", "Security scanners"],
+          priority: "immediate"
+        },
+        compliance: {
+          pci: false,
+          hipaa: false,
+          gdpr: "potential violation if processing user data"
+        }
+      },
+      rule: "security-critical",
+      index: 0
+    }
+  }
+};
+```
+
+### Example 4: Migration Helper Extension
+
+Assist with code migration and modernization:
+
+```javascript
+const migrationExtension = {
+  name: "migration-helper",
+  description: "Provides migration guidance for legacy code",
+  spec: {
+    code: "var self = this;",
+    result: {
+      name: "legacy-pattern",
+      match: "var self = this",
+      spec: {
+        migration: {
+          targetVersion: "es2015",
+          modernEquivalent: "arrow functions preserve this context",
+          refactoring: {
+            pattern: "var self = this;",
+            replacement: "// Use arrow functions instead",
+            example: "() => { /* this is preserved */ }"
+          },
+          automated: true,
+          complexity: "low",
+          breakingChange: false
+        },
+        codemod: {
+          available: true,
+          package: "es5-to-es6-codemod",
+          command: "npx es5-to-es6-codemod --arrow-functions"
+        },
+        benefits: [
+          "Cleaner syntax",
+          "Lexical this binding",
+          "Better readability"
+        ]
+      },
+      rule: "es5",
+      index: 0
+    }
+  }
+};
+```
+
+## Advanced Extension Patterns
+
+### Conditional Metadata
+
+Add metadata based on context:
+
+```javascript
+const contextualExtension = {
+  name: "contextual",
+  description: "Adds context-aware metadata",
+  spec: {
+    code: "example",
+    result: {
+      name: "match",
+      match: "example",
+      spec: {
+        getMetadata: (match, code, options) => {
+          // Dynamic metadata based on context
+          if (code.includes('async')) {
+            return {
+              async: true,
+              suggestion: "Consider error handling"
+            };
+          }
+          return {
+            async: false,
+            suggestion: "Standard synchronous code"
+          };
+        }
+      },
+      rule: "custom",
+      index: 0
+    }
+  }
+};
+```
+
+### Composed Extensions
+
+Combine multiple extensions:
+
+```javascript
+const composedExtension = {
+  name: "full-analysis",
+  description: "Complete analysis with multiple metadata types",
+  spec: {
+    code: "dangerous.innerHTML = userInput",
+    result: {
+      name: "innerHTML-assignment",
+      match: "innerHTML =",
+      spec: {
+        // Location data
+        loc: {
+          start: { line: 1, column: 10 },
+          end: { line: 1, column: 20 },
+          offset: 10,
+          length: 10
+        },
+        // Security analysis
+        security: {
+          severity: "high",
+          vulnerability: "XSS",
+          cwe: "CWE-79"
+        },
+        // Performance impact
+        performance: {
+          impact: "high",
+          reflow: true,
+          repaint: true
+        },
+        // Fix suggestion
+        fix: {
+          suggestion: "Use textContent or sanitize input",
+          example: "element.textContent = userInput"
+        }
+      },
+      rule: "security",
+      index: 10
+    }
+  }
+};
+```
+
+## Testing Extensions
+
+### Unit Testing
+
+```javascript
+import { test, expect } from 'vitest';
+import { Detector } from 'fast-brake';
+import myExtension from './my-extension';
+
+test('extension adds expected metadata', async () => {
+  const detector = new Detector({
+    extensions: [myExtension]
+  });
+  await detector.initialize();
+  
+  const code = 'eval("code")';
+  const results = await detector.detect(code);
+  
+  expect(results[0].spec).toHaveProperty('security');
+  expect(results[0].spec.security.severity).toBe('critical');
+});
+
+test('extension metadata structure is valid', () => {
+  expect(myExtension).toHaveProperty('name');
+  expect(myExtension).toHaveProperty('description');
+  expect(myExtension.spec).toHaveProperty('code');
+  expect(myExtension.spec).toHaveProperty('result');
+});
+```
+
+### Integration Testing
+
+```javascript
+test('extension works with plugins', async () => {
+  const detector = new Detector({
+    plugins: [esAll],
+    extensions: [myExtension]
+  });
+  await detector.initialize();
+  
+  const code = 'const x = () => {};';
+  const results = await detector.detect(code);
+  
+  // Check that both plugin detection and extension metadata work
+  expect(results[0].name).toBe('arrow_functions');
+  expect(results[0].spec).toBeDefined();
+});
+```
+
+## Using Extensions in Applications
+
+### Build Tool Integration
+
+```javascript
+// webpack.config.js
+const { Detector } = require('fast-brake');
+const securityExtension = require('./security-extension');
+
+module.exports = {
+  module: {
+    rules: [{
+      test: /\.js$/,
+      use: async (source) => {
+        const detector = new Detector({
+          extensions: [securityExtension]
+        });
+        await detector.initialize();
+        
+        const results = await detector.detect(source);
+        const critical = results.filter(r => 
+          r.spec?.security?.severity === 'critical'
+        );
+        
+        if (critical.length > 0) {
+          console.error('Critical security issues found:', critical);
+          throw new Error('Build failed due to security issues');
+        }
+        
+        return source;
+      }
+    }]
+  }
+};
+```
+
+### IDE Integration
+
+```javascript
+// vscode-extension.js
+const { Detector } = require('fast-brake');
+const documentationExtension = require('./doc-extension');
+
+async function provideDiagnostics(document) {
+  const detector = new Detector({
+    extensions: [documentationExtension]
+  });
+  await detector.initialize();
+  
+  const results = await detector.detect(document.getText());
+  
+  return results.map(result => ({
+    range: new Range(
+      result.spec.loc.start.line - 1,
+      result.spec.loc.start.column,
+      result.spec.loc.end.line - 1,
+      result.spec.loc.end.column
+    ),
+    message: result.spec.documentation.preferredAlternative,
+    severity: DiagnosticSeverity.Warning,
+    code: result.name,
+    source: 'fast-brake'
+  }));
+}
+```
+
+## Best Practices
+
+### 1. Schema Validation
+
+Validate your extension schema:
+
+```javascript
+import Ajv from 'ajv';
+import extensionSchema from 'fast-brake/src/extensionsSchema.json';
+
+const ajv = new Ajv();
+const validate = ajv.compile(extensionSchema);
+
+if (!validate(myExtension)) {
+  console.error('Invalid extension:', validate.errors);
+}
+```
+
+### 2. Type Safety
+
+Use TypeScript for type-safe extensions:
+
+```typescript
+interface SecurityMetadata {
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  vulnerability: string;
+  cwe: string;
+}
+
+interface MyExtensionSpec {
+  security: SecurityMetadata;
+  remediation: {
+    fix: string;
+    priority: 'low' | 'medium' | 'high' | 'immediate';
+  };
+}
+
+const myExtension: Extension<MyExtensionSpec> = {
+  name: "security",
+  description: "Security analysis",
+  spec: {
+    code: "example",
+    result: {
+      name: "match",
+      match: "example",
+      spec: {
+        security: {
+          severity: 'high',
+          vulnerability: 'XSS',
+          cwe: 'CWE-79'
+        },
+        remediation: {
+          fix: 'Sanitize input',
+          priority: 'high'
+        }
+      },
+      rule: "security",
+      index: 0
+    }
+  }
+};
+```
+
+### 3. Performance
+
+Keep extensions lightweight:
+
+```javascript
+// Good - simple metadata
+spec: {
+  category: "security",
+  severity: "high"
+}
+
+// Avoid - heavy computation
+spec: {
+  analysis: performExpensiveAnalysis(entireCodebase)
+}
+```
+
+### 4. Documentation
+
+Document your extension thoroughly:
+
+```javascript
+/**
+ * Security Analysis Extension
+ * 
+ * Adds security metadata to detection results including:
+ * - Severity levels (low, medium, high, critical)
+ * - CWE identifiers
+ * - OWASP categories
+ * - Remediation guidance
+ * 
+ * @example
+ * const results = await detector.detect(code);
+ * if (results[0].spec.security.severity === 'critical') {
+ *   // Handle critical security issue
+ * }
+ */
+const securityExtension = { ... };
+```
+
+## Troubleshooting
+
+### Extension Not Applied
+
+1. Verify extension is added to detector:
+```javascript
+console.log(detector.getExtensions());
+```
+
+2. Check extension name conflicts:
+```javascript
+const extensions = detector.getExtensions();
+const names = extensions.map(e => e.name);
+const hasDuplicates = names.length !== new Set(names).size;
+```
+
+### Metadata Not Appearing
+
+1. Verify extension structure:
+```javascript
+console.log(JSON.stringify(myExtension, null, 2));
+```
+
+2. Check result processing:
+```javascript
+const results = await detector.detect(code);
+console.log('Raw results:', results);
+console.log('Extension applied:', results[0]?.spec);
+```
+
