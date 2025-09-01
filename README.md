@@ -2,9 +2,45 @@
 
 **Fast braking match detection!** Fast brake enables a plugins and extension based schema to detect matches using JavaScript very fast. This is useful for detecting ECMAscript api features, Telemetry or other spec pattern matches you'd like to spec with a focus on speed.
 
+## Installation
+
+```bash
+bun install fast-brake
+```
+
+## Quick Start
+
+```javascript
+import { fastBrake, detect, check } from 'fast-brake';
+
+// Basic usage - detect features (returns array of detected features)
+const features = await fastBrake('const x = () => {}');
+console.log(features);
+// [{ name: 'arrow_functions', version: 'es2015' }]
+
+// Using with plugins
+import { esAll } from 'fast-brake/src/plugins/esversion';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+const detector = new Detector();
+await detector.initialize([esAll, telemetryPlugin]);
+const results = await detector.detect(code);
+
+// Using with extensions for enhanced metadata
+import { locExtension } from 'fast-brake/src/extensions/loc';
+
+const enhancedDetector = new Detector({ extensions: [locExtension] });
+await enhancedDetector.initialize();
+const detailedResults = await enhancedDetector.detect(code);
+
+// Check if code is compatible (returns boolean)
+const isCompatible = await check('const x = () => {}', { target: 'es5' });
+console.log(isCompatible); // false
+```
+
 ## Why Fast Brake?
 
-Other tools, like the parsers that inspired this utility provide a full AST to process files. They're incredibe! **Fast Brake** is optimized to a different pattern. To detect or find patterns based on matches very fast.
+Other tools, like the parsers that inspired this utility provide a full AST to process files. They're incredibe! **Fast Brake** is optimized to a different pattern. To detect or find patterns based on matches very fast. Fast Brake is built with auto ES version detection, automatically determining the minimum required ES version for your code.
 
 This is nice for:
 - **Build tools** - Validate code compatibility before bundling
@@ -29,31 +65,6 @@ Pre-2025, detecting issues that can cause es issues fast in bundles, dependencie
 
 Initially, I was inspired by [acorn.js](), then [meriyah]() (amazing tools). I submitted a pull request so I could implement plugins using meriyah. [name]() provided inside into another direction which led me to making fast-brake—which is built on a very simple api to enable an architecture based on failing fast.
 
-## Installation
-
-```bash
-bun install fast-brake
-```
-
-## Quick Start
-
-```javascript
-import { fastBrake, detect, check } from 'fast-brake';
-
-// Detect features (returns array of detected features)
-const features = await fastBrake('const x = () => {}');
-console.log(features);
-// [{ name: 'arrow_functions', version: 'es2015' }]
-
-// Detect all ES features in code
-const detectedFeatures = await detect('const x = () => {}');
-console.log(detectedFeatures);
-// [{ name: 'arrow_functions', version: 'es2015' }]
-
-// Check if code is compatible (returns boolean)
-const isCompatible = await check('const x = () => {}', { target: 'es5' });
-console.log(isCompatible); // false
-```
 
 ## Pattern-Based Detection
 
@@ -73,13 +84,127 @@ const features = detect(code);
 fastBrake(code, { target: 'es5', throwOnFirst: true });
 ```
 
+## API Reference
+
+### `fastBrake(code, options?)`
+
+Analyzes code and returns detected features. This is an async function.
+
+```javascript
+import { fastBrake } from 'fast-brake';
+
+const features = await fastBrake('const x = () => {}');
+console.log(features);
+// [{ name: 'arrow_functions', version: 'es2015' }]
+
+// With custom plugins
+const features = await fastBrake(code, { 
+  plugins: [myCustomPlugin] 
+});
+```
+
+**Parameters:**
+- `code` (string): Code to analyze
+- `options` (optional):
+  - `plugins` (Plugin[]): Array of plugins to use for detection
+  - `target` (string): Target ES version
+  - `throwOnFirst` (boolean): Stop on first incompatible feature
+
+**Returns:** `Promise<DetectedFeature[]>`
+
+### `detect(code, options?)`
+
+Returns an array of detected features. This is an async function.
+
+```javascript
+import { detect } from 'fast-brake';
+
+const features = await detect(`
+  const arrow = () => {};
+  const template = \`Hello \${name}\`;
+`);
+
+console.log(features);
+// [{ name: 'arrow_functions', version: 'es2015' }]
+
+// With plugins
+const features = await detect(code, {
+  plugins: [esAll, telemetryPlugin]
+});
+```
+
+**Parameters:**
+- `code` (string): Code to analyze
+- `options` (optional):
+  - `plugins` (Plugin[]): Array of plugins to use for detection
+
+**Returns:** `Promise<DetectedFeature[]>`
+```typescript
+interface DetectedFeature {
+  name: string;        // Feature name (e.g., 'arrow_functions')
+  version: string;     // Required ES version (e.g., 'es2015')
+  line?: number;       // Line number where feature was found
+  column?: number;     // Column number where feature was found
+  snippet?: string;    // Code snippet containing the feature
+}
+```
+
+### `check(code, options)`
+
+Returns a boolean indicating if code is compatible with the target version. This is an async function.
+
+```javascript
+import { check } from 'fast-brake';
+
+const isES5Compatible = await check('var x = 10;', { target: 'es5' });
+console.log(isES5Compatible); // true
+
+const hasES6Features = await check('const x = () => {};', { target: 'es5' });
+console.log(hasES6Features); // false
+
+// With custom plugins
+const isCompatible = await check(code, { 
+  target: 'es5',
+  plugins: [myPlugin]
+});
+```
+
+**Parameters:**
+- `code` (string): Code to analyze
+- `options` (DetectionOptions):
+  - `target` (string): Target ES version
+  - `plugins?` (Plugin[]): Array of plugins to use
+  - `throwOnFirst?` (boolean): Stop on first incompatible feature
+  - `ignorePatterns?` (string[]): Patterns to ignore
+  - `preprocessors?` (Array<(code: string) => string>): Code preprocessors
+
+**Returns:** `Promise<boolean>`
+
+### Additional Exports
+
+Fast Brake also exports these classes and utilities:
+
+```javascript
+import { Detector, Scanner, FastBrakeCache } from 'fast-brake';
+
+// Create a detector instance with custom plugins
+const detector = new Detector();
+await detector.initialize([myPlugin1, myPlugin2]);
+
+// Scanner for file system operations
+const scanner = new Scanner();
+
+// Cache for performance optimization
+const cache = new FastBrakeCache();
+```
+
 ## Plugin System
 
 Fast Brake uses a plugin-based architecture for feature detection. Plugins define patterns and rules for detecting specific JavaScript features or telemetry.
 
 ### Plugin Schema
 
-Each plugin follows this schema:
+Each plugin follows the types defined in the [Plugin Schema](https://github.com/yowainwright/fast-brake/blob/main/src/types/plugin.ts):
 
 ```typescript
 interface Plugin {
@@ -103,6 +228,30 @@ interface PluginPattern {
   pattern: string;      // Regex pattern string
   identifier?: string;  // Optional identifier for the pattern
 }
+```
+
+### Using Plugins
+
+Plugins can be passed to any of the main functions:
+
+```javascript
+import { fastBrake, detect, check } from 'fast-brake';
+import { es2020 } from 'fast-brake/src/plugins/esversion';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+// Pass single plugin
+const features = await fastBrake(code, { plugins: [es2020] });
+
+// Pass multiple plugins
+const results = await detect(code, { 
+  plugins: [es2020, telemetryPlugin] 
+});
+
+// Use with check function
+const isCompatible = await check(code, { 
+  target: 'es2020',
+  plugins: [es2020, telemetryPlugin] 
+});
 ```
 
 ### Creating Custom Plugins
@@ -174,6 +323,108 @@ import detectPlugin from 'fast-brake/src/plugins/detect';
 
 // Automatically determine minimum ES version
 const plugin = detectPlugin;
+```
+
+## Extensions
+
+Fast Brake supports extensions that provide metadata and examples for enhanced detection capabilities.
+
+### Extension Schema
+
+Each extension follows the types defined in the [Extension Schema](https://github.com/yowainwright/fast-brake/blob/main/src/types/extension.ts):
+
+```typescript
+interface Extension {
+  name: string;        // Extension name
+  description: string; // Extension description  
+  spec: {             // Extension specification
+    code: string;     // Example code
+    result: {         // Example result
+      name: string;
+      match: string;
+      spec: object;   // Additional metadata
+      rule: string;
+      index?: number;
+    }
+  }
+}
+```
+
+### Using Extensions
+
+Extensions can be passed to enhance detection with additional metadata:
+
+```javascript
+import { Detector } from 'fast-brake';
+import { locExtension } from 'fast-brake/src/extensions/loc';
+import { throwExtension } from 'fast-brake/src/extensions/throw';
+
+// Use single extension
+const detector = new Detector({ extensions: [locExtension] });
+await detector.initialize();
+const results = await detector.detect(code);
+
+// Use multiple extensions
+const enhancedDetector = new Detector({ 
+  extensions: [locExtension, throwExtension] 
+});
+await enhancedDetector.initialize();
+const detailedResults = await enhancedDetector.detect(code);
+```
+
+### Built-in Extensions
+
+#### 1. throw Extension
+Provides metadata for error throwing patterns:
+
+```javascript
+import { throwExtension } from 'fast-brake/src/extensions/throw';
+
+console.log(throwExtension);
+// {
+//   name: "throw",
+//   description: "Throws an error when specific patterns...",
+//   spec: {
+//     code: "throw new Error('Invalid operation');",
+//     result: {
+//       name: "throw-statement",
+//       match: "throw new Error",
+//       spec: { type: "error-throw", errorType: "Error", message: "Invalid operation" },
+//       rule: "throw-statement-pattern",
+//       index: 0
+//     }
+//   }
+// }
+```
+
+#### 2. loc Extension  
+Provides metadata for location enrichment:
+
+```javascript
+import { locExtension } from 'fast-brake/src/extensions/loc';
+
+console.log(locExtension);
+// {
+//   name: "loc",
+//   description: "Enriches detected features with location information...",
+//   spec: {
+//     code: "const arrow = () => { return 42; }",
+//     result: {
+//       name: "arrow-function",
+//       match: "() =>",
+//       spec: {
+//         loc: {
+//           start: { line: 1, column: 14 },
+//           end: { line: 1, column: 19 },
+//           offset: 14,
+//           length: 5
+//         }
+//       },
+//       rule: "arrow-function-pattern",
+//       index: 14
+//     }
+//   }
+// }
 ```
 
 ### ES Version Features
@@ -273,96 +524,6 @@ const plugin = detectPlugin;
 | | `.isSupersetOf()` | `setA.isSupersetOf(setB)` |
 | | `.isDisjointFrom()` | `setA.isDisjointFrom(setB)` |
 
-## API Reference
-
-### `fastBrake(code)`
-
-Analyzes code and returns detected features. This is an async function.
-
-```javascript
-import { fastBrake } from 'fast-brake';
-
-const features = await fastBrake('const x = () => {}');
-console.log(features);
-// [{ name: 'arrow_functions', version: 'es2015' }]
-```
-
-**Parameters:**
-- `code` (string): Code to analyze
-
-**Returns:** `Promise<DetectedFeature[]>`
-
-### `detect(code)`
-
-Returns an array of detected features. This is an async function.
-
-```javascript
-import { detect } from 'fast-brake';
-
-const features = await detect(`
-  const arrow = () => {};
-  const template = \`Hello \${name}\`;
-`);
-
-console.log(features);
-// [{ name: 'arrow_functions', version: 'es2015' }]
-```
-
-**Parameters:**
-- `code` (string): Code to analyze
-
-**Returns:** `Promise<DetectedFeature[]>`
-```typescript
-interface DetectedFeature {
-  name: string;        // Feature name (e.g., 'arrow_functions')
-  version: string;     // Required ES version (e.g., 'es2015')
-  line?: number;       // Line number where feature was found
-  column?: number;     // Column number where feature was found
-  snippet?: string;    // Code snippet containing the feature
-}
-```
-
-### `check(code, options)`
-
-Returns a boolean indicating if code is compatible with the target version. This is an async function.
-
-```javascript
-import { check } from 'fast-brake';
-
-const isES5Compatible = await check('var x = 10;', { target: 'es5' });
-console.log(isES5Compatible); // true
-
-const hasES6Features = await check('const x = () => {};', { target: 'es5' });
-console.log(hasES6Features); // false
-```
-
-**Parameters:**
-- `code` (string): Code to analyze
-- `options` (DetectionOptions):
-  - `target` (string): Target ES version
-  - `throwOnFirst?` (boolean): Stop on first incompatible feature
-  - `ignorePatterns?` (string[]): Patterns to ignore
-  - `preprocessors?` (Array<(code: string) => string>): Code preprocessors
-
-**Returns:** `Promise<boolean>`
-
-### Additional Exports
-
-Fast Brake also exports these classes and utilities:
-
-```javascript
-import { Detector, Scanner, FastBrakeCache } from 'fast-brake';
-
-// Create a detector instance for custom configuration
-const detector = new Detector();
-await detector.initialize();
-
-// Scanner for file system operations
-const scanner = new Scanner();
-
-// Cache for performance optimization
-const cache = new FastBrakeCache();
-```
 
 ## Performance Benchmarks
 
@@ -515,86 +676,6 @@ echo "TURBO_TOKEN=your-vercel-token" > .env.local
 echo "TURBO_TEAM=your-team-id" >> .env.local
 
 # Get token from: https://vercel.com/account/tokens
-```
-
-## Extensions
-
-Fast Brake supports extensions that provide metadata and examples for enhanced detection capabilities.
-
-### Extension Schema
-
-Extensions follow this structure:
-
-```typescript
-interface Extension {
-  name: string;        // Extension name
-  description: string; // Extension description  
-  spec: {             // Extension specification
-    code: string;     // Example code
-    result: {         // Example result
-      name: string;
-      match: string;
-      spec: object;   // Additional metadata
-      rule: string;
-      index?: number;
-    }
-  }
-}
-```
-
-### Built-in Extensions
-
-#### 1. throw Extension
-Provides metadata for error throwing patterns:
-
-```javascript
-import { throwExtension } from 'fast-brake/src/extensions/throw';
-
-console.log(throwExtension);
-// {
-//   name: "throw",
-//   description: "Throws an error when specific patterns...",
-//   spec: {
-//     code: "throw new Error('Invalid operation');",
-//     result: {
-//       name: "throw-statement",
-//       match: "throw new Error",
-//       spec: { type: "error-throw", errorType: "Error", message: "Invalid operation" },
-//       rule: "throw-statement-pattern",
-//       index: 0
-//     }
-//   }
-// }
-```
-
-#### 2. loc Extension  
-Provides metadata for location enrichment:
-
-```javascript
-import { locExtension } from 'fast-brake/src/extensions/loc';
-
-console.log(locExtension);
-// {
-//   name: "loc",
-//   description: "Enriches detected features with location information...",
-//   spec: {
-//     code: "const arrow = () => { return 42; }",
-//     result: {
-//       name: "arrow-function",
-//       match: "() =>",
-//       spec: {
-//         loc: {
-//           start: { line: 1, column: 14 },
-//           end: { line: 1, column: 19 },
-//           offset: 14,
-//           length: 5
-//         }
-//       },
-//       rule: "arrow-function-pattern",
-//       index: 14
-//     }
-//   }
-// }
 ```
 
 ## Contributing
