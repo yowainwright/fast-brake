@@ -1,0 +1,15 @@
+export const THROW_PATTERNS = {
+  THROW_STATEMENT: /throw\s+/,
+  ERROR_CONSTRUCTOR: /new\s+(\w+)\s*\(/,
+  ERROR_MESSAGE: /new\s+\w+\s*\(\s*['"`]([^'"`]*?)['"`]/,
+  PROMISE_REJECT: /Promise\.reject\s*\(/,
+  ASYNC_THROW: /async\s+.*throw/,
+  TRY_CATCH_BLOCK: /try\s*\{[\s\S]*?\}\s*catch/,
+  RETHROW: /catch\s*\([^)]*\)\s*\{[^}]*$/,
+  CUSTOM_ERROR: /class\s+(\w+)\s+extends\s+Error/,
+  CONDITIONAL_THROW: /if\s*\([^)]*\)\s*\{?\s*throw/,
+  CATCH_CONTEXT: /catch\s*\([^)]*\)\s*\{[^}]*$/,
+  CONDITIONAL_LINE: /^\s*if\s*\([^)]*\)\s*/,
+  ASYNC_CONTEXT: /async\s+/,
+  NEW_ERROR_CHECK: /new\s+\w+/,
+} as const;

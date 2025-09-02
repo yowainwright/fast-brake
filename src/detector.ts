@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import { TINY_FILE_SIZE, COMPLEXITY_INDICATORS } from "./constants";
 import { loadPlugin } from "./plugins/loader";
+import { getCachedRegex, fastIndexOf } from "./utils";
 import type {
   DetectionMode,
   DetectionMatch,
@@ -10,7 +11,7 @@ import type {
 } from "./types";
 
 export class Detector {
-  private compiledPatterns: Map<string, RegExp>;
+  private compiledPatterns: Map<string, string>; // Store pattern strings instead of RegExp
   private featureStrings: Record<string, string[]>;
   private plugin: Plugin | null = null;
   private initialized = false;
@@ -45,7 +46,7 @@ export class Detector {
       }
       if ("patterns" in match && match.patterns) {
         for (const patternObj of match.patterns) {
-          this.compiledPatterns.set(matchName, new RegExp(patternObj.pattern));
+          this.compiledPatterns.set(matchName, patternObj.pattern);
         }
       }
     }
@@ -161,19 +162,19 @@ export class Detector {
 
   private checkStrings(code: string): boolean {
     for (const patterns of Object.values(this.featureStrings)) {
-      const hasMatch = patterns.some((pattern) => code.includes(pattern));
-      if (hasMatch) {
-        return true;
+      for (const pattern of patterns) {
+        if (fastIndexOf(code, pattern) !== -1) {
+          return true;
+        }
       }
     }
     return false;
   }
 
   private checkPatterns(code: string): boolean {
-    for (const pattern of this.compiledPatterns.values()) {
-      pattern.lastIndex = 0;
-      const matches = pattern.test(code);
-      if (matches) {
+    for (const patternStr of this.compiledPatterns.values()) {
+      const pattern = getCachedRegex(patternStr);
+      if (pattern.test(code)) {
         return true;
       }
     }
@@ -183,7 +184,7 @@ export class Detector {
   private findFirstStringMatch(code: string): DetectionMatch | null {
     for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
       for (const pattern of patterns) {
-        const index = code.indexOf(pattern);
+        const index = fastIndexOf(code, pattern);
         if (index !== -1) {
           if (this.plugin) {
             const rule = this.getPluginRule(featureName);
@@ -213,8 +214,8 @@ export class Detector {
   }
 
   private findFirstPatternMatch(code: string): DetectionMatch | null {
-    for (const [featureName, pattern] of this.compiledPatterns.entries()) {
-      pattern.lastIndex = 0;
+    for (const [featureName, patternStr] of this.compiledPatterns.entries()) {
+      const pattern = getCachedRegex(patternStr);
       const match = pattern.exec(code);
       if (match) {
         if (this.plugin) {
@@ -246,7 +247,7 @@ export class Detector {
   private findFirstStringMatchDetailed(code: string): DetectionMatch | null {
     for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
       for (const pattern of patterns) {
-        const index = code.indexOf(pattern);
+        const index = fastIndexOf(code, pattern);
         if (index !== -1) {
           if (this.plugin) {
             const rule = this.getPluginRule(featureName);
@@ -276,8 +277,8 @@ export class Detector {
   }
 
   private findFirstPatternMatchDetailed(code: string): DetectionMatch | null {
-    for (const [featureName, pattern] of this.compiledPatterns.entries()) {
-      pattern.lastIndex = 0;
+    for (const [featureName, patternStr] of this.compiledPatterns.entries()) {
+      const pattern = getCachedRegex(patternStr);
       const match = pattern.exec(code);
       if (match) {
         if (this.plugin) {
@@ -317,7 +318,12 @@ export class Detector {
   }
 
   private hasComplexityIndicators(code: string): boolean {
-    return COMPLEXITY_INDICATORS.some((indicator) => code.includes(indicator));
+    for (const indicator of COMPLEXITY_INDICATORS) {
+      if (fastIndexOf(code, indicator) !== -1) {
+        return true;
+      }
+    }
+    return false;
   }
 
   check(code: string, options: DetectionOptions): boolean {

@@ -1,0 +1,525 @@
+---
+title: Writing Custom Plugins
+description: "Create your own plugins to detect custom patterns in JavaScript code"
+---
+
+## Overview
+
+Fast Brake's plugin system allows you to create custom detection patterns for any JavaScript feature, API usage, or code pattern you need to identify. This guide will walk you through creating, testing, and optimizing custom plugins.
+
+## Basic Plugin Structure
+
+Every plugin must follow the Fast Brake plugin schema:
+
+```javascript
+const myPlugin = {
+  name: "unique-plugin-name",
+  description: "What this plugin detects",
+  spec: {
+    orderedRules: ["rule1", "rule2"],
+    matches: {
+      "feature_name": {
+        rule: "rule1",
+        strings: ["literal", "strings"],
+        patterns: [
+          { 
+            pattern: "regex\\spattern", 
+            identifier: "optional_id" 
+          }
+        ]
+      }
+    }
+  }
+};
+```
+
+## Step-by-Step Guide
+
+### Step 1: Define Your Detection Goals
+
+Before writing code, clearly define:
+- What patterns do you want to detect?
+- What are the literal strings that indicate these patterns?
+- What regex patterns provide precise matching?
+- How should matches be categorized (rules)?
+
+### Step 2: Create the Plugin Structure
+
+Start with the basic structure:
+
+```javascript
+const myCustomPlugin = {
+  name: "my-detector",
+  description: "Detects custom patterns in code",
+  spec: {
+    orderedRules: [],
+    matches: {}
+  }
+};
+```
+
+### Step 3: Define Rules
+
+Rules categorize your matches. Order them by priority:
+
+```javascript
+spec: {
+  orderedRules: ["critical", "warning", "info"],
+  // Critical patterns are checked first
+}
+```
+
+### Step 4: Add Detection Patterns
+
+For each pattern you want to detect:
+
+```javascript
+matches: {
+  "pattern_name": {
+    rule: "critical",
+    strings: ["searchString"],  // Fast pre-filter
+    patterns: [                 // Precise regex matching
+      { 
+        pattern: "exact\\sregex\\spattern",
+        identifier: "unique_id"
+      }
+    ]
+  }
+}
+```
+
+## Complete Examples
+
+### Example 1: Console Logger Plugin
+
+Detect and categorize console usage:
+
+```javascript
+const consoleLoggerPlugin = {
+  name: "console-logger",
+  description: "Detects console method usage",
+  spec: {
+    orderedRules: ["error", "warning", "debug"],
+    matches: {
+      "console_error": {
+        rule: "error",
+        strings: ["console.error"],
+        patterns: [
+          { 
+            pattern: "console\\.error\\s*\\([^)]*\\)",
+            identifier: "console_error_call"
+          }
+        ]
+      },
+      "console_warn": {
+        rule: "warning",
+        strings: ["console.warn"],
+        patterns: [
+          { 
+            pattern: "console\\.warn\\s*\\([^)]*\\)",
+            identifier: "console_warn_call"
+          }
+        ]
+      },
+      "console_log": {
+        rule: "debug",
+        strings: ["console.log", "console.debug", "console.info"],
+        patterns: [
+          { 
+            pattern: "console\\.(log|debug|info)\\s*\\([^)]*\\)",
+            identifier: "console_debug_calls"
+          }
+        ]
+      }
+    }
+  }
+};
+```
+
+### Example 2: Security Audit Plugin
+
+Detect potentially dangerous patterns:
+
+```javascript
+const securityAuditPlugin = {
+  name: "security-audit",
+  description: "Detects potentially dangerous code patterns",
+  spec: {
+    orderedRules: ["critical", "high", "medium", "low"],
+    matches: {
+      "eval_usage": {
+        rule: "critical",
+        strings: ["eval("],
+        patterns: [
+          { 
+            pattern: "\\beval\\s*\\(",
+            identifier: "eval_function"
+          }
+        ]
+      },
+      "function_constructor": {
+        rule: "critical",
+        strings: ["new Function"],
+        patterns: [
+          { 
+            pattern: "new\\s+Function\\s*\\(",
+            identifier: "function_constructor"
+          }
+        ]
+      },
+      "innerHTML": {
+        rule: "high",
+        strings: ["innerHTML"],
+        patterns: [
+          { 
+            pattern: "\\.innerHTML\\s*=",
+            identifier: "innerHTML_assignment"
+          }
+        ]
+      },
+      "document_write": {
+        rule: "high",
+        strings: ["document.write"],
+        patterns: [
+          { 
+            pattern: "document\\.write\\s*\\(",
+            identifier: "document_write_call"
+          }
+        ]
+      },
+      "hardcoded_secrets": {
+        rule: "critical",
+        strings: ["apiKey", "api_key", "secret", "password"],
+        patterns: [
+          { 
+            pattern: "(apiKey|api_key|secret|password)\\s*[:=]\\s*['\"][^'\"]+['\"]",
+            identifier: "potential_hardcoded_secret"
+          }
+        ]
+      }
+    }
+  }
+};
+```
+
+### Example 3: Framework Detection Plugin
+
+Detect framework-specific patterns:
+
+```javascript
+const frameworkDetectorPlugin = {
+  name: "framework-detector",
+  description: "Detects JavaScript framework usage",
+  spec: {
+    orderedRules: ["react", "vue", "angular", "svelte"],
+    matches: {
+      "react_component": {
+        rule: "react",
+        strings: ["React.Component", "useState", "useEffect"],
+        patterns: [
+          { 
+            pattern: "(React\\.Component|extends\\s+Component)",
+            identifier: "react_class_component"
+          },
+          {
+            pattern: "use(State|Effect|Context|Reducer|Callback|Memo|Ref|ImperativeHandle|LayoutEffect|DebugValue)\\s*\\(",
+            identifier: "react_hooks"
+          }
+        ]
+      },
+      "vue_component": {
+        rule: "vue",
+        strings: ["new Vue", "Vue.component", "createApp"],
+        patterns: [
+          { 
+            pattern: "new\\s+Vue\\s*\\(",
+            identifier: "vue_instance"
+          },
+          {
+            pattern: "createApp\\s*\\(",
+            identifier: "vue3_app"
+          }
+        ]
+      },
+      "angular_component": {
+        rule: "angular",
+        strings: ["@Component", "@Injectable", "NgModule"],
+        patterns: [
+          { 
+            pattern: "@(Component|Injectable|NgModule)\\s*\\(",
+            identifier: "angular_decorators"
+          }
+        ]
+      }
+    }
+  }
+};
+```
+
+## Performance Optimization
+
+### 1. String Patterns First
+
+Always include string patterns for pre-filtering:
+
+```javascript
+// Good - fast string check first
+{
+  strings: ["console."],  // Quick check
+  patterns: [{ pattern: "console\\.[a-z]+" }]  // Only if string found
+}
+
+// Avoid - regex only
+{
+  patterns: [{ pattern: "console\\.[a-z]+" }]  // Slower
+}
+```
+
+### 2. Specific Strings
+
+Use the most specific strings possible:
+
+```javascript
+// Good - specific
+strings: ["Promise.allSettled"]
+
+// Avoid - too general
+strings: ["Promise"]
+```
+
+### 3. Optimize Regex Patterns
+
+Keep patterns simple and anchored when possible:
+
+```javascript
+// Good - anchored and specific
+pattern: "\\bconsole\\.log\\("
+
+// Avoid - unanchored and complex
+pattern: ".*console.*\\..*log.*\\(.*\\)"
+```
+
+### 4. Rule Ordering
+
+Order rules by frequency or importance:
+
+```javascript
+// Most common or critical first
+orderedRules: ["common", "rare", "edge-cases"]
+```
+
+## Testing Your Plugin
+
+### Unit Testing
+
+```javascript
+import { test, expect } from 'vitest';
+import { Detector } from 'fast-brake';
+import myPlugin from './my-plugin';
+
+test('detects target patterns', async () => {
+  const detector = new Detector({ plugins: [myPlugin] });
+  await detector.initialize();
+  
+  const code = 'console.log("test")';
+  const results = await detector.detect(code);
+  
+  expect(results).toContainEqual(
+    expect.objectContaining({
+      name: 'console_log',
+      rule: 'debug'
+    })
+  );
+});
+
+test('ignores non-matching patterns', async () => {
+  const detector = new Detector({ plugins: [myPlugin] });
+  await detector.initialize();
+  
+  const code = 'const x = 5;';
+  const results = await detector.detect(code);
+  
+  expect(results).toHaveLength(0);
+});
+```
+
+### Integration Testing
+
+```javascript
+test('works with other plugins', async () => {
+  const detector = new Detector({ 
+    plugins: [myPlugin, esAll, telemetryPlugin] 
+  });
+  await detector.initialize();
+  
+  const code = `
+    console.log("test");
+    const arrow = () => {};
+    gtag('config', 'GA_ID');
+  `;
+  
+  const results = await detector.detect(code);
+  
+  expect(results).toHaveLength(3);
+  expect(results.map(r => r.plugin)).toEqual(
+    expect.arrayContaining(['my-plugin', 'es-version', 'telemetry'])
+  );
+});
+```
+
+### Performance Testing
+
+```javascript
+import { performance } from 'perf_hooks';
+
+test('performs within acceptable limits', async () => {
+  const detector = new Detector({ plugins: [myPlugin] });
+  await detector.initialize();
+  
+  const code = generateLargeCodeSample(); // Your test code
+  
+  const start = performance.now();
+  await detector.detect(code);
+  const duration = performance.now() - start;
+  
+  expect(duration).toBeLessThan(100); // 100ms threshold
+});
+```
+
+## Using Your Plugin
+
+### Direct Usage
+
+```javascript
+import { Detector } from 'fast-brake';
+import myPlugin from './my-plugin';
+
+const detector = new Detector({ plugins: [myPlugin] });
+await detector.initialize();
+
+const results = await detector.detect(code);
+```
+
+### With Fast Brake API
+
+```javascript
+import { detectWithPlugins } from 'fast-brake';
+import myPlugin from './my-plugin';
+
+const results = await detectWithPlugins(code, [myPlugin]);
+```
+
+### In Build Tools
+
+```javascript
+// webpack.config.js
+const { Detector } = require('fast-brake');
+const myPlugin = require('./my-plugin');
+
+module.exports = {
+  module: {
+    rules: [{
+      test: /\.js$/,
+      use: async (source) => {
+        const detector = new Detector({ plugins: [myPlugin] });
+        await detector.initialize();
+        
+        const results = await detector.detect(source);
+        if (results.some(r => r.rule === 'critical')) {
+          throw new Error('Critical patterns detected');
+        }
+        return source;
+      }
+    }]
+  }
+};
+```
+
+## Best Practices
+
+### 1. Naming Conventions
+
+- Plugin names: lowercase with hyphens (`my-plugin-name`)
+- Feature names: lowercase with underscores (`feature_name`)
+- Rules: lowercase, descriptive (`critical`, `warning`, `info`)
+
+### 2. Documentation
+
+Always document your patterns:
+
+```javascript
+const plugin = {
+  name: "security-audit",
+  description: "Detects security vulnerabilities",
+  // Document each pattern
+  spec: {
+    matches: {
+      "eval_usage": {
+        // What: Direct eval usage
+        // Why: Security risk - arbitrary code execution
+        // Example: eval('userInput')
+        rule: "critical",
+        strings: ["eval("],
+        patterns: [{ pattern: "\\beval\\s*\\(" }]
+      }
+    }
+  }
+};
+```
+
+### 3. Error Handling
+
+Consider edge cases in your patterns:
+
+```javascript
+// Handle various formatting
+patterns: [
+  { pattern: "console\\.log\\s*\\(" },      // console.log(
+  { pattern: "console\\s*\\.\\s*log\\s*\\(" }, // console . log(
+  { pattern: "console\\[\"log\"\\]\\s*\\(" }   // console["log"](
+]
+```
+
+### 4. Versioning
+
+Version your plugins for compatibility:
+
+```javascript
+const plugin = {
+  name: "my-plugin",
+  version: "1.0.0",  // Add version
+  description: "...",
+  spec: { ... }
+};
+```
+
+## Troubleshooting
+
+### Pattern Not Matching
+
+1. Test your regex separately:
+```javascript
+const pattern = /console\.log\s*\(/;
+const testCode = 'console.log("test")';
+console.log(pattern.test(testCode)); // Should be true
+```
+
+2. Check string patterns:
+```javascript
+const strings = ["console.log"];
+const testCode = 'console.log("test")';
+console.log(strings.some(s => testCode.includes(s))); // Should be true
+```
+
+### Performance Issues
+
+1. Profile your patterns:
+```javascript
+console.time('pattern-match');
+const results = await detector.detect(code);
+console.timeEnd('pattern-match');
+```
+
+2. Reduce pattern complexity
+3. Add more specific string filters
+

@@ -1,154 +1,148 @@
 import { test, expect, describe } from "bun:test";
-import {
-  enrichWithLoc,
-  enrichFeaturesWithLoc,
-  findFeatureWithLoc,
-  type LocEnrichedFeature,
-} from "../../../src/extensions/loc";
-import type { DetectedFeature } from "../../../src/types";
-import { detect } from "../../../src/detector";
+import { locExtension } from "../../../src/extensions/loc/index";
+import { ExtensionInput } from "../../../src/extensions/loc/types";
 
 describe("LOC Extension", () => {
-  describe("enrichWithLoc", () => {
-    test("should add location data to detected feature", () => {
-      const code = "const fn = () => {}";
-      const feature: DetectedFeature = {
-        name: "arrow_functions",
-        version: "es2015",
-        line: 1,
-        column: 12,
-        snippet: "=>",
+  describe("processLOCExtension", () => {
+    test("should calculate correct line and column positions", () => {
+      const input: ExtensionInput = {
+        code: "function test() {\n  return 42;\n}",
+        result: {
+          name: "return-statement",
+          match: "return 42",
+          spec: {},
+          rule: "return-pattern",
+          index: 20,
+        },
       };
 
-      const enriched = enrichWithLoc(code, feature);
+      const output = locExtension.process(input);
 
-      expect(enriched).toBeDefined();
-      expect(enriched?.loc).toBeDefined();
-      expect(enriched?.loc?.start).toEqual({ line: 1, column: 12 });
-      expect(enriched?.loc?.end).toEqual({ line: 1, column: 14 });
-      expect(enriched?.loc?.offset).toBe(14);
-      expect(enriched?.loc?.length).toBe(2);
-      expect(enriched?.snippet).toBe("=>");
+      expect(output.spec.loc.start.line).toBe(2);
+      expect(output.spec.loc.start.column).toBe(2);
+      expect(output.spec.loc.end.line).toBe(2);
+      expect(output.spec.loc.end.column).toBe(11);
+      expect(output.spec.loc.offset).toBe(20);
+      expect(output.spec.loc.length).toBe(9);
     });
 
-    test("should handle multiline features", () => {
-      const code = `const str = \`
-        multiline
-        template
-      \`;`;
-
-      const feature: DetectedFeature = {
-        name: "template_literals",
-        version: "es2015",
-        line: 1,
-        column: 13,
-        snippet: "`",
+    test("should handle single line code", () => {
+      const input: ExtensionInput = {
+        code: "const arrow = () => { return 42; }",
+        result: {
+          name: "arrow-function",
+          match: "() =>",
+          spec: {},
+          rule: "arrow-function-pattern",
+          index: 14,
+        },
       };
 
-      const enriched = enrichWithLoc(code, feature);
+      const output = locExtension.process(input);
 
-      expect(enriched?.loc?.start.line).toBe(1);
-      expect(enriched?.loc?.end.line).toBe(1);
+      expect(output.spec.loc.start.line).toBe(1);
+      expect(output.spec.loc.start.column).toBe(14);
+      expect(output.spec.loc.end.line).toBe(1);
+      expect(output.spec.loc.end.column).toBe(19);
     });
 
-    test("should return null for feature without required fields", () => {
-      const code = "const fn = () => {}";
-      const feature: DetectedFeature = {
-        name: "arrow_functions",
-        version: "es2015",
+    test("should handle empty match at position 0", () => {
+      const input: ExtensionInput = {
+        code: "const test = 123;",
+        result: {
+          name: "const-declaration",
+          match: "const",
+          spec: {},
+          rule: "const-pattern",
+        },
       };
 
-      const enriched = enrichWithLoc(code, feature);
-      expect(enriched).toBeNull();
+      const output = locExtension.process(input);
+
+      expect(output.spec.loc.offset).toBe(0);
+      expect(output.spec.loc.start.line).toBe(1);
+      expect(output.spec.loc.start.column).toBe(0);
     });
 
-    test("should use feature.index if available", () => {
-      const code = "const fn = () => {}";
-      const feature: DetectedFeature = {
-        name: "arrow_functions",
-        version: "es2015",
-        line: 1,
-        column: 12,
-        snippet: "=>",
-        index: 11,
+    test("should preserve existing spec properties", () => {
+      const input: ExtensionInput = {
+        code: "function test() {}",
+        result: {
+          name: "function",
+          match: "function test",
+          spec: {
+            customProp: "value",
+            nested: { prop: true },
+          },
+          rule: "function-pattern",
+          index: 0,
+        },
       };
 
-      const enriched = enrichWithLoc(code, feature);
-      expect(enriched?.loc?.offset).toBe(11);
+      const output = locExtension.process(input);
+
+      expect(output.spec.customProp).toBe("value");
+      expect(output.spec.nested.prop).toBe(true);
+      expect(output.spec.loc).toBeDefined();
+    });
+
+    test("should handle multiline matches", () => {
+      const input: ExtensionInput = {
+        code: "line1\nline2\nline3\nline4",
+        result: {
+          name: "multiline",
+          match: "line2\nline3",
+          spec: {},
+          rule: "multiline-pattern",
+          index: 6,
+        },
+      };
+
+      const output = locExtension.process(input);
+
+      expect(output.spec.loc.start.line).toBe(2);
+      expect(output.spec.loc.start.column).toBe(0);
+      expect(output.spec.loc.end.line).toBe(3);
+      expect(output.spec.loc.end.column).toBe(5);
+      expect(output.spec.loc.length).toBe(11);
+    });
+
+    test("should return all required properties", () => {
+      const input: ExtensionInput = {
+        code: "test code",
+        result: {
+          name: "test",
+          match: "test",
+          spec: {},
+          rule: "test-rule",
+          index: 0,
+        },
+      };
+
+      const output = locExtension.process(input);
+
+      expect(output).toHaveProperty("name");
+      expect(output).toHaveProperty("match");
+      expect(output).toHaveProperty("spec");
+      expect(output).toHaveProperty("rule");
+      expect(output.spec).toHaveProperty("loc");
     });
   });
 
-  describe("enrichFeaturesWithLoc", () => {
-    test("should enrich multiple features", () => {
-      const code = "const fn = () => { return obj?.prop ?? 'default'; }";
-      const features: DetectedFeature[] = [
-        {
-          name: "arrow_functions",
-          version: "es2015",
-          line: 1,
-          column: 12,
-          snippet: "=>",
-        },
-        {
-          name: "optional_chaining",
-          version: "es2020",
-          line: 1,
-          column: 32,
-          snippet: "?.",
-        },
-      ];
-
-      const enriched = enrichFeaturesWithLoc(code, features);
-
-      expect(enriched.length).toBe(2);
-      enriched.forEach((feature) => {
-        expect(feature.loc).toBeDefined();
-      });
+  describe("Extension metadata", () => {
+    test("should export correct metadata", () => {
+      expect(locExtension.name).toBe("loc");
+      expect(locExtension.description).toContain("location information");
+      expect(locExtension.spec).toBeDefined();
+      expect(locExtension.process).toBeDefined();
+      expect(typeof locExtension.process).toBe("function");
     });
 
-    test("should filter out features that cannot be enriched", () => {
-      const features: DetectedFeature[] = [
-        {
-          name: "arrow_functions",
-          version: "es2015",
-          line: 1,
-          column: 12,
-          snippet: "=>",
-        },
-        { name: "unknown_feature", version: "es2015" },
-      ];
-
-      const enriched = enrichFeaturesWithLoc("const fn = () => {}", features);
-
-      expect(enriched.length).toBe(1);
-      expect(enriched[0].name).toBe("arrow_functions");
-    });
-  });
-
-  describe("findFeatureWithLoc", () => {
-    test("should find feature by name", () => {
-      const code = "obj?.prop";
-
-      const feature = findFeatureWithLoc(code, "optional_chaining");
-
-      expect(feature).toBeNull();
-    });
-
-    test("should find feature at specific line", () => {
-      const code = `const a = () => {};
-const b = () => {};`;
-
-      const feature = findFeatureWithLoc(code, "arrow_functions", 2);
-
-      expect(feature).toBeNull();
-    });
-
-    test("should return null for non-existent feature", () => {
-      const code = "const x = 1;";
-
-      const feature = findFeatureWithLoc(code, "arrow_functions");
-
-      expect(feature).toBeNull();
+    test("should have valid example in spec", () => {
+      expect(locExtension.spec.code).toBe("const arrow = () => { return 42; }");
+      expect(locExtension.spec.result.name).toBe("arrow-function");
+      expect(locExtension.spec.result.match).toBe("() =>");
+      expect(locExtension.spec.result.spec.loc).toBeDefined();
     });
   });
 });

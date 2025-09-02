@@ -1,28 +1,28 @@
 // ES2022 features
 class MyClass {
   // Private fields
-  #privateField = 'private';
+  #privateField = "private";
   #privateMethod() {
     return this.#privateField;
   }
-  
+
   // Public fields
-  publicField = 'public';
-  
+  publicField = "public";
+
   // Static fields
-  static staticField = 'static';
-  
+  static staticField = "static";
+
   // Static block
   static {
-    console.log('Static initialization block');
-    this.staticField = 'initialized';
+    console.log("Static initialization block");
+    this.staticField = "initialized";
   }
-  
+
   // Private getter/setter
   get #private() {
     return this.#privateField;
   }
-  
+
   set #private(value) {
     this.#privateField = value;
   }
@@ -33,23 +33,23 @@ const arr = [1, 2, 3, 4, 5];
 const last = arr.at(-1);
 const secondLast = arr.at(-2);
 
-const str = 'hello';
+const str = "hello";
 const lastChar = str.at(-1);
 
 // Object.hasOwn
-if (Object.hasOwn(obj, 'property')) {
-  console.log('Has property');
+if (Object.hasOwn(obj, "property")) {
+  console.log("Has property");
 }
 
 // Error cause
 try {
-  throw new Error('Something failed', { cause: originalError });
+  throw new Error("Something failed", { cause: originalError });
 } catch (error) {
   console.log(error.cause);
 }
 
 // Top-level await (in modules)
-const data = await fetch('/api/data');
+const data = await fetch("/api/data");
 const json = await data.json();
 
 // RegExp match indices - using 'd' flag (ES2022)

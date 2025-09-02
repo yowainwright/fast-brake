@@ -1,6 +1,6 @@
 // ES2017 features
 async function asyncFunction() {
-  const result = await fetch('/api/data');
+  const result = await fetch("/api/data");
   return await result.json();
 }
 
@@ -23,14 +23,10 @@ const values = Object.values(obj);
 const descriptors = Object.getOwnPropertyDescriptors(obj);
 
 // String padding
-const padded = str.padStart(10, '0');
-const paddedEnd = str.padEnd(10, ' ');
+const padded = str.padStart(10, "0");
+const paddedEnd = str.padEnd(10, " ");
 
 // Trailing commas in function parameters
-function trailingComma(
-  param1,
-  param2,
-  param3,
-) {
+function trailingComma(param1, param2, param3) {
   return param1 + param2 + param3;
 }

@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import pc from 'picocolors';
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import pc from "picocolors";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const rootDir = join(__dirname, '../../../');
+const rootDir = join(__dirname, "../../../");
 
 interface BenchmarkResult {
   parser: string;
@@ -18,59 +18,65 @@ interface BenchmarkResult {
 
 // Generate enhanced markdown table for README
 function generateReadmeTable(results: BenchmarkResult[]): string {
-  const fastBrakeQuick = results.find(r => r.parser === 'fast-brake (pattern)');
-  const fastBrakeFull = results.find(r => r.parser === 'fast-brake (full)');
-  const babel = results.find(r => r.parser === '@babel/parser');
-  
-  let md = '| Metric | fast-brake (Quick) | fast-brake (Full) | @babel/parser | acorn |\n';
-  md += '|--------|-------------------|-------------------|---------------|-------|\n';
-  
+  const fastBrakeQuick = results.find(
+    (r) => r.parser === "fast-brake (pattern)",
+  );
+  const fastBrakeFull = results.find((r) => r.parser === "fast-brake (full)");
+  const babel = results.find((r) => r.parser === "@babel/parser");
+
+  let md =
+    "| Metric | fast-brake (Quick) | fast-brake (Full) | @babel/parser | acorn |\n";
+  md +=
+    "|--------|-------------------|-------------------|---------------|-------|\n";
+
   // Time metrics
-  md += `| **Time (ms)** | ${fastBrakeQuick?.timeMs || '-'} | ${fastBrakeFull?.timeMs || '-'} | `;
-  md += `${babel?.timeMs || '-'} | ${results.find(r => r.parser === 'acorn')?.timeMs || '-'} |\n`;
-  
+  md += `| **Time (ms)** | ${fastBrakeQuick?.timeMs || "-"} | ${fastBrakeFull?.timeMs || "-"} | `;
+  md += `${babel?.timeMs || "-"} | ${results.find((r) => r.parser === "acorn")?.timeMs || "-"} |\n`;
+
   // Ops/sec metrics
-  md += `| **Ops/sec** | ${fastBrakeQuick?.opsPerSec.toLocaleString() || '-'} | `;
-  md += `${fastBrakeFull?.opsPerSec.toLocaleString() || '-'} | `;
-  md += `${babel?.opsPerSec.toLocaleString() || '-'} | `;
-  md += `${results.find(r => r.parser === 'acorn')?.opsPerSec.toLocaleString() || '-'} |\n`;
-  
+  md += `| **Ops/sec** | ${fastBrakeQuick?.opsPerSec.toLocaleString() || "-"} | `;
+  md += `${fastBrakeFull?.opsPerSec.toLocaleString() || "-"} | `;
+  md += `${babel?.opsPerSec.toLocaleString() || "-"} | `;
+  md += `${results.find((r) => r.parser === "acorn")?.opsPerSec.toLocaleString() || "-"} |\n`;
+
   // Relative speed
   const babelSpeed = babel?.timeMs || 1;
   const quickRelative = babelSpeed / (fastBrakeQuick?.timeMs || 1);
   const fullRelative = babelSpeed / (fastBrakeFull?.timeMs || 1);
-  
+
   md += `| **Relative Speed** | **${quickRelative.toFixed(1)}x faster** | `;
   md += `${fullRelative.toFixed(1)}x faster | 1.0x | `;
-  md += `${((babelSpeed / (results.find(r => r.parser === 'acorn')?.timeMs || 1))).toFixed(1)}x |\n`;
-  
+  md += `${(babelSpeed / (results.find((r) => r.parser === "acorn")?.timeMs || 1)).toFixed(1)}x |\n`;
+
   return md;
 }
 
 // Update README.md file
 function updateReadme(benchmarkData: BenchmarkResult[]): boolean {
-  const readmePath = join(rootDir, 'README.md');
-  
+  const readmePath = join(rootDir, "README.md");
+
   if (!existsSync(readmePath)) {
-    console.log(pc.red('❌ README.md not found!'));
+    console.log(pc.red("❌ README.md not found!"));
     return false;
   }
-  
-  const readme = readFileSync(readmePath, 'utf-8');
+
+  const readme = readFileSync(readmePath, "utf-8");
   const table = generateReadmeTable(benchmarkData);
-  
+
   // Find the performance benchmarks section
-  const startMarker = '## Performance Benchmarks';
-  const endMarker = '### When to use Quick vs Full mode';
-  
+  const startMarker = "## Performance Benchmarks";
+  const endMarker = "### When to use Quick vs Full mode";
+
   const startIndex = readme.indexOf(startMarker);
   const endIndex = readme.indexOf(endMarker);
-  
+
   if (startIndex === -1 || endIndex === -1) {
-    console.log(pc.yellow('⚠️  Could not find performance section markers in README'));
+    console.log(
+      pc.yellow("⚠️  Could not find performance section markers in README"),
+    );
     return false;
   }
-  
+
   // Build the new performance section
   const newSection = `${startMarker}
 
@@ -81,20 +87,22 @@ ${table}
 *Benchmarked on ${new Date().toLocaleDateString()}*
 
 `;
-  
+
   // Replace the section
-  const newReadme = readme.substring(0, startIndex) + 
-                    newSection + 
-                    readme.substring(endIndex);
-  
+  const newReadme =
+    readme.substring(0, startIndex) + newSection + readme.substring(endIndex);
+
   writeFileSync(readmePath, newReadme);
   return true;
 }
 
 // Create React component for the site
 function createReactComponent(benchmarkData: BenchmarkResult[]): void {
-  const componentPath = join(rootDir, 'site/src/components/home/BenchmarkTable.tsx');
-  
+  const componentPath = join(
+    rootDir,
+    "site/src/components/home/BenchmarkTable.tsx",
+  );
+
   const component = `import React from 'react';
 
 interface BenchmarkResult {
@@ -162,15 +170,15 @@ export function BenchmarkTable() {
 
 export default BenchmarkTable;
 `;
-  
+
   writeFileSync(componentPath, component);
-  console.log(pc.green('✓ React component created'));
+  console.log(pc.green("✓ React component created"));
 }
 
 // Create MDX component for docs
 function createMdxComponent(benchmarkData: BenchmarkResult[]): void {
-  const mdxPath = join(rootDir, 'site/src/components/docs/BenchmarkData.tsx');
-  
+  const mdxPath = join(rootDir, "site/src/components/docs/BenchmarkData.tsx");
+
   const component = `import React from 'react';
 
 interface BenchmarkResult {
@@ -222,49 +230,55 @@ export function BenchmarkData() {
 
 export default BenchmarkData;
 `;
-  
+
   writeFileSync(mdxPath, component);
-  console.log(pc.green('✓ MDX component created'));
+  console.log(pc.green("✓ MDX component created"));
 }
 
 // Main function
 async function main() {
-  console.log(pc.bold(pc.cyan('🚀 Updating Benchmarks Across Project\n')));
-  
+  console.log(pc.bold(pc.cyan("🚀 Updating Benchmarks Across Project\n")));
+
   // Load benchmark data
-  const dataPath = join(__dirname, 'results/benchmark-table.json');
-  
+  const dataPath = join(__dirname, "results/benchmark-table.json");
+
   if (!existsSync(dataPath)) {
-    console.log(pc.red('❌ No benchmark data found!'));
-    console.log(pc.yellow('   Run "bun run benchmark && bun run benchmark:table" first.\n'));
+    console.log(pc.red("❌ No benchmark data found!"));
+    console.log(
+      pc.yellow(
+        '   Run "bun run benchmark && bun run benchmark:table" first.\n',
+      ),
+    );
     process.exit(1);
   }
-  
-  const benchmarkData: BenchmarkResult[] = JSON.parse(readFileSync(dataPath, 'utf-8'));
-  
+
+  const benchmarkData: BenchmarkResult[] = JSON.parse(
+    readFileSync(dataPath, "utf-8"),
+  );
+
   // Update README
-  console.log(pc.gray('Updating README.md...'));
+  console.log(pc.gray("Updating README.md..."));
   if (updateReadme(benchmarkData)) {
-    console.log(pc.green('✓ README.md updated'));
+    console.log(pc.green("✓ README.md updated"));
   }
-  
+
   // Create React component
-  console.log(pc.gray('Creating React component...'));
+  console.log(pc.gray("Creating React component..."));
   createReactComponent(benchmarkData);
-  
+
   // Create MDX component
-  console.log(pc.gray('Creating MDX component...'));
+  console.log(pc.gray("Creating MDX component..."));
   createMdxComponent(benchmarkData);
-  
-  console.log(pc.green('\n✅ All benchmarks updated successfully!'));
-  console.log(pc.gray('\nUpdated files:'));
-  console.log(pc.gray('  • README.md'));
-  console.log(pc.gray('  • site/src/components/home/BenchmarkTable.tsx'));
-  console.log(pc.gray('  • site/src/components/docs/BenchmarkData.tsx'));
-  
-  console.log(pc.cyan('\n📝 Next steps:'));
-  console.log(pc.gray('  1. Import BenchmarkTable in your homepage'));
-  console.log(pc.gray('  2. Import BenchmarkData in your docs'));
+
+  console.log(pc.green("\n✅ All benchmarks updated successfully!"));
+  console.log(pc.gray("\nUpdated files:"));
+  console.log(pc.gray("  • README.md"));
+  console.log(pc.gray("  • site/src/components/home/BenchmarkTable.tsx"));
+  console.log(pc.gray("  • site/src/components/docs/BenchmarkData.tsx"));
+
+  console.log(pc.cyan("\n📝 Next steps:"));
+  console.log(pc.gray("  1. Import BenchmarkTable in your homepage"));
+  console.log(pc.gray("  2. Import BenchmarkData in your docs"));
   console.log(pc.gray('  3. Run "bun run dev" to see the changes'));
 }
 

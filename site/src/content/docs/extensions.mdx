@@ -1,0 +1,375 @@
+---
+title: Extension System
+description: "Enhance Fast Brake's detection results with metadata and additional functionality"
+---
+
+## Overview
+
+Extensions in Fast Brake provide a way to enrich detection results with additional metadata, examples, and functionality. While plugins detect patterns, extensions enhance the results with extra information like location data, error handling, or custom metadata.
+
+## Extension Schema
+
+Every extension in Fast Brake follows this TypeScript schema:
+
+```typescript
+interface Extension {
+  name: string;        // Extension name
+  description: string; // Extension description  
+  spec: {             // Extension specification
+    code: string;     // Example code
+    result: {         // Example result
+      name: string;
+      match: string;
+      spec: object;   // Additional metadata
+      rule: string;
+      index?: number;
+    }
+  }
+}
+```
+
+The schema is also available as a JSON Schema at `src/extensionsSchema.json`:
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["name", "description", "spec"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the extension"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the extension"
+    },
+    "spec": {
+      "type": "object",
+      "required": ["code", "result"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Code from a matched file"
+        },
+        "result": {
+          "type": "object",
+          "description": "DetectMatch object",
+          "required": ["name", "match", "spec", "rule"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the match"
+            },
+            "match": {
+              "type": "string",
+              "description": "The matched content"
+            },
+            "spec": {
+              "type": "object",
+              "description": "Plugin specification"
+            },
+            "rule": {
+              "type": "string",
+              "description": "Rule that was matched"
+            },
+            "index": {
+              "type": "number",
+              "description": "Optional index of the match"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Built-in Extensions
+
+Fast Brake includes two built-in extensions:
+
+### 1. throw Extension
+
+The throw extension provides metadata for error throwing patterns and can be used to fail fast when incompatible features are detected.
+
+```javascript
+import { throwExtension } from 'fast-brake/src/extensions/throw';
+
+// Extension structure
+{
+  name: "throw",
+  description: "Throws an error when specific patterns or conditions are detected in the code",
+  spec: {
+    code: "throw new Error('Invalid operation');",
+    result: {
+      name: "throw-statement",
+      match: "throw new Error",
+      spec: {
+        type: "error-throw",
+        errorType: "Error",
+        message: "Invalid operation"
+      },
+      rule: "throw-statement-pattern",
+      index: 0
+    }
+  }
+}
+```
+
+**Usage Example:**
+
+```javascript
+import { detect } from 'fast-brake';
+import { throwExtension } from 'fast-brake/src/extensions/throw';
+
+// Configure detector to throw on incompatible features
+const detector = new Detector({
+  extensions: [throwExtension],
+  throwOnIncompatible: true
+});
+
+try {
+  await detector.detect(code, { target: 'es5' });
+} catch (error) {
+  console.error('Incompatible feature detected:', error.message);
+  // Error includes metadata from throw extension
+}
+```
+
+### 2. loc Extension
+
+The loc (location) extension enriches detected features with precise location information including line numbers, columns, and offsets.
+
+```javascript
+import { locExtension } from 'fast-brake/src/extensions/loc';
+
+// Extension structure
+{
+  name: "loc",
+  description: "Enriches detected features with location information including line, column, offset, and length",
+  spec: {
+    code: "const arrow = () => { return 42; }",
+    result: {
+      name: "arrow-function",
+      match: "() =>",
+      spec: {
+        loc: {
+          start: { line: 1, column: 14 },
+          end: { line: 1, column: 19 },
+          offset: 14,
+          length: 5
+        }
+      },
+      rule: "arrow-function-pattern",
+      index: 14
+    }
+  }
+}
+```
+
+**Usage Example:**
+
+```javascript
+import { detect } from 'fast-brake';
+import { locExtension } from 'fast-brake/src/extensions/loc';
+
+const detector = new Detector({
+  extensions: [locExtension]
+});
+
+const code = `
+const arrow = () => {
+  return 42;
+}
+`;
+
+const results = await detector.detect(code);
+console.log(results[0]);
+// {
+//   name: "arrow-function",
+//   match: "() =>",
+//   spec: {
+//     loc: {
+//       start: { line: 2, column: 14 },
+//       end: { line: 2, column: 19 },
+//       offset: 15,
+//       length: 5
+//     }
+//   },
+//   rule: "es2015"
+// }
+```
+
+## Extensions vs Plugins
+
+Understanding the difference:
+
+| Aspect | Plugins | Extensions |
+|--------|---------|------------|
+| **Purpose** | Detect patterns | Enhance results |
+| **When Applied** | During detection | After detection |
+| **Output** | Detection matches | Enriched metadata |
+| **Performance Impact** | Direct (pattern matching) | Indirect (post-processing) |
+| **Examples** | ES features, telemetry | Location data, error handling |
+
+## Using Extensions
+
+### Basic Usage
+
+```javascript
+import { Detector } from 'fast-brake';
+import { locExtension, throwExtension } from 'fast-brake/src/extensions';
+
+const detector = new Detector({
+  extensions: [locExtension, throwExtension]
+});
+
+await detector.initialize();
+const results = await detector.detect(code);
+```
+
+### With the Core API
+
+```javascript
+import { detect } from 'fast-brake';
+
+const results = await detect(code, {
+  extensions: [locExtension],
+  includeMetadata: true
+});
+```
+
+### Conditional Extension Usage
+
+```javascript
+const detector = new Detector({
+  extensions: process.env.NODE_ENV === 'development' 
+    ? [locExtension, debugExtension]
+    : [throwExtension]
+});
+```
+
+## Creating Custom Extensions
+
+See our guide on [Writing Custom Extensions](/docs/extensions/custom) for detailed instructions.
+
+### Basic Example
+
+```javascript
+const metadataExtension = {
+  name: "metadata",
+  description: "Adds custom metadata to detection results",
+  spec: {
+    code: "const example = 'code';",
+    result: {
+      name: "example-match",
+      match: "const",
+      spec: {
+        timestamp: Date.now(),
+        severity: "info",
+        category: "declaration"
+      },
+      rule: "es2015",
+      index: 0
+    }
+  }
+};
+```
+
+## Extension Composition
+
+Extensions can be composed to provide multiple enhancements:
+
+```javascript
+const composedExtension = {
+  name: "composed",
+  description: "Multiple enhancements",
+  spec: {
+    code: "example",
+    result: {
+      name: "match",
+      match: "example",
+      spec: {
+        ...locExtension.spec.result.spec,
+        ...metadataExtension.spec.result.spec,
+        // Additional custom metadata
+        custom: "value"
+      },
+      rule: "custom",
+      index: 0
+    }
+  }
+};
+```
+
+## Performance Considerations
+
+Extensions are applied after detection, so they have minimal impact on detection performance:
+
+1. **Lazy Loading**: Load extensions only when needed
+2. **Selective Application**: Apply extensions only to specific matches
+3. **Caching**: Cache extension results for repeated detections
+
+```javascript
+// Lazy loading example
+const getExtensions = async () => {
+  if (needsLocationData) {
+    const { locExtension } = await import('fast-brake/src/extensions/loc');
+    return [locExtension];
+  }
+  return [];
+};
+
+const detector = new Detector({
+  extensions: await getExtensions()
+});
+```
+
+## API Reference
+
+### Extension Methods
+
+```typescript
+// Add an extension
+detector.addExtension(extension: Extension): void
+
+// Remove an extension
+detector.removeExtension(extensionName: string): void
+
+// Get all extensions
+detector.getExtensions(): Extension[]
+
+// Apply extension to results
+detector.applyExtensions(results: DetectionResult[]): EnhancedResult[]
+```
+
+### Extension Configuration
+
+```typescript
+interface ExtensionConfig {
+  // Enable/disable specific extensions
+  enabled?: string[];
+  
+  // Extension-specific options
+  options?: {
+    loc?: {
+      includeOffset?: boolean;
+      includeLength?: boolean;
+    };
+    throw?: {
+      immediate?: boolean;
+      includeStack?: boolean;
+    };
+  };
+}
+```
+
+## Best Practices
+
+1. **Keep Extensions Lightweight**: Extensions should add metadata, not perform heavy computation
+2. **Use Type Safety**: Define TypeScript interfaces for your extension metadata
+3. **Document Metadata**: Clearly document what metadata your extension adds
+4. **Test Thoroughly**: Test extensions with various detection results
+5. **Version Compatibility**: Ensure extensions work with different Fast Brake versions
+

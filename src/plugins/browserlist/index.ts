@@ -1,6 +1,7 @@
 import type { Plugin, PluginMatch } from "../../types";
 import browserlistPlugin from "./schema.json";
 import { ES_VERSIONS } from "../../constants";
+import { fastIndexOf, getCachedRegex } from "../../utils";
 
 export interface BrowserTarget {
   name: string;
@@ -40,15 +41,23 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
   const browserArray = Array.isArray(browsers) ? browsers : [browsers];
   const targets: BrowserTarget[] = [];
 
+  const browserRegex = getCachedRegex("^(chrome|firefox|safari|edge|ie)");
+  const versionRegex = getCachedRegex("^([><=]{0,2})\\s*(\\d+)$");
+  const lastVersionRegex = getCachedRegex("last\\s+(\\d{1,2})");
+
   for (const browser of browserArray) {
     const trimmed = browser.trim().toLowerCase();
 
-    const browserMatch = trimmed.match(/^(chrome|firefox|safari|edge|ie)/);
+    const hasLast = fastIndexOf(trimmed, "last");
+    const hasPercent = fastIndexOf(trimmed, "%");
+    const isDefaults = trimmed === "defaults";
+
+    const browserMatch = trimmed.match(browserRegex);
     if (browserMatch) {
       const name = browserMatch[1];
       const rest = trimmed.slice(name.length).trim();
 
-      const versionMatch = rest.match(/^([><=]{0,2})\s*(\d+)$/);
+      const versionMatch = rest.match(versionRegex);
       if (versionMatch) {
         const version = parseInt(versionMatch[2], 10);
         targets.push({
@@ -56,8 +65,8 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
           version,
         });
       }
-    } else if (browser.includes("last")) {
-      const versionMatch = browser.match(/last\s+(\d{1,2})/);
+    } else if (hasLast !== -1) {
+      const versionMatch = trimmed.match(lastVersionRegex);
       if (versionMatch) {
         const versions = parseInt(versionMatch[1], 10);
         targets.push(
@@ -66,7 +75,7 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
           { name: "safari", version: 17 - versions },
         );
       }
-    } else if (browser === "defaults" || browser.includes("%")) {
+    } else if (isDefaults || hasPercent !== -1) {
       targets.push(
         { name: "chrome", version: 80 },
         { name: "firefox", version: 74 },

@@ -1,0 +1,81 @@
+---
+import PluginSpotlight from './PluginSpotlight.tsx';
+import { Code2, Activity, Globe, Search } from 'lucide-react';
+---
+
+<div class="pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="text-center mb-12 lg:mb-16">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight font-outfit">
+        <span class="bg-clip-text text-transparent" style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%); -webkit-background-clip: text;">
+          Plugin-Based
+        </span> Architecture
+      </h2>
+      
+      <p class="mt-4 sm:mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+        Fast Brake uses a flexible plugin system for feature detection. Mix and match plugins or create your own
+        to detect custom patterns, telemetry, or specific JavaScript features.
+      </p>
+    </div>
+
+    <!-- Plugin Schema Section with Spotlight -->
+    <PluginSpotlight client:load className="mb-12" />
+
+    <!-- Built-in Plugins -->
+    <div class="bg-base-100 rounded-2xl border border-base-content/10 p-6 lg:p-8 mb-12">
+      <h3 class="text-xl font-bold mb-6 font-outfit">Built-in Plugins</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-orange-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <Code2 className="w-5 h-5 text-current" />
+          </div>
+          <div>
+            <h4 class="font-semibold">ES Version Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Detects ES5 through ES2025 features with 40+ patterns
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-blue-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <Activity className="w-5 h-5 text-current" />
+          </div>
+          <div>
+            <h4 class="font-semibold">Telemetry Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Identifies analytics and tracking code patterns
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-green-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <Globe className="w-5 h-5 text-current" />
+          </div>
+          <div>
+            <h4 class="font-semibold">Browserlist Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Checks compatibility with browser versions
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-purple-500 bg-opacity-20 rounded-lg flex items-center justify-center">
+            <Search className="w-5 h-5 text-current" />
+          </div>
+          <div>
+            <h4 class="font-semibold">Detect Plugin</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Auto-detects minimum required ES version
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>

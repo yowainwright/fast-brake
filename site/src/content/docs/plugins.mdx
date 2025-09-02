@@ -1,0 +1,210 @@
+---
+title: Plugin System
+description: "Fast Brake's plugin architecture for extensible pattern detection"
+---
+
+## Overview
+
+Fast Brake uses a plugin-based architecture that enables flexible and performant pattern detection. Plugins define patterns and rules for detecting any text patterns in your code - whether ECMAScript features, telemetry tracking, security issues, or custom patterns you define.
+
+## Plugin Schema
+
+Every plugin in Fast Brake follows this TypeScript schema:
+
+```typescript
+interface Plugin {
+  name: string;        // Unique plugin identifier
+  description: string; // Plugin description
+  spec: PluginSpec;    // Plugin specification
+}
+
+interface PluginSpec {
+  orderedRules: string[];                    // Ordered list of rules (e.g., ES versions)
+  matches: Record<string, PluginMatch>;      // Detection patterns mapped by feature name
+}
+
+interface PluginMatch {
+  rule: string;                 // Rule this match belongs to (e.g., "es2015")
+  strings?: string[];           // Fast string patterns to check first
+  patterns?: PluginPattern[];   // Regex patterns for detailed matching
+}
+
+interface PluginPattern {
+  pattern: string;      // Regex pattern string
+  identifier?: string;  // Optional identifier for the pattern
+}
+```
+
+## Schema Properties
+
+### `Plugin`
+The root plugin object containing metadata and specifications.
+
+- **`name`**: A unique identifier for your plugin (e.g., "es-version", "telemetry")
+- **`description`**: Clear description of what the plugin detects
+- **`spec`**: The plugin specification containing rules and matches
+
+### `PluginSpec`
+Defines the detection logic and pattern organization.
+
+- **`orderedRules`**: Array of rule names in priority order. Rules are processed sequentially, allowing for hierarchical detection (e.g., `["es2025", "es2024", "es2023", ...]`)
+- **`matches`**: Object mapping feature names to their detection patterns
+
+### `PluginMatch`
+Individual feature detection configuration.
+
+- **`rule`**: The rule category this match belongs to
+- **`strings`** (optional): Array of literal strings to search for first (performance optimization)
+- **`patterns`** (optional): Array of regex patterns for detailed matching
+
+### `PluginPattern`
+Regex pattern configuration for precise matching.
+
+- **`pattern`**: The regular expression pattern as a string
+- **`identifier`** (optional): A unique identifier for this specific pattern
+
+## How Plugins Work
+
+1. **String Matching**: Fast Brake first checks for literal strings (if provided) for quick filtering
+2. **Pattern Matching**: If strings are found, regex patterns are applied for precise detection
+3. **Rule Association**: Matches are associated with their rules for categorization
+4. **Result Generation**: Detection results include the pattern name, rule, and match details
+
+## Example Plugin
+
+Here's a complete example of a custom plugin:
+
+```javascript
+const myPlugin = {
+  name: "my-custom-plugin",
+  description: "Detects custom patterns in JavaScript code",
+  spec: {
+    orderedRules: ["critical", "warning", "info"],
+    matches: {
+      "dangerous_eval": {
+        rule: "critical",
+        strings: ["eval("],
+        patterns: [
+          { 
+            pattern: "\\beval\\s*\\(", 
+            identifier: "eval_usage" 
+          }
+        ]
+      },
+      "console_usage": {
+        rule: "info",
+        strings: ["console."],
+        patterns: [
+          { 
+            pattern: "console\\.(log|warn|error|info)", 
+            identifier: "console_methods" 
+          }
+        ]
+      }
+    }
+  }
+};
+```
+
+## Performance Considerations
+
+### String Patterns
+Always include string patterns when possible - they're checked before regex for optimal performance:
+
+```javascript
+{
+  strings: ["async", "await"],  // Quick pre-filter
+  patterns: [...]                // Only applied if strings found
+}
+```
+
+### Rule Ordering
+Place frequently matched or critical rules first in `orderedRules` for better performance:
+
+```javascript
+orderedRules: ["common", "rare", "edge-cases"]
+```
+
+### Pattern Optimization
+Keep regex patterns simple and specific:
+
+```javascript
+// Good - simple and fast
+pattern: "\\basync\\s+function"
+
+// Avoid - complex and slower
+pattern: "\\basync\\s*(?:function)?\\s*\\([^)]*\\)\\s*(?:=>)?\\s*\\{"
+```
+
+## Using Plugins
+
+### Basic Usage
+
+```javascript
+import { Detector } from 'fast-brake';
+import myPlugin from './my-plugin';
+
+const detector = new Detector();
+await detector.initialize(myPlugin);
+
+const result = detector.detectFast(code);
+if (result.firstMatch) {
+  console.log(`Detected: ${result.firstMatch.name}`);
+  console.log(`Rule: ${result.firstMatch.rule}`);
+  console.log(`Matched text: "${result.firstMatch.match}"`);
+}
+```
+
+### Using Different Plugins
+
+```javascript
+import { Detector } from 'fast-brake';
+import { esAll } from 'fast-brake/src/plugins/esversion';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+// Each detector instance uses one plugin
+const esDetector = new Detector();
+await esDetector.initialize(esAll);
+
+const telemetryDetector = new Detector();
+await telemetryDetector.initialize(telemetryPlugin);
+
+// Use different detectors for different pattern types
+const esResult = esDetector.detectFast(code);
+const telemetryResult = telemetryDetector.detectFast(code);
+```
+
+## Built-in Plugins
+
+Fast Brake includes several production-ready plugins:
+
+- **ES Version Plugin** - Detects ECMAScript patterns from ES5 to ES2025 (default plugin)
+- **Telemetry Plugin** - Identifies analytics and tracking code patterns
+- **Browserlist Plugin** - Checks browser compatibility patterns
+- **Detect Plugin** - Auto-detects minimum ES version based on patterns
+
+## Creating Custom Plugins
+
+See our guide on [Writing Custom Plugins](/docs/plugins/custom) for detailed instructions on creating your own plugins.
+
+## API Reference
+
+### Detector Methods
+
+```typescript
+// Initialize detector with a plugin
+await detector.initialize(plugin?: Plugin): Promise<void>
+
+// Detect patterns in code
+detector.detectFast(code: string): DetectionResult
+
+// Check compatibility with rules
+detector.check(code: string, options: DetectionOptions): boolean
+
+// General detection with mode options
+detector.detect(code: string, mode?: 'boolean' | 'fast' | 'detailed'): DetectionResult
+
+// Detect patterns in a file
+detector.detectFile(filePath: string, mode?: DetectionMode): DetectionResult
+```
+

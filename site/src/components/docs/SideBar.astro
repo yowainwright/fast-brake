@@ -1,6 +1,5 @@
 ---
 import SIDEBAR from "../../constants/sidebar";
-import { resolveUrl } from "../../utils/urlResolver";
 
 const pathname = new URL(Astro.request.url).pathname;
 ---
@@ -24,9 +23,6 @@ const pathname = new URL(Astro.request.url).pathname;
                     class={`py-2 px-3 hover:text-[#ff4500] hover:bg-[#ff4500]/10 transition ${pathname === navItem.href ? "text-[#ff4500] bg-[#ff4500]/10" : ""}`}
                   >
                     {navItem.title}
-                    {navItem.label && (
-                      <div class="badge badge-error badge-sm">New</div>
-                    )}
                   </a>
                 </li>
               ))}

@@ -87,6 +87,11 @@
       "import": "./dist/plugins/browserlist/index.js",
       "require": "./dist/plugins/browserlist/index.cjs"
     },
+    "./plugins/esversion": {
+      "types": "./dist/plugins/esversion/index.d.ts",
+      "import": "./dist/plugins/esversion/index.js",
+      "require": "./dist/plugins/esversion/index.cjs"
+    },
     "./extensions/loc": {
       "types": "./dist/extensions/loc.d.ts",
       "import": "./dist/extensions/loc.js",
@@ -108,6 +113,9 @@
     "lint": "turbo run lint:run",
     "lint:run": "oxlint src tests --ignore-pattern='tests/fixtures/*'",
     "lint:fix": "oxlint src tests --fix",
+    "format": "turbo run format:run",
+    "format:run": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "pre-commit": "lint-staged --quiet && bun run test",
     "prepublishOnly": "bun run test && bun run build",
     "preview": "bun run --cwd site preview",
@@ -120,11 +128,11 @@
     "test:integration": "turbo run test:integration",
     "test:integration:run": "bun test tests/integration/integration.test.ts --timeout 5000",
     "test:watch": "bun test --watch tests/**/*.test.ts",
-    "benchmark": "turbo run benchmark",
+    "benchmark": "bun run --cwd utils/benchmarker src/benchmark.ts",
     "benchmark:run": "bun utils/benchmarker/src/benchmark.ts",
     "benchmark:quick": "bun tests/integration/benchmarks.ts --quick",
-    "benchmark:update": "cd utils/benchmarker && bun run benchmark:all",
-    "typecheck": "turbo run typecheck",
+    "benchmark:update": "bun run --cwd utils/benchmarker update-docs",
+    "typecheck": "turbo run typecheck:run",
     "typecheck:run": "tsc --noEmit",
     "update": "codependence --update && bun install"
   },

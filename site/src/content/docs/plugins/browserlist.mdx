@@ -1,0 +1,238 @@
+---
+title: Browserlist Plugin
+description: "Check JavaScript compatibility with specific browser versions"
+---
+
+## Overview
+
+The Browserlist plugin integrates with [browserslist](https://github.com/browserslist/browserslist) configuration to check if your JavaScript code is compatible with your target browsers. It automatically determines the required ES version based on your browser targets.
+
+## Installation & Import
+
+```javascript
+import browserlistPlugin from 'fast-brake/src/plugins/browserlist';
+
+// Use with detector
+const detector = new Detector({ plugins: [browserlistPlugin] });
+```
+
+## How It Works
+
+The Browserlist plugin:
+1. Reads your browserslist configuration
+2. Determines the minimum ES version supported by all target browsers
+3. Detects features that are incompatible with those browsers
+4. Reports compatibility issues
+
+## Configuration
+
+### Using .browserslistrc
+
+Create a `.browserslistrc` file in your project root:
+
+```
+# Production browsers
+last 2 versions
+> 1%
+not dead
+
+# Development browsers
+last 1 chrome version
+last 1 firefox version
+```
+
+### Using package.json
+
+Add browserslist configuration to your `package.json`:
+
+```json
+{
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
+```
+
+### Environment-specific Targets
+
+```json
+{
+  "browserslist": {
+    "production": [
+      "> 0.5%",
+      "last 2 versions",
+      "Firefox ESR",
+      "not dead"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+```
+
+## Usage Examples
+
+### Basic Browser Compatibility Check
+
+```javascript
+import { Detector } from 'fast-brake';
+import browserlistPlugin from 'fast-brake/src/plugins/browserlist';
+
+const detector = new Detector({ plugins: [browserlistPlugin] });
+await detector.initialize();
+
+const code = `
+  const data = await fetch('/api');
+  const result = data?.json() ?? {};
+`;
+
+const issues = await detector.detect(code);
+
+if (issues.length > 0) {
+  console.log('Browser compatibility issues:');
+  issues.forEach(issue => {
+    console.log(`- ${issue.name} not supported in target browsers`);
+  });
+}
+```
+
+### CI/CD Integration
+
+```javascript
+// check-browser-compat.js
+import { Detector } from 'fast-brake';
+import browserlistPlugin from 'fast-brake/src/plugins/browserlist';
+import { readFileSync } from 'fs';
+import { glob } from 'glob';
+
+async function checkBrowserCompatibility() {
+  const detector = new Detector({ plugins: [browserlistPlugin] });
+  await detector.initialize();
+  
+  const files = glob.sync('src/**/*.js');
+  let hasIssues = false;
+  
+  for (const file of files) {
+    const code = readFileSync(file, 'utf-8');
+    const issues = await detector.detect(code);
+    
+    if (issues.length > 0) {
+      console.error(`❌ ${file} has browser compatibility issues:`);
+      issues.forEach(issue => {
+        console.error(`   - ${issue.name}`);
+      });
+      hasIssues = true;
+    }
+  }
+  
+  if (hasIssues) {
+    process.exit(1);
+  }
+  
+  console.log('✅ All files are compatible with target browsers');
+}
+
+checkBrowserCompatibility();
+```
+
+## Common Browser Queries
+
+### Mobile-First
+
+```
+# Mobile browsers
+last 2 iOS versions
+last 2 Android versions
+last 2 ChromeAndroid versions
+```
+
+### Enterprise
+
+```
+# Enterprise browsers
+last 2 Edge versions
+last 2 Chrome versions
+last 2 Firefox versions
+Firefox ESR
+```
+
+### Modern Browsers
+
+```
+# Modern browsers only
+last 1 version
+> 2%
+not dead
+not ie 11
+```
+
+### Specific Versions
+
+```
+# Specific browser versions
+Chrome >= 90
+Firefox >= 88
+Safari >= 14
+Edge >= 90
+```
+
+## Browser Support Matrix
+
+The plugin maps browser versions to ES support:
+
+| Browser | ES2015 | ES2017 | ES2018 | ES2020 | ES2022 |
+|---------|--------|--------|--------|--------|--------|
+| Chrome | 51+ | 58+ | 64+ | 80+ | 94+ |
+| Firefox | 54+ | 53+ | 58+ | 74+ | 93+ |
+| Safari | 10+ | 11+ | 12+ | 13.1+ | 15.4+ |
+| Edge | 15+ | 15+ | 79+ | 80+ | 94+ |
+| iOS Safari | 10+ | 11+ | 12+ | 13.4+ | 15.4+ |
+| Samsung Internet | 5+ | 7.2+ | 9.2+ | 13+ | 17+ |
+
+## Advanced Configuration
+
+### Custom Browser Mappings
+
+```javascript
+const customBrowserlistPlugin = {
+  ...browserlistPlugin,
+  spec: {
+    ...browserlistPlugin.spec,
+    browserMappings: {
+      'chrome 90': 'es2020',
+      'firefox 88': 'es2020',
+      'safari 14': 'es2020',
+      // Add custom mappings
+    }
+  }
+};
+```
+
+### Multiple Environments
+
+```javascript
+// Get environment-specific browserslist
+const env = process.env.NODE_ENV || 'development';
+
+const detector = new Detector({ 
+  plugins: [browserlistPlugin],
+  browserlistEnv: env
+});
+```
+
+## Best Practices
+
+1. **Regular Updates**: Keep browserslist data updated
+   ```bash
+   npx browserslist@latest --update-db
+   ```
+
+2. **Environment-Specific**: Use different targets for dev/prod
+3. **Test Coverage**: Verify your browser queries cover your user base
+4. **Progressive Enhancement**: Consider fallbacks for unsupported features
+5. **Documentation**: Document your browser support policy

@@ -31,8 +31,8 @@
     "lint:run": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts"]
     },
-    "typecheck": {
-      "inputs": ["src/**/*.ts", "tests/**/*.ts", "tsconfig.json"]
+    "format:run": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,json,md,astro}"]
     },
     "typecheck:run": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts", "tsconfig.json"]

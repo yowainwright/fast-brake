@@ -1,6 +1,6 @@
 ---
-title: Introduction to fast-brake
-description: "ES feature detection with zero runtime dependencies. Analyzes JavaScript code to detect ECMAScript features and verify compatibility with target ES versions."
+title: Introduction to Fast Brake
+description: "Pattern detection with zero runtime dependencies. Analyzes JavaScript code to detect text patterns using a plugin-based architecture."
 ---
 
 <div className="flex flex-wrap gap-2 mb-8">
@@ -20,17 +20,17 @@ description: "ES feature detection with zero runtime dependencies. Analyzes Java
 
 ## What is fast-brake?
 
-**fast-brake** is an ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. Unlike traditional tools that rely on slow AST parsers, fast-brake uses **high-performance pattern matching** that is significantly faster for compatibility checking.
+**fast-brake** is a pattern detection library that analyzes JavaScript code to identify text patterns using a plugin-based architecture. It can detect ECMAScript features, telemetry tracking, security patterns, or any custom patterns you define. Unlike traditional tools that rely on slow AST parsers, fast-brake uses **high-performance pattern matching** that is significantly faster.
 
 ## Why is fast-brake Game-Changing?
 
 ### The Problem
 
-Modern JavaScript development involves managing compatibility across different ES versions and browser targets. Traditional approaches have significant limitations:
+Modern JavaScript development involves detecting various patterns - ES compatibility, telemetry tracking, security issues, and more. Traditional approaches have significant limitations:
 
 - **AST Parsers are Slow**: Tools like Babel parser can take 100ms+ to process 1000 files
-- **Build Tool Bottlenecks**: Compatibility checking becomes a performance bottleneck
-- **Limited Context**: Simple regex matching without semantic understanding
+- **Build Tool Bottlenecks**: Pattern detection becomes a performance bottleneck
+- **Limited Flexibility**: Most tools focus on single use cases
 - **Complex Setup**: Heavy dependencies and complex configuration requirements
 
 ```javascript
@@ -48,22 +48,22 @@ traverse(ast, {
 
 ### The fast-brake Solution
 
-fast-brake revolutionizes ES feature detection with **optimized pattern matching**:
+fast-brake revolutionizes pattern detection with **optimized pattern matching**:
 
-- **High-performance regex patterns** - Carefully crafted patterns for each ES feature
-- **Single-pass scanning** - Processes code once for all features
-- **Early exit optimization** - Stops on first incompatible feature when configured
+- **High-performance regex patterns** - Carefully crafted patterns for any text matching
+- **Single-pass scanning** - Processes code once for all patterns
+- **Early exit optimization** - Stops on first match when configured
 - **Plugin architecture** - Load only the detection rules you need
 - **Zero AST overhead** - No parsing or tree construction required
 
 ```javascript
 // fast-brake approach - simple and fast
-import { detect, check, getMinimumESVersion } from 'fast-brake';
+import { detect, check, fastBrake } from 'fast-brake';
 
 // Process 1000 files in <15ms
-const features = detect(code);           // 0.013ms per file
-const isCompatible = check(code, { target: 'es5' });
-const minVersion = getMinimumESVersion(code);
+const patterns = await detect(code);           // First pattern match
+const isCompatible = await check(code, { target: 'es5' });
+const results = await fastBrake(code);  // Returns first detected pattern
 ```
 
 ## Performance Comparison
@@ -115,7 +115,7 @@ Choose the right plugin configuration for your needs:
 - ** Zero Dependencies**: Lightweight with no runtime dependencies
 - ** Pattern Matching**: Optimized regex-based detection without AST overhead
 - ** Plugin Architecture**: Load only the detection rules you need
-- ** Comprehensive Coverage**: Supports ES5 through ES2025 (40+ features)
+- ** Comprehensive Coverage**: Default plugin supports ES5 through ES2025 (40+ patterns)
 - ** Simple API**: Intuitive interface with TypeScript support
 - ** Location Data**: Optional AST-like location information (line, column, offset)
 - ** Performance First**: Optimized for build tools and CI/CD pipelines
@@ -127,31 +127,32 @@ Choose the right plugin configuration for your needs:
 import { check } from 'fast-brake';
 
 // Validate compatibility before bundling
-if (!check(sourceCode, { target: 'es2015' })) {
+if (!await check(sourceCode, { target: 'es2015' })) {
   console.warn('Code requires transpilation');
 }
 ```
 
 ### Linting & CI/CD
 ```javascript
-import { fastBrake } from 'fast-brake';
+import { check } from 'fast-brake';
 
 // Fail builds on incompatible features
-try {
-  fastBrake(code, { target: 'es2018' });
-} catch (error) {
-  console.error(`Compatibility error: ${error.message}`);
+const isCompatible = await check(code, { target: 'es2018' });
+if (!isCompatible) {
+  console.error('Code is not ES2018 compatible');
   process.exit(1);
 }
 ```
 
 ### Dynamic Polyfill Loading
 ```javascript
-import { getMinimumESVersion } from 'fast-brake';
+import { detect } from 'fast-brake';
 
-const requiredVersion = getMinimumESVersion(userCode);
-if (requiredVersion !== 'es5') {
-  loadPolyfills(requiredVersion);
+// Detect features and determine polyfill needs
+const features = await detect(userCode);
+const versions = features.map(f => f.version);
+if (versions.some(v => v !== 'es5')) {
+  loadPolyfills(versions);
 }
 ```
 
@@ -159,7 +160,7 @@ if (requiredVersion !== 'es5') {
 ```javascript
 import { detect } from 'fast-brake';
 
-const features = detect(codebase);
+const features = await detect(codebase);
 const modernFeatures = features.filter(f => 
   ['es2020', 'es2021', 'es2022'].includes(f.version)
 );
@@ -172,28 +173,25 @@ npm install fast-brake
 ```
 
 ```javascript
-import { fastBrake, detect, check, getMinimumESVersion } from 'fast-brake';
+import { fastBrake, detect, check } from 'fast-brake';
 
-// Detect all ES features
-const features = detect('const x = () => {}');
-// [{ name: 'arrow_functions', version: 'es2015', line: 1, column: 11 }]
+// Detect first pattern (using default ES version plugin)
+const patterns = await detect('const x = () => {}');
+// [{ name: 'let_const', version: 'es2015' }]
+// Note: 'version' contains the rule name from the plugin
 
 // Check compatibility
-const isES5Compatible = check('const x = () => {}', { target: 'es5' });
+const isES5Compatible = await check('const x = () => {}', { target: 'es5' });
 // false
 
-// Get minimum version
-const minVersion = getMinimumESVersion('const x = () => {}');
-// 'es2015'
-
-// Throw on incompatible features
-fastBrake('const x = () => {}', { target: 'es5' });
-// Error: ES feature "arrow_functions" requires es2015 but target is es5
+// Detect patterns with fastBrake
+const results = await fastBrake('const x = () => {}');
+// Returns array with first detected pattern
 ```
 
-## Supported ES Features
+## Default Plugin: ES Version Detection
 
-fast-brake detects **30+ ES features** across all major versions:
+The default ES version plugin detects **30+ ECMAScript patterns** across all major versions:
 
 - **ES2015**: Arrow functions, classes, template literals, let/const, destructuring, spread/rest, for-of loops
 - **ES2016**: Exponentiation operator (**)
@@ -206,33 +204,29 @@ fast-brake detects **30+ ES features** across all major versions:
 
 ## Advanced Features
 
-### Location Data (NEW)
+### Detection Results
 ```javascript
-const features = detect(code, { includeLoc: true });
-// Returns AST-like location information:
-// {
-//   name: 'arrow_functions',
-//   version: 'es2015',
-//   loc: {
-//     start: { line: 1, column: 15 },
-//     end: { line: 1, column: 17 },
-//     offset: 14,
-//     length: 2
-//   }
-// }
+const patterns = await detect(code);
+// Returns:
+// [{
+//   name: 'arrow_functions',  // Pattern name from plugin
+//   version: 'es2015'         // Rule name from plugin
+// }]
 ```
 
 ### Plugin-Based Detection
 ```javascript
-import { detectWithPlugins } from 'fast-brake';
+import { Detector } from 'fast-brake';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
 
-// Use specific plugins for maximum performance
-const features = detectWithPlugins(code, ['es2015']); // 85x faster!
-const features = detectWithPlugins(code, ['all']);    // All ES versions
+// Use the Detector class with custom plugins
+const detector = new Detector();
+await detector.initialize(telemetryPlugin);
+const result = detector.detectFast(code);
 ```
 
 ## Ready to Get Started?
 
-fast-brake makes ES feature detection simple, fast, and accurate. Whether you're building tools, linting code, or analyzing compatibility, fast-brake delivers the performance you need without sacrificing accuracy.
+fast-brake makes pattern detection simple, fast, and accurate. Whether you're checking ES compatibility, detecting telemetry, finding security issues, or matching custom patterns, fast-brake delivers the performance you need without sacrificing accuracy.
 
 [Get Started →](/api-reference) | [View Architecture →](/architecture) | [See Examples →](/advanced-features)

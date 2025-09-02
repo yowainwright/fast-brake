@@ -1,9 +1,9 @@
 ---
 title: API Reference
-description: Complete reference for fast-brake ES feature detection API
+description: Complete reference for fast-brake pattern detection API
 ---
 
-fast-brake provides a simple, powerful API for ES feature detection with full TypeScript support.
+fast-brake provides a simple, powerful API for pattern detection in JavaScript code using a plugin-based architecture.
 
 ## Installation
 
@@ -17,42 +17,27 @@ bun add fast-brake
 
 ## Core Functions
 
-### `fastBrake(code, options)`
+### `fastBrake(code)`
 
-Analyzes code and **throws an error** if incompatible features are found. Perfect for build tools and CI/CD pipelines where you want to fail fast on compatibility issues.
+Analyzes code and returns the first detected pattern match using the default ES version plugin. This is an async function that provides fast detection results.
 
 ```javascript
 import { fastBrake } from 'fast-brake';
 
-try {
-  fastBrake('const x = () => {}', { target: 'es5' });
-  console.log(' Code is compatible');
-} catch (error) {
-  console.error('❌ Compatibility error:', error.message);
-  // "ES feature "arrow_functions" requires es2015 but target is es5 at line 1:11"
-  
-  // Access detailed error information
-  console.log('Feature:', error.feature);
-  // { name: 'arrow_functions', version: 'es2015', line: 1, column: 11 }
-  
-  console.log('Target:', error.target); // 'es5'
-}
+const results = await fastBrake('const x = () => {}');
+console.log(results);
+// [{ name: 'arrow_functions', version: 'es2015' }]
+// Note: 'version' is actually the 'rule' from the plugin
 ```
 
 **Parameters:**
-- `code` (string): JavaScript code to analyze
-- `options` (DetectionOptions):
-  - `target` (string): Target ES version ('es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022', 'es2023', 'es2024', 'es2025', 'esnext')
-  - `quick?` (boolean): Use quick mode only (default: false)
-  - `throwOnFirst?` (boolean): Stop on first incompatible feature (default: false)
+- `code` (string): Code to analyze
 
-**Throws:** Error with additional properties:
-- `feature` (DetectedFeature): The incompatible feature that was found
-- `target` (string): The target ES version that was specified
+**Returns:** `Promise<DetectedFeature[]>` - Array with single detected pattern or empty array
 
-### `detect(code, options?)`
+### `detect(code)`
 
-Returns an **array of detected ES features** with detailed location information. Use this for analysis and reporting.
+Returns the **first detected pattern** using the default ES version plugin. Use this for quick pattern analysis.
 
 ```javascript
 import { detect } from 'fast-brake';
@@ -65,193 +50,264 @@ const code = `
   }
 `;
 
-const features = detect(code);
-console.log(features);
-// [
-//   { name: 'let_const', version: 'es2015', line: 2, column: 3 },
-//   { name: 'arrow_functions', version: 'es2015', line: 2, column: 17 },
-//   { name: 'template_literals', version: 'es2015', line: 3, column: 19 },
-//   { name: 'classes', version: 'es2015', line: 4, column: 3 },
-//   { name: 'private_fields', version: 'es2022', line: 5, column: 5 }
-// ]
-
-// Filter by ES version
-const es2022Features = features.filter(f => f.version === 'es2022');
-console.log(es2022Features);
-// [{ name: 'private_fields', version: 'es2022', line: 5, column: 5 }]
+const results = await detect(code);
+console.log(results);
+// [{ name: 'let_const', version: 'es2015' }]
+// Note: Only returns the first detected pattern
+// 'version' field contains the rule name from the plugin
 ```
 
 **Parameters:**
-- `code` (string): JavaScript code to analyze
-- `options?` (Partial&lt;DetectionOptions&gt;):
-  - `target?` (string): Target ES version (default: 'esnext')
-  - `quick?` (boolean): Use quick mode only (default: false)
-  - `throwOnFirst?` (boolean): Stop on first feature (default: false)
+- `code` (string): Code to analyze
 
-**Returns:** `DetectedFeature[]`
+**Returns:** `Promise<DetectedFeature[]>` - Array with single detected pattern or empty array
 
 ### `check(code, options)`
 
-Returns a **boolean** indicating if code is compatible with the target ES version. Perfect for conditional logic and validation.
+Returns a **boolean** indicating if code is compatible with the target rule/version. Works with the default ES version plugin.
 
 ```javascript
 import { check } from 'fast-brake';
 
 // Check ES5 compatibility
-const isES5Compatible = check('var x = 10;', { target: 'es5' });
+const isES5Compatible = await check('var x = 10;', { target: 'es5' });
 console.log(isES5Compatible); // true
 
-const hasModernFeatures = check('const x = () => {};', { target: 'es5' });
-console.log(hasModernFeatures); // false
+const hasModernPatterns = await check('const x = () => {};', { target: 'es5' });
+console.log(hasModernPatterns); // false
 
 // Check ES2015 compatibility
-const isES2015Compatible = check('const x = () => {};', { target: 'es2015' });
+const isES2015Compatible = await check('const x = () => {};', { target: 'es2015' });
 console.log(isES2015Compatible); // true
 
 // Use in conditional logic
-if (check(userCode, { target: 'es2018' })) {
-  console.log(' Code is ES2018 compatible');
+if (await check(userCode, { target: 'es2018' })) {
+  console.log('✓ Code is compatible with es2018 rules');
 } else {
-  console.log(' Code requires transpilation for ES2018');
+  console.log('⚠ Code contains patterns beyond es2018');
 }
 ```
 
 **Parameters:**
-- `code` (string): JavaScript code to analyze
+- `code` (string): Code to analyze
 - `options` (DetectionOptions):
-  - `target` (string): Target ES version
-  - `quick?` (boolean): Use quick mode only (default: false)
-  - `throwOnFirst?` (boolean): Stop on first incompatible feature (default: false)
+  - `target` (string): Target rule to check against
+  - `orderedRules?` (string[]): Optional ordered rules for comparison
 
-**Returns:** `boolean`
+**Returns:** `Promise<boolean>`
 
-### `getMinimumESVersion(code, options?)`
+## The Detector Class
 
-Returns the **minimum ES version** required to run the code. Perfect for determining polyfill requirements and compatibility targets.
+The Detector class is the core of fast-brake, providing direct control over pattern detection with custom plugins.
 
 ```javascript
-import { getMinimumESVersion } from 'fast-brake';
+import { Detector } from 'fast-brake';
+import { esAll } from 'fast-brake/src/plugins/esversion';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
 
-// ES5 code
-const version1 = getMinimumESVersion('var x = 10;');
-console.log(version1); // 'es5'
+// Create a detector instance
+const detector = new Detector();
 
-// ES2015 code
-const version2 = getMinimumESVersion('const x = () => {};');
-console.log(version2); // 'es2015'
+// Initialize with default plugin (esversion)
+await detector.initialize();
 
-// ES2020 code
-const version3 = getMinimumESVersion('const x = obj?.prop ?? "default";');
-console.log(version3); // 'es2020'
+// Or initialize with custom plugin
+const customDetector = new Detector();
+await customDetector.initialize(telemetryPlugin);
 
-// ES2022 code
-const version4 = getMinimumESVersion(`
-  class MyClass {
-    #private = 'secret';
-    static { console.log('init'); }
-  }
-`);
-console.log(version4); // 'es2022'
+// Detect patterns
+const result = detector.detectFast(code);
+console.log(result);
+// {
+//   hasMatch: true,
+//   mode: 'fast',
+//   firstMatch: { 
+//     name: 'arrow_functions',  // Pattern name from plugin
+//     match: '=>',               // Actual matched text
+//     spec: 'esversion',         // Plugin name
+//     rule: 'es2015',           // Rule from plugin
+//     index: 11                 // Position in code
+//   }
+// }
 
-// Use for dynamic polyfill loading
-const requiredVersion = getMinimumESVersion(userCode);
-if (requiredVersion !== 'es5') {
-  loadPolyfills(requiredVersion);
-}
+// Check compatibility with rules
+const isCompatible = detector.check(code, { 
+  target: 'es5',
+  orderedRules: ['es2025', 'es2024', 'es2023', 'es2022', 'es2021', 'es2020', 'es2019', 'es2018', 'es2017', 'es2016', 'es2015', 'es5']
+});
+console.log(isCompatible); // false
+
+// Detect patterns in a file
+const fileResult = detector.detectFile('./src/index.js');
 ```
 
-**Parameters:**
-- `code` (string): JavaScript code to analyze
-- `options?` (object):
-  - `quick?` (boolean): Use quick mode only (default: false)
+### Constructor
 
-**Returns:** `string` - ES version ('es5', 'es2015', 'es2016', etc.)
+```javascript
+new Detector()
+```
+
+### Methods
+
+- `initialize(plugin?: Plugin)`: Initialize the detector with a plugin (defaults to esversion plugin)
+- `detectFast(code: string)`: Perform fast pattern detection, returns DetectionResult
+- `detectDetailed(code: string)`: Perform detailed detection with more information
+- `detectBoolean(code: string)`: Returns boolean indicating if any patterns detected
+- `detect(code: string, mode?: 'boolean' | 'fast' | 'detailed')`: General detection method
+- `detectFile(filePath: string, mode?: DetectionMode)`: Detect patterns in a file
+- `check(code: string, options: DetectionOptions)`: Check compatibility with target rule
+
+## Additional Classes
+
+### `Scanner`
+
+Utility class for scanning files and directories.
+
+```javascript
+import { Scanner } from 'fast-brake';
+
+const scanner = new Scanner();
+// Scanner implementation for file system operations
+```
+
+### `FastBrakeCache`
+
+Cache implementation for performance optimization.
+
+```javascript
+import { FastBrakeCache } from 'fast-brake';
+
+const cache = new FastBrakeCache();
+// Cache for storing detection results
+```
 
 ## Type Definitions
 
 ### `DetectedFeature`
 
-Represents a detected ES feature with location information.
+Represents a detected pattern. Note: The `version` field contains the rule name from the plugin.
 
 ```typescript
 interface DetectedFeature {
-  name: string;        // Feature name (e.g., 'arrow_functions')
-  version: string;     // Required ES version (e.g., 'es2015')
-  line?: number;       // Line number where feature was found
-  column?: number;     // Column number where feature was found
-  snippet?: string;    // Code snippet containing the feature
+  name: string;        // Pattern name (e.g., 'arrow_functions', 'console_usage')
+  version: string;     // Rule name from plugin (e.g., 'es2015', 'telemetry')
 }
 ```
 
 ### `DetectionOptions`
 
-Configuration options for detection functions.
+Configuration options for the check function.
 
 ```typescript
 interface DetectionOptions {
-  target: string;           // Target ES version
-  quick?: boolean;          // Use quick mode only (default: false)
-  throwOnFirst?: boolean;   // Stop on first incompatible feature (default: false)
+  target: string;              // Target rule to check against
+  orderedRules?: string[];     // Optional ordered rules for comparison
+}
+```
+
+### `DetectionResult`
+
+Result from detector methods.
+
+```typescript
+interface DetectionResult {
+  hasMatch: boolean;
+  mode: 'boolean' | 'fast' | 'detailed';
+  firstMatch?: DetectionMatch;
+}
+
+interface DetectionMatch {
+  name: string;      // Pattern name from plugin
+  match: string;     // Actual matched text
+  spec: string;      // Plugin name
+  rule: string;      // Rule from plugin
+  index?: number;    // Position in code
 }
 ```
 
 ## Detection Modes
 
-### Quick Mode
+The Detector class supports three detection modes:
 
-**Faster** than full mode using pattern-based detection.
-
-```javascript
-import { detect, check, getMinimumESVersion } from 'fast-brake';
-
-// Quick detection - fastest performance
-const features = detect(code, { quick: true });
-const isCompatible = check(code, { target: 'es5', quick: true });
-const minVersion = getMinimumESVersion(code, { quick: true });
-
-// Perfect for:
-// - Build tools with hot reloading
-// - Development environments
-// - When speed is more important than perfect accuracy
-```
-
-**Characteristics:**
--  **Ultra-fast**: ~0.013ms per file
--  Pattern-based detection only
--  **Use case**: Development builds, hot reloading
-
-### Plugin Mode (Recommended)
-
-**Maximum performance** with targeted detection using plugins.
+### Boolean Mode
+Returns only true/false for presence of patterns.
 
 ```javascript
-import { detectWithPlugins, checkWithPlugins } from 'fast-brake';
+const detector = new Detector();
+await detector.initialize();
 
-// Targeted detection - up to 85x faster!
-const features = detectWithPlugins(code, ['es2015']);
-const isCompatible = checkWithPlugins(code, ['es2015']);
-
-// Comprehensive detection
-const allFeatures = detectWithPlugins(code, ['all']);
-
-// Perfect for:
-// - Development builds with known targets
-// - Hot reloading
-// - CI/CD with specific ES version targets
-// - Maximum performance requirements
+const hasPatterns = detector.detectBoolean(code);
+console.log(hasPatterns); // true or false
 ```
 
-**Characteristics:**
--  **Ultra-fast**: Up to 85x faster with single plugins
--  **Targeted detection**: Load only what you need
--  **Flexible**: Combine multiple plugins
--  **Use case**: Development, hot reloading, CI/CD
+### Fast Mode (Default)
+Returns first match with basic information.
 
-## Feature Detection Reference
+```javascript
+const result = detector.detectFast(code);
+// or
+const result = detector.detect(code, 'fast');
+```
 
-### ES2015 (ES6) Features
+### Detailed Mode
+Returns first match with additional context.
 
-| Feature Name | Pattern | Example Code |
+```javascript
+const result = detector.detectDetailed(code);
+// or
+const result = detector.detect(code, 'detailed');
+```
+
+## Working with Plugins
+
+Plugins define what patterns to detect. Each plugin can detect different types of patterns:
+- ES version features (default plugin)
+- Telemetry and tracking code
+- Custom patterns you define
+
+```javascript
+import { Detector } from 'fast-brake';
+import { es2020 } from 'fast-brake/src/plugins/esversion';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+// Use ES version plugin to detect ECMAScript patterns
+const esDetector = new Detector();
+await esDetector.initialize(es2020);
+const esResult = esDetector.detectFast(code);
+
+// Use telemetry plugin to detect tracking patterns
+const telemetryDetector = new Detector();
+await telemetryDetector.initialize(telemetryPlugin);
+const telemetryResult = telemetryDetector.detectFast(code);
+
+// Create custom plugin for your patterns
+const customPlugin = {
+  name: "my-patterns",
+  description: "Detects my custom patterns",
+  spec: {
+    orderedRules: ["error", "warning", "info"],
+    matches: {
+      "console_log": {
+        rule: "info",
+        strings: ["console.log"],
+        patterns: [{ pattern: "console\\.log\\(" }]
+      }
+    }
+  }
+};
+
+const customDetector = new Detector();
+await customDetector.initialize(customPlugin);
+const customResult = customDetector.detectFast(code);
+```
+
+## Default Plugin: ES Version Detection
+
+When using the default functions or initializing Detector without a plugin, fast-brake uses the ES version plugin which detects ECMAScript patterns:
+
+### ES2015 (ES6) Patterns
+
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `arrow_functions` | `=>` | `const fn = () => {}` |
 | `template_literals` | `` ` `` | `` `Hello ${name}` `` |
@@ -262,34 +318,34 @@ const allFeatures = detectWithPlugins(code, ['all']);
 | `for_of` | `for...of` | `for (const item of items) {}` |
 | `default_params` | `param = value` | `function fn(x = 10) {}` |
 
-### ES2016 Features
+### ES2016 Patterns
 
-| Feature Name | Pattern | Example Code |
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `exponentiation` | `**` | `2 ** 3` |
 
-### ES2017 Features
+### ES2017 Patterns
 
-| Feature Name | Pattern | Example Code |
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `async_await` | `async`/`await` | `async function fn() { await promise; }` |
 
-### ES2018 Features
+### ES2018 Patterns
 
-| Feature Name | Pattern | Example Code |
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `async_iteration` | `for await` | `for await (const item of asyncIterable) {}` |
 | `rest_spread_properties` | `{...obj}` | `const newObj = {...obj, extra: true};` |
 
-### ES2019 Features
+### ES2019 Patterns
 
-| Feature Name | Pattern | Example Code |
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `array_flat` | `.flat()`/`.flatMap()` | `arr.flat(); arr.flatMap(fn);` |
 
-### ES2020 Features
+### ES2020 Patterns
 
-| Feature Name | Pattern | Example Code |
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `optional_chaining` | `?.` | `obj?.prop?.method?.()` |
 | `nullish_coalescing` | `??` | `value ?? 'default'` |
@@ -297,18 +353,18 @@ const allFeatures = detectWithPlugins(code, ['all']);
 | `promise_allSettled` | `Promise.allSettled` | `Promise.allSettled(promises)` |
 | `globalThis` | `globalThis` | `globalThis.myVar = 'value'` |
 
-### ES2021 Features
+### ES2021 Patterns
 
-| Feature Name | Pattern | Example Code |
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `logical_assignment` | `\|\|=`, `&&=`, `??=` | `x ??= 'default'; y \|\|= 'fallback';` |
 | `numeric_separators` | `1_000_000` | `const million = 1_000_000` |
 | `string_replaceAll` | `.replaceAll()` | `str.replaceAll('old', 'new')` |
 | `promise_any` | `Promise.any` | `Promise.any(promises)` |
 
-### ES2022 Features
+### ES2022 Patterns
 
-| Feature Name | Pattern | Example Code |
+| Pattern Name | Text Pattern | Example Code |
 |--------------|---------|--------------|
 | `class_fields` / `private_fields` | `#field` | `class C { #private = 1; }` |
 | `static_blocks` | `static {}` | `class C { static { /* init */ } }` |
@@ -331,75 +387,102 @@ class FastBrakePlugin {
   
   apply(compiler) {
     compiler.hooks.compilation.tap('FastBrakePlugin', (compilation) => {
-      compilation.hooks.optimizeChunkAssets.tap('FastBrakePlugin', (chunks) => {
-        chunks.forEach(chunk => {
-          chunk.files.forEach(filename => {
+      compilation.hooks.optimizeChunkAssets.tapAsync('FastBrakePlugin', async (chunks, callback) => {
+        for (const chunk of chunks) {
+          for (const filename of chunk.files) {
             const source = compilation.assets[filename].source();
             
-            if (!check(source, { target: this.target })) {
-              const features = detect(source);
-              const incompatible = features.filter(f => 
-                getVersionIndex(f.version) > getVersionIndex(this.target)
-              );
-              
-              console.warn(` ${filename} contains incompatible features:`, 
-                incompatible.map(f => f.name));
+            const isCompatible = await check(source, { target: this.target });
+            if (!isCompatible) {
+              const patterns = await detect(source);
+              console.warn(`⚠ ${filename} contains pattern:`, patterns[0]?.name);
             }
-          });
-        });
+          }
+        }
+        callback();
       });
     });
   }
 }
 ```
 
-### ESLint Rule Integration
+### Telemetry Detection
 
 ```javascript
-import { detect } from 'fast-brake';
+import { Detector } from 'fast-brake';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
 
-// Custom ESLint rule
-module.exports = {
-  meta: {
-    type: 'problem',
-    docs: {
-      description: 'Disallow ES features newer than target version'
-    }
-  },
+async function detectTelemetry(code) {
+  const detector = new Detector();
+  await detector.initialize(telemetryPlugin);
   
-  create(context) {
-    const target = context.options[0] || 'es5';
-    
-    return {
-      Program(node) {
-        const sourceCode = context.getSourceCode();
-        const text = sourceCode.getText();
-        
-        const features = detect(text, { quick: false });
-        const incompatible = features.filter(f => 
-          getVersionIndex(f.version) > getVersionIndex(target)
-        );
-        
-        incompatible.forEach(feature => {
-          context.report({
-            node,
-            message: `ES feature "${feature.name}" requires ${feature.version} but target is ${target}`,
-            loc: {
-              line: feature.line,
-              column: feature.column
-            }
-          });
-        });
+  const result = detector.detectFast(code);
+  if (result.hasMatch) {
+    console.log(`Found telemetry: ${result.firstMatch.name}`);
+    console.log(`Matched text: "${result.firstMatch.match}"`);
+    console.log(`Rule: ${result.firstMatch.rule}`);
+  }
+  
+  return result.hasMatch;
+}
+
+// Example usage
+const hasTracking = await detectTelemetry(`
+  ga('send', 'pageview');
+  fbq('track', 'PageView');
+`);
+```
+
+### Custom Pattern Detection
+
+```javascript
+import { Detector } from 'fast-brake';
+
+// Create a security-focused plugin
+const securityPlugin = {
+  name: "security-patterns",
+  description: "Detects potentially unsafe patterns",
+  spec: {
+    orderedRules: ["critical", "warning", "info"],
+    matches: {
+      "eval_usage": {
+        rule: "critical",
+        strings: ["eval("],
+        patterns: [{ pattern: "\\beval\\s*\\(" }]
+      },
+      "innerHTML": {
+        rule: "warning",
+        strings: ["innerHTML"],
+        patterns: [{ pattern: "\\.innerHTML\\s*=" }]
+      },
+      "console_output": {
+        rule: "info",
+        strings: ["console."],
+        patterns: [{ pattern: "console\\.(log|info|warn|error)" }]
       }
-    };
+    }
   }
 };
+
+const detector = new Detector();
+await detector.initialize(securityPlugin);
+
+const code = `
+  eval("alert('XSS')");
+  element.innerHTML = userInput;
+  console.log(password);
+`;
+
+const result = detector.detectFast(code);
+if (result.hasMatch) {
+  console.log(`Security issue: ${result.firstMatch.name} (${result.firstMatch.rule})`);
+}
 ```
 
 ### CI/CD Pipeline Integration
 
 ```javascript
-import { fastBrake } from 'fast-brake';
+import { check, detect } from 'fast-brake';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
@@ -413,13 +496,19 @@ async function validateCompatibility() {
     .filter(file => file.endsWith('.js') || file.endsWith('.ts'))
     .map(file => join(srcDir, file));
   
-  console.log(` Checking ${files.length} files for ${target} compatibility...`);
+  console.log(`🔍 Checking ${files.length} files for ${target} compatibility...`);
   
   for (const file of files) {
     try {
       const code = readFileSync(file, 'utf-8');
-      fastBrake(code, { target });
-      console.log(` ${file}`);
+      const isCompatible = await check(code, { target });
+      if (isCompatible) {
+        console.log(`✓ ${file}`);
+      } else {
+        const patterns = await detect(code);
+        console.error(`❌ ${file}: Contains ${patterns[0]?.name} (rule: ${patterns[0]?.version})`);
+        hasErrors = true;
+      }
     } catch (error) {
       console.error(`❌ ${file}: ${error.message}`);
       hasErrors = true;
@@ -430,82 +519,33 @@ async function validateCompatibility() {
     console.error(`\n❌ Compatibility check failed for target ${target}`);
     process.exit(1);
   } else {
-    console.log(`\n All files are ${target} compatible`);
+    console.log(`\n✓ All files are ${target} compatible`);
   }
 }
 
 validateCompatibility();
 ```
 
-### Dynamic Polyfill Loading
-
-```javascript
-import { getMinimumESVersion } from 'fast-brake';
-
-// Smart polyfill loading based on code requirements
-function loadPolyfillsForCode(code) {
-  const requiredVersion = getMinimumESVersion(code);
-  
-  const polyfills = [];
-  
-  switch (requiredVersion) {
-    case 'es2022':
-      polyfills.push('es2022-polyfills');
-      // fallthrough
-    case 'es2021':
-      polyfills.push('es2021-polyfills');
-      // fallthrough
-    case 'es2020':
-      polyfills.push('es2020-polyfills');
-      // fallthrough
-    case 'es2017':
-      polyfills.push('es2017-polyfills');
-      // fallthrough
-    case 'es2015':
-      polyfills.push('es2015-polyfills');
-      break;
-    case 'es5':
-      // No polyfills needed
-      break;
-  }
-  
-  return polyfills;
-}
-
-// Usage
-const userCode = getUserSubmittedCode();
-const requiredPolyfills = loadPolyfillsForCode(userCode);
-
-if (requiredPolyfills.length > 0) {
-  console.log(`Loading polyfills: ${requiredPolyfills.join(', ')}`);
-  await Promise.all(requiredPolyfills.map(loadPolyfill));
-}
-```
-
 ## Error Handling
 
-### Handling fastBrake Errors
+### Pattern Detection with Error Handling
 
 ```javascript
-import { fastBrake } from 'fast-brake';
+import { check, detect } from 'fast-brake';
 
-try {
-  fastBrake(code, { target: 'es5' });
-} catch (error) {
-  if (error.feature) {
-    // This is a compatibility error
-    console.error(`Incompatible feature: ${error.feature.name}`);
-    console.error(`Requires: ${error.feature.version}`);
-    console.error(`Target: ${error.target}`);
-    console.error(`Location: line ${error.feature.line}, column ${error.feature.column}`);
-    
-    if (error.feature.snippet) {
-      console.error(`Code: ${error.feature.snippet}`);
-    }
-  } else {
-    // This is a different kind of error
-    console.error('Unexpected error:', error.message);
+// Check for patterns and handle results
+const isCompatible = await check(code, { target: 'es5' });
+
+if (!isCompatible) {
+  // Get detailed pattern information
+  const patterns = await detect(code);
+  
+  if (patterns.length > 0) {
+    console.error('Incompatible pattern detected:');
+    console.error(`- ${patterns[0].name} (rule: ${patterns[0].version})`);
   }
+} else {
+  console.log('✓ Code is compatible');
 }
 ```
 
@@ -514,39 +554,26 @@ try {
 ```javascript
 import { detect, check } from 'fast-brake';
 
-function analyzeCodeSafely(code, target = 'es5') {
+async function analyzeCodeSafely(code, target = 'es5') {
   try {
-    // Try full mode first
-    const features = detect(code, { quick: false });
-    const isCompatible = check(code, { target, quick: false });
+    // Try detection
+    const patterns = await detect(code);
+    const isCompatible = await check(code, { target });
     
     return {
-      features,
+      patterns,
       isCompatible,
-      mode: 'full',
+      mode: 'default',
       error: null
     };
   } catch (error) {
-    try {
-      // Fallback to quick mode
-      const features = detect(code, { quick: true });
-      const isCompatible = check(code, { target, quick: true });
-      
-      return {
-        features,
-        isCompatible,
-        mode: 'quick',
-        error: null
-      };
-    } catch (quickError) {
-      // Both modes failed
-      return {
-        features: [],
-        isCompatible: false,
-        mode: 'failed',
-        error: quickError
-      };
-    }
+    // Detection failed
+    return {
+      patterns: [],
+      isCompatible: false,
+      mode: 'failed',
+      error: error.message
+    };
   }
 }
 ```
@@ -559,29 +586,30 @@ fast-brake includes comprehensive TypeScript definitions:
 import { 
   fastBrake, 
   detect, 
-  check, 
-  getMinimumESVersion,
-  DetectedFeature,
-  DetectionOptions 
+  check,
+  Detector,
+  FastBrakeCache,
+  Scanner,
+  type DetectedFeature,
+  type DetectionOptions 
 } from 'fast-brake';
 
 // Type-safe options
 const options: DetectionOptions = {
   target: 'es2015',
-  quick: false,
-  throwOnFirst: true
+  orderedRules: ['es2025', 'es2024', 'es2023', 'es2022', 'es2021', 'es2020', 'es2019', 'es2018', 'es2017', 'es2016', 'es2015', 'es5']
 };
 
-// Type-safe results
-const features: DetectedFeature[] = detect(code, options);
-const isCompatible: boolean = check(code, options);
-const minVersion: string = getMinimumESVersion(code, { quick: false });
+// Type-safe results with async/await
+const patterns: DetectedFeature[] = await detect(code);
+const isCompatible: boolean = await check(code, options);
+const results: DetectedFeature[] = await fastBrake(code);
 
 // Custom type guards
-function isES2020Feature(feature: DetectedFeature): boolean {
-  return feature.version === 'es2020';
+function isES2020Pattern(pattern: DetectedFeature): boolean {
+  return pattern.version === 'es2020';
 }
 
 // Filter with type safety
-const es2020Features = features.filter(isES2020Feature);
+const es2020Patterns = patterns.filter(isES2020Pattern);
 ```

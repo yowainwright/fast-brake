@@ -3,7 +3,9 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "./dist",
-    "types": ["node", "bun"]
+    "types": ["node", "bun"],
+    "noEmit": true,
+    "moduleResolution": "bundler"
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist", "results"]

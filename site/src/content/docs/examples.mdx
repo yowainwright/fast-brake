@@ -1,0 +1,581 @@
+---
+title: Examples
+description: "Real-world examples of using Fast Brake for pattern detection"
+---
+
+## Quick Start Examples
+
+### Basic Pattern Detection
+
+```javascript
+import { detect, check, fastBrake } from 'fast-brake';
+
+// Detect first pattern (using default ES version plugin)
+const patterns = await detect('const x = () => {}');
+console.log(patterns);
+// [{ name: 'let_const', version: 'es2015' }]
+// Note: 'version' contains the rule name from the plugin
+
+// Check compatibility with ES5 rules
+const isES5Compatible = await check('const x = () => {}', { target: 'es5' });
+console.log(isES5Compatible); // false
+
+// Use fastBrake for pattern detection
+const results = await fastBrake('const x = () => {}');
+console.log(results);
+// [{ name: 'let_const', version: 'es2015' }]
+```
+
+## Build Tool Integration
+
+### Webpack Configuration
+
+```javascript
+// webpack.config.js
+const { check } = require('fast-brake');
+
+module.exports = {
+  module: {
+    rules: [{
+      test: /\.js$/,
+      exclude: /node_modules/,
+      use: async function(source, map, meta) {
+        // Check if code needs transpilation
+        const needsTranspile = !await check(source, { target: 'es2015' });
+        
+        if (needsTranspile) {
+          // Use babel-loader for incompatible code
+          return require('babel-loader').call(this, source, map, meta);
+        }
+        
+        // Return untransformed for compatible code
+        this.callback(null, source, map, meta);
+      }
+    }]
+  }
+};
+```
+
+### Rollup Plugin
+
+```javascript
+// rollup-plugin-fast-brake.js
+import { check, detect } from 'fast-brake';
+
+export default function fastBrakePlugin(options = {}) {
+  const { target = 'es2015', throwOnIncompatible = false } = options;
+  
+  return {
+    name: 'fast-brake',
+    
+    async transform(code, id) {
+      if (id.includes('node_modules')) return null;
+      
+      const isCompatible = await check(code, { target });
+      
+      if (!isCompatible) {
+        const patterns = await detect(code);
+        const message = `File ${id} uses pattern: ${patterns[0]?.name} (requires ${patterns[0]?.version})`;
+        
+        if (throwOnIncompatible) {
+          throw new Error(message);
+        } else {
+          console.warn(message);
+        }
+      }
+      
+      return null;
+    }
+  };
+}
+
+// rollup.config.js
+import fastBrake from './rollup-plugin-fast-brake';
+
+export default {
+  input: 'src/index.js',
+  plugins: [
+    fastBrake({ target: 'es2018', throwOnIncompatible: true })
+  ],
+  output: {
+    file: 'dist/bundle.js',
+    format: 'es'
+  }
+};
+```
+
+### Vite Plugin
+
+```javascript
+// vite-plugin-fast-brake.js
+import { check, detect } from 'fast-brake';
+
+export default function fastBrakePlugin(options = {}) {
+  const { target = 'es2020' } = options;
+  
+  return {
+    name: 'vite-plugin-fast-brake',
+    enforce: 'pre',
+    
+    async transform(code, id) {
+      if (!/\.(js|ts|jsx|tsx)$/.test(id)) return;
+      
+      const isCompatible = await check(code, { target });
+      if (!isCompatible) {
+        const patterns = await detect(code);
+        this.error(`Incompatible pattern in ${id}: ${patterns[0]?.name} (requires ${patterns[0]?.version})`);
+      }
+    }
+  };
+}
+
+// vite.config.js
+import { defineConfig } from 'vite';
+import fastBrake from './vite-plugin-fast-brake';
+
+export default defineConfig({
+  plugins: [
+    fastBrake({ target: 'es2020' })
+  ]
+});
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/es-check.yml
+name: ES Compatibility Check
+
+on: [push, pull_request]
+
+jobs:
+  es-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - run: npm install fast-brake
+      
+      - name: Check ES Compatibility
+        run: |
+          node -e "
+          const { check, detect } = require('fast-brake');
+          const { readFileSync } = require('fs');
+          const { glob } = require('glob');
+          
+          (async () => {
+            const files = glob.sync('src/**/*.js');
+            const target = process.env.ES_TARGET || 'es2018';
+            let hasErrors = false;
+            
+            for (const file of files) {
+              const code = readFileSync(file, 'utf-8');
+              const isCompatible = await check(code, { target });
+              if (!isCompatible) {
+                const patterns = await detect(code);
+                console.error(\`❌ \${file}: \${patterns[0]?.name} (requires \${patterns[0]?.version})\`);
+                hasErrors = true;
+              } else {
+                console.log(\`✅ \${file}\`);
+              }
+            }
+            
+            if (hasErrors) process.exit(1);
+          })();
+          "
+        env:
+          ES_TARGET: es2018
+```
+
+### Pre-commit Hook
+
+```javascript
+// .husky/pre-commit
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check ES compatibility
+node scripts/check-es-compat.js
+
+// scripts/check-es-compat.js
+const { check, detect } = require('fast-brake');
+const { execSync } = require('child_process');
+const { readFileSync } = require('fs');
+
+// Get staged files
+const files = execSync('git diff --cached --name-only --diff-filter=ACM | grep -E "\\.(js|ts)$"')
+  .toString()
+  .trim()
+  .split('\n')
+  .filter(Boolean);
+
+(async () => {
+  const target = 'es2018';
+  let hasErrors = false;
+  
+  for (const file of files) {
+    const code = readFileSync(file, 'utf-8');
+    
+    const isCompatible = await check(code, { target });
+    if (!isCompatible) {
+      const patterns = await detect(code);
+      console.error(`❌ ${file}: ${patterns[0]?.name} (requires ${patterns[0]?.version})`);
+      hasErrors = true;
+    }
+  }
+  
+  if (hasErrors) {
+    console.error('\nCommit aborted: Fix ES compatibility issues');
+    process.exit(1);
+  }
+  
+  console.log('✅ All files are ES compatible');
+})();
+```
+
+## Plugin Examples
+
+### Custom Security Plugin
+
+```javascript
+import { Detector } from 'fast-brake';
+
+const securityPlugin = {
+  name: "security-audit",
+  description: "Detects security vulnerabilities",
+  spec: {
+    orderedRules: ["critical", "high", "medium"],
+    matches: {
+      "eval_usage": {
+        rule: "critical",
+        strings: ["eval("],
+        patterns: [{ pattern: "\\beval\\s*\\(" }]
+      },
+      "innerHTML": {
+        rule: "high",
+        strings: ["innerHTML"],
+        patterns: [{ pattern: "\\.innerHTML\\s*=" }]
+      },
+      "http_url": {
+        rule: "medium",
+        strings: ["http://"],
+        patterns: [{ pattern: "https?://[^s]" }]
+      }
+    }
+  }
+};
+
+// Use the plugin
+const detector = new Detector();
+await detector.initialize(securityPlugin);
+
+const code = `
+  eval(userInput);
+  element.innerHTML = data;
+  fetch('http://api.example.com');
+`;
+
+const result = detector.detectFast(code);
+if (result.hasMatch) {
+  console.log(`Security issue: ${result.firstMatch.name} (${result.firstMatch.rule})`);
+  console.log(`Matched text: "${result.firstMatch.match}"`);
+}
+```
+
+### Telemetry Detection
+
+```javascript
+import { Detector } from 'fast-brake';
+import { telemetryPlugin, strictTelemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+// Standard detection
+async function detectTelemetry(code) {
+  const detector = new Detector();
+  await detector.initialize(telemetryPlugin);
+  
+  const result = detector.detectFast(code);
+  
+  if (result.hasMatch) {
+    console.log('Telemetry detected:');
+    console.log(`  - ${result.firstMatch.name} (${result.firstMatch.rule})`);
+    console.log(`  - Matched: "${result.firstMatch.match}"`);
+  }
+  
+  return result.hasMatch;
+}
+
+// Strict mode - fail on any telemetry
+async function enforceTelemetryFree(code) {
+  const detector = new Detector();
+  await detector.initialize(strictTelemetryPlugin);
+  
+  const result = detector.detectFast(code);
+  
+  if (result.hasMatch) {
+    throw new Error(`Telemetry not allowed: ${result.firstMatch.name}`);
+  }
+}
+
+// Example usage
+const code = `
+  ga('send', 'pageview');
+  fbq('track', 'PageView');
+`;
+
+await detectTelemetry(code);
+```
+
+### Multiple Pattern Types
+
+```javascript
+import { Detector } from 'fast-brake';
+import { es2020 } from 'fast-brake/src/plugins/esversion';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+// Check for ES patterns
+const esDetector = new Detector();
+await esDetector.initialize(es2020);
+
+// Check for telemetry patterns
+const telemetryDetector = new Detector();
+await telemetryDetector.initialize(telemetryPlugin);
+
+const code = `
+  const data = obj?.prop ?? 'default';
+  ga('send', 'pageview');
+`;
+
+const esResult = esDetector.detectFast(code);
+const telemetryResult = telemetryDetector.detectFast(code);
+
+if (esResult.hasMatch) {
+  console.log(`ES pattern: ${esResult.firstMatch.name}`);
+}
+
+if (telemetryResult.hasMatch) {
+  console.log(`Telemetry pattern: ${telemetryResult.firstMatch.name}`);
+}
+```
+
+## Real-World Use Cases
+
+### Dynamic Polyfill Loading
+
+```javascript
+import { detect } from 'fast-brake';
+
+async function loadPolyfillsForCode(userCode) {
+  const patterns = await detect(userCode);
+  
+  if (patterns.length === 0) return [];
+  
+  const version = patterns[0].version;
+  const polyfillMap = {
+    'es2015': ['promise-polyfill'],
+    'es2017': ['async-polyfill'],
+    'es2018': ['object-spread'],
+    'es2019': ['array-flat'],
+    'es2020': ['optional-chaining']
+  };
+  
+  const requiredPolyfills = polyfillMap[version] || [];
+  
+  for (const polyfill of requiredPolyfills) {
+    await import(`./polyfills/${polyfill}.js`);
+  }
+  
+  console.log(`Loaded polyfills for ${version}: ${requiredPolyfills.join(', ')}`);
+  return requiredPolyfills;
+}
+```
+
+### Code Migration Assistant
+
+```javascript
+import { Detector } from 'fast-brake';
+import { esAll } from 'fast-brake/src/plugins/esversion';
+
+async function analyzeCodeForMigration(files) {
+  const detector = new Detector();
+  await detector.initialize(esAll);
+  
+  const report = {};
+  
+  for (const [filename, code] of Object.entries(files)) {
+    const result = detector.detectFast(code);
+    
+    if (result.hasMatch) {
+      const { name, rule, match } = result.firstMatch;
+      
+      if (!report[rule]) report[rule] = [];
+      
+      report[rule].push({
+        file: filename,
+        pattern: name,
+        match: match,
+        suggestion: getSuggestion(name)
+      });
+    }
+  }
+  
+  return report;
+}
+
+function getSuggestion(patternName) {
+  const suggestions = {
+    'arrow_functions': 'Consider using function declarations for better debugging',
+    'async_await': 'Ensure error handling with try-catch blocks',
+    'optional_chaining': 'Add fallbacks for older browsers',
+    'private_fields': 'Use TypeScript private keyword for broader compatibility'
+  };
+  
+  return suggestions[patternName] || 'Review compatibility requirements';
+}
+```
+
+### Performance Monitoring
+
+```javascript
+import { detect } from 'fast-brake';
+import { performance } from 'perf_hooks';
+
+async function benchmarkDetection(code, iterations = 100) {
+  const results = [];
+  
+  for (let i = 0; i < iterations; i++) {
+    const start = performance.now();
+    await detect(code);
+    const duration = performance.now() - start;
+    results.push(duration);
+  }
+  
+  const average = results.reduce((a, b) => a + b, 0) / results.length;
+  const min = Math.min(...results);
+  const max = Math.max(...results);
+  
+  console.log(`Detection Performance (${iterations} iterations):`);
+  console.log(`  Average: ${average.toFixed(3)}ms`);
+  console.log(`  Min: ${min.toFixed(3)}ms`);
+  console.log(`  Max: ${max.toFixed(3)}ms`);
+  console.log(`  Ops/sec: ${(1000 / average).toFixed(0)}`);
+  
+  return { average, min, max };
+}
+
+// Usage
+const code = `
+  const data = await fetch('/api');
+  const result = data?.json() ?? {};
+  console.log(\`Result: \${result}\`);
+`;
+
+await benchmarkDetection(code);
+```
+
+## Testing Examples
+
+### Unit Testing with Vitest
+
+```javascript
+// fast-brake.test.js
+import { describe, it, expect } from 'vitest';
+import { detect, check } from 'fast-brake';
+
+describe('Fast Brake Detection', () => {
+  it('detects patterns correctly', async () => {
+    const code = 'const fn = () => {};';
+    const patterns = await detect(code);
+    
+    expect(patterns).toHaveLength(1);
+    expect(patterns[0]).toHaveProperty('name', 'let_const');
+    expect(patterns[0]).toHaveProperty('version', 'es2015');
+  });
+  
+  it('checks ES5 compatibility', async () => {
+    const es5Code = 'var x = function() { return 42; };';
+    const es6Code = 'const x = () => 42;';
+    
+    expect(await check(es5Code, { target: 'es5' })).toBe(true);
+    expect(await check(es6Code, { target: 'es5' })).toBe(false);
+  });
+});
+```
+
+### Integration Testing
+
+```javascript
+// integration.test.js
+import { describe, it, expect } from 'vitest';
+import { Detector } from 'fast-brake';
+import { esAll } from 'fast-brake/src/plugins/esversion';
+
+describe('Integration', () => {
+  it('works with custom plugins', async () => {
+    const detector = new Detector();
+    await detector.initialize(esAll);
+    
+    const code = `
+      const data = await fetch('/api');
+      const arrow = () => {};
+    `;
+    
+    const result = detector.detectFast(code);
+    
+    // Should detect patterns
+    expect(result.hasMatch).toBe(true);
+    expect(result.firstMatch).toBeDefined();
+    expect(result.firstMatch.name).toBeDefined();
+    expect(result.firstMatch.rule).toBeDefined();
+    expect(result.firstMatch.match).toBeDefined();
+  });
+  
+  it('detects patterns in files', async () => {
+    const detector = new Detector();
+    await detector.initialize();
+    
+    // Assuming test file exists
+    const result = detector.detectFile('./test-fixtures/modern.js');
+    
+    if (result.hasMatch) {
+      expect(result.firstMatch).toBeDefined();
+    }
+  });
+});
+```
+
+### Custom Matcher
+
+```javascript
+// test-utils.js
+import { check } from 'fast-brake';
+
+export async function toBeCompatibleWith(received, target) {
+  const isCompatible = await check(received, { target });
+  
+  return {
+    pass: isCompatible,
+    message: () => isCompatible
+      ? `Expected code to NOT be ${target} compatible`
+      : `Expected code to be ${target} compatible`
+  };
+}
+
+// Usage in tests
+import { toBeCompatibleWith } from './test-utils';
+
+expect.extend({ toBeCompatibleWith });
+
+test('code compatibility', async () => {
+  const modernCode = 'const x = async () => await fetch("/api");';
+  
+  await expect(modernCode).not.toBeCompatibleWith('es5');
+  await expect(modernCode).not.toBeCompatibleWith('es2015');
+  await expect(modernCode).toBeCompatibleWith('es2017');
+});
+```

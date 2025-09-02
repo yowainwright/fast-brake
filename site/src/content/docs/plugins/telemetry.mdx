@@ -1,0 +1,330 @@
+---
+title: Telemetry Plugin
+description: "Detect analytics, tracking, and telemetry code in your JavaScript"
+---
+
+## Overview
+
+The Telemetry plugin identifies analytics and tracking code patterns in your JavaScript codebase. It helps ensure compliance with privacy policies, detect unauthorized tracking, and manage telemetry dependencies.
+
+## Installation & Import
+
+```javascript
+import { telemetryPlugin, strictTelemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+// Standard telemetry detection
+const plugin = telemetryPlugin;
+
+// Strict mode - treats all telemetry as errors
+const strict = strictTelemetryPlugin;
+```
+
+## Detection Modes
+
+### Standard Mode
+Detects and reports telemetry patterns for informational purposes.
+
+```javascript
+const detector = new Detector({ plugins: [telemetryPlugin] });
+const telemetry = await detector.detect(code);
+// Returns array of detected telemetry patterns
+```
+
+### Strict Mode
+Treats any telemetry detection as an error, useful for enforcing no-tracking policies.
+
+```javascript
+const detector = new Detector({ plugins: [strictTelemetryPlugin] });
+try {
+  await detector.detect(code);
+} catch (error) {
+  console.error('Telemetry detected:', error);
+}
+```
+
+## Detected Patterns
+
+### Google Analytics
+
+Detects various Google Analytics implementations:
+
+| Pattern | Detection | Example |
+|---------|-----------|---------|
+| gtag | `gtag(` | `gtag('config', 'GA_ID')` |
+| ga classic | `ga(` | `ga('send', 'pageview')` |
+| analytics.js | `ga.create` | `ga.create('UA-XXXXX')` |
+| Google Tag Manager | `dataLayer.push` | `dataLayer.push({event: 'pageview'})` |
+
+### Facebook Pixel
+
+| Pattern | Detection | Example |
+|---------|-----------|---------|
+| fbq | `fbq(` | `fbq('track', 'PageView')` |
+| Facebook SDK | `FB.AppEvents` | `FB.AppEvents.logEvent()` |
+
+### Mixpanel
+
+| Pattern | Detection | Example |
+|---------|-----------|---------|
+| Track | `mixpanel.track` | `mixpanel.track('Event')` |
+| Identify | `mixpanel.identify` | `mixpanel.identify(userId)` |
+| People | `mixpanel.people` | `mixpanel.people.set()` |
+
+### Segment
+
+| Pattern | Detection | Example |
+|---------|-----------|---------|
+| Analytics | `analytics.track` | `analytics.track('Event')` |
+| Page | `analytics.page` | `analytics.page()` |
+| Identify | `analytics.identify` | `analytics.identify(userId)` |
+
+### Amplitude
+
+| Pattern | Detection | Example |
+|---------|-----------|---------|
+| LogEvent | `amplitude.logEvent` | `amplitude.logEvent('Click')` |
+| getInstance | `amplitude.getInstance` | `amplitude.getInstance()` |
+
+### Heap Analytics
+
+| Pattern | Detection | Example |
+|---------|-----------|---------|
+| Track | `heap.track` | `heap.track('Event')` |
+| Identify | `heap.identify` | `heap.identify(userId)` |
+
+### Custom Tracking
+
+| Pattern | Detection | Example |
+|---------|-----------|---------|
+| Beacon API | `navigator.sendBeacon` | `navigator.sendBeacon(url, data)` |
+| Pixel tracking | `new Image().src` | `new Image().src = trackingUrl` |
+| XMLHttpRequest tracking | Specific patterns | Custom AJAX tracking |
+
+## Usage Examples
+
+### Basic Detection
+
+```javascript
+import { Detector } from 'fast-brake';
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+const detector = new Detector({ plugins: [telemetryPlugin] });
+await detector.initialize();
+
+const code = `
+  // Google Analytics
+  gtag('config', 'GA_MEASUREMENT_ID');
+  
+  // Facebook Pixel
+  fbq('track', 'PageView');
+  
+  // Custom tracking
+  navigator.sendBeacon('/analytics', JSON.stringify(data));
+`;
+
+const telemetry = await detector.detect(code);
+console.log(telemetry);
+// [
+//   { name: 'google_analytics_gtag', type: 'telemetry' },
+//   { name: 'facebook_pixel', type: 'telemetry' },
+//   { name: 'beacon_api', type: 'telemetry' }
+// ]
+```
+
+### CI/CD Integration
+
+```javascript
+// check-telemetry.js
+import { Detector } from 'fast-brake';
+import { strictTelemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+import { readFileSync } from 'fs';
+import { glob } from 'glob';
+
+const detector = new Detector({ plugins: [strictTelemetryPlugin] });
+await detector.initialize();
+
+const files = glob.sync('src/**/*.js');
+let hasTelementry = false;
+
+for (const file of files) {
+  const code = readFileSync(file, 'utf-8');
+  const results = await detector.detect(code);
+  
+  if (results.length > 0) {
+    console.error(`❌ Telemetry found in ${file}:`);
+    results.forEach(r => console.error(`  - ${r.name}`));
+    hasTelemetry = true;
+  }
+}
+
+if (hasTelemetry) {
+  process.exit(1);
+}
+```
+
+### Privacy Compliance Check
+
+```javascript
+import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+const ALLOWED_TELEMETRY = ['google_analytics_gtag'];
+
+async function checkPrivacyCompliance(code) {
+  const detector = new Detector({ plugins: [telemetryPlugin] });
+  await detector.initialize();
+  
+  const telemetry = await detector.detect(code);
+  const unauthorized = telemetry.filter(t => 
+    !ALLOWED_TELEMETRY.includes(t.name)
+  );
+  
+  if (unauthorized.length > 0) {
+    throw new Error(`Unauthorized telemetry detected: ${
+      unauthorized.map(t => t.name).join(', ')
+    }`);
+  }
+  
+  return true;
+}
+```
+
+## Configuration
+
+### Custom Telemetry Patterns
+
+You can extend the telemetry plugin with custom patterns:
+
+```javascript
+const customTelemetryPlugin = {
+  ...telemetryPlugin,
+  spec: {
+    ...telemetryPlugin.spec,
+    matches: {
+      ...telemetryPlugin.spec.matches,
+      "custom_tracker": {
+        rule: "telemetry",
+        strings: ["myTracker."],
+        patterns: [
+          { 
+            pattern: "myTracker\\.(track|identify|page)", 
+            identifier: "custom_tracker_methods" 
+          }
+        ]
+      }
+    }
+  }
+};
+```
+
+### Whitelist Approach
+
+Create a telemetry whitelist for allowed tracking:
+
+```javascript
+const whitelistPlugin = {
+  name: "telemetry-whitelist",
+  description: "Detects non-whitelisted telemetry",
+  spec: {
+    orderedRules: ["allowed", "blocked"],
+    matches: {
+      "google_analytics": {
+        rule: "allowed",
+        strings: ["gtag("],
+        patterns: [{ pattern: "gtag\\(" }]
+      },
+      // All other telemetry patterns with rule: "blocked"
+    }
+  }
+};
+```
+
+## Use Cases
+
+### 1. GDPR Compliance
+
+Ensure your codebase complies with GDPR requirements:
+
+```javascript
+async function checkGDPRCompliance(code) {
+  const detector = new Detector({ plugins: [telemetryPlugin] });
+  await detector.initialize();
+  
+  const telemetry = await detector.detect(code);
+  
+  // Check if telemetry is wrapped in consent checks
+  for (const t of telemetry) {
+    if (!code.includes(`if (hasConsent()) {`) || 
+        !code.includes(t.match)) {
+      throw new Error(`Telemetry "${t.name}" not wrapped in consent check`);
+    }
+  }
+}
+```
+
+### 2. Third-Party Audit
+
+Audit third-party dependencies for telemetry:
+
+```javascript
+import { readFileSync } from 'fs';
+import { glob } from 'glob';
+
+async function auditDependencies() {
+  const detector = new Detector({ plugins: [telemetryPlugin] });
+  await detector.initialize();
+  
+  const files = glob.sync('node_modules/**/*.js');
+  const results = {};
+  
+  for (const file of files) {
+    const code = readFileSync(file, 'utf-8');
+    const telemetry = await detector.detect(code);
+    
+    if (telemetry.length > 0) {
+      const pkg = file.split('/')[1];
+      results[pkg] = results[pkg] || [];
+      results[pkg].push(...telemetry);
+    }
+  }
+  
+  return results;
+}
+```
+
+### 3. Build-Time Stripping
+
+Remove telemetry code during production builds:
+
+```javascript
+// webpack.config.js
+const { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+
+module.exports = {
+  module: {
+    rules: [{
+      test: /\.js$/,
+      use: async (source) => {
+        if (process.env.NODE_ENV === 'production' && 
+            process.env.STRIP_TELEMETRY === 'true') {
+          const detector = new Detector({ plugins: [telemetryPlugin] });
+          await detector.initialize();
+          
+          const telemetry = await detector.detect(source);
+          // Strip telemetry code based on detection
+          return stripTelemetryCode(source, telemetry);
+        }
+        return source;
+      }
+    }]
+  }
+};
+```
+
+## Best Practices
+
+1. **Regular Audits**: Run telemetry detection in CI/CD pipelines
+2. **Whitelist Approach**: Explicitly allow specific telemetry patterns
+3. **Consent Integration**: Verify telemetry is wrapped in consent checks
+4. **Documentation**: Document all approved telemetry in your project
+5. **Dependency Scanning**: Regularly scan dependencies for new telemetry
+

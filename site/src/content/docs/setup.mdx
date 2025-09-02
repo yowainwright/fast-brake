@@ -20,20 +20,21 @@ bun add fast-brake
 ### 2. Basic Usage
 
 ```javascript
-import { fastBrake, detect, check, getMinimumESVersion } from 'fast-brake';
+import { fastBrake, detect, check } from 'fast-brake';
 
 // Check if code is compatible with ES5
-const isES5Compatible = check('const x = () => {}', { target: 'es5' });
+const isES5Compatible = await check('const x = () => {}', { target: 'es5' });
 console.log(isES5Compatible); // false
 
-// Get minimum ES version required
-const minVersion = getMinimumESVersion('const x = () => {}');
-console.log(minVersion); // 'es2015'
-
 // Detect all ES features
-const features = detect('const x = () => {}');
+const features = await detect('const x = () => {}');
 console.log(features);
-// [{ name: 'arrow_functions', version: 'es2015', line: 1, column: 11 }]
+// [{ name: 'arrow_functions', version: 'es2015' }]
+
+// Use fastBrake for detection
+const results = await fastBrake('const x = () => {}');
+console.log(results);
+// [{ name: 'arrow_functions', version: 'es2015' }]
 ```
 
 ### 3. That's it!
@@ -75,15 +76,17 @@ bun add --dev fast-brake  # For build tools
 <script type="module">
   import { detect } from 'https://esm.sh/fast-brake';
   
-  const features = detect('const x = () => {}');
+  const features = await detect('const x = () => {}');
   console.log(features);
 </script>
 
 <!-- UMD (Global) -->
 <script src="https://unpkg.com/fast-brake/dist/index.umd.js"></script>
 <script>
-  const features = FastBrake.detect('const x = () => {}');
-  console.log(features);
+  (async () => {
+    const features = await FastBrake.detect('const x = () => {}');
+    console.log(features);
+  })();
 </script>
 ```
 
@@ -144,18 +147,18 @@ module.exports = {
 // Custom loader (webpack-loader/fast-brake-loader.js)
 const { check, detect } = require('fast-brake');
 
-module.exports = function(source) {
+module.exports = async function(source) {
   const options = this.getOptions();
   const target = options.target || 'es5';
   const mode = options.mode || 'full';
   
-  const isCompatible = check(source, { 
+  const isCompatible = await check(source, { 
     target, 
     quick: mode === 'quick' 
   });
   
   if (!isCompatible) {
-    const features = detect(source, { target, quick: mode === 'quick' });
+    const features = await detect(source, { target, quick: mode === 'quick' });
     const incompatible = features.filter(f => 
       getVersionIndex(f.version) > getVersionIndex(target)
     );
@@ -182,9 +185,9 @@ export default defineConfig({
   plugins: [
     {
       name: 'fast-brake',
-      transform(code, id) {
+      async transform(code, id) {
         if (id.endsWith('.js') || id.endsWith('.ts')) {
-          const features = detect(code, { target: 'es2018' });
+          const features = await detect(code, { target: 'es2018' });
           const incompatible = features.filter(f => 
             getVersionIndex(f.version) > getVersionIndex('es2018')
           );
@@ -210,9 +213,9 @@ import { detect } from 'fast-brake';
 function fastBrakePlugin(options = {}) {
   return {
     name: 'fast-brake',
-    transform(code, id) {
+    async transform(code, id) {
       const target = options.target || 'es5';
-      const features = detect(code, { target });
+      const features = await detect(code, { target });
       
       const incompatible = features.filter(f => 
         getVersionIndex(f.version) > getVersionIndex(target)
@@ -331,8 +334,13 @@ jobs:
                 } else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
                   try {
                     const code = fs.readFileSync(filePath, 'utf-8');
-                    fastBrake(code, { target });
-                    console.log('', filePath);
+                    const isCompatible = await check(code, { target });
+                    if (isCompatible) {
+                      console.log('✓', filePath);
+                    } else {
+                      console.error('❌', filePath + ': Not compatible with', target);
+                      hasErrors = true;
+                    }
                   } catch (error) {
                     console.error('❌', filePath + ':', error.message);
                     hasErrors = true;
@@ -381,15 +389,17 @@ pipeline {
                                 const files = glob.sync('src/**/*.{js,ts}');
                                 let compatible = true;
                                 
-                                files.forEach(file => {
-                                    const code = fs.readFileSync(file, 'utf-8');
-                                    if (!check(code, { target: 'es2018' })) {
-                                        console.error('Incompatible:', file);
-                                        compatible = false;
+                                (async () => {
+                                    for (const file of files) {
+                                        const code = fs.readFileSync(file, 'utf-8');
+                                        const isCompatible = await check(code, { target: 'es2018' });
+                                        if (!isCompatible) {
+                                            console.error('Incompatible:', file);
+                                            compatible = false;
+                                        }
                                     }
-                                });
-                                
-                                process.exit(compatible ? 0 : 1);
+                                    process.exit(compatible ? 0 : 1);
+                                })();
                             "
                         ''',
                         returnStatus: true
@@ -420,8 +430,8 @@ const { detect } = require('fast-brake');
 
 // Custom Jest matcher
 expect.extend({
-  toBeESCompatible(code, target = 'es5') {
-    const features = detect(code, { target });
+  async toBeESCompatible(code, target = 'es5') {
+    const features = await detect(code, { target });
     const incompatible = features.filter(f => 
       getVersionIndex(f.version) > getVersionIndex(target)
     );
@@ -463,8 +473,8 @@ import { expect } from 'vitest';
 import { check } from 'fast-brake';
 
 expect.extend({
-  toBeESCompatible(code, target) {
-    const isCompatible = check(code, { target });
+  async toBeESCompatible(code, target) {
+    const isCompatible = await check(code, { target });
     
     return {
       pass: isCompatible,
@@ -486,9 +496,6 @@ declare module 'fast-brake' {
   export interface DetectedFeature {
     name: string;
     version: string;
-    line?: number;
-    column?: number;
-    snippet?: string;
   }
   
   export interface DetectionOptions {
@@ -497,10 +504,9 @@ declare module 'fast-brake' {
     throwOnFirst?: boolean;
   }
   
-  export function fastBrake(code: string, options: DetectionOptions): void;
-  export function detect(code: string, options?: Partial<DetectionOptions>): DetectedFeature[];
-  export function check(code: string, options: DetectionOptions): boolean;
-  export function getMinimumESVersion(code: string, options?: { quick?: boolean }): string;
+  export function fastBrake(code: string): Promise<DetectedFeature[]>;
+  export function detect(code: string): Promise<DetectedFeature[]>;
+  export function check(code: string, options: DetectionOptions): Promise<boolean>;
 }
 ```
 
@@ -530,16 +536,21 @@ let hasErrors = false;
 
 console.log(` Checking ${files.length} files for ${target} compatibility...`);
 
-files.forEach(file => {
+for (const file of files) {
   try {
     const code = fs.readFileSync(file, 'utf-8');
-    fastBrake(code, { target });
-    console.log(` ${file}`);
+    const isCompatible = await check(code, { target });
+    if (isCompatible) {
+      console.log(`✓ ${file}`);
+    } else {
+      console.error(`❌ ${file}: Not compatible with ${target}`);
+      hasErrors = true;
+    }
   } catch (error) {
     console.error(`❌ ${file}: ${error.message}`);
     hasErrors = true;
   }
-});
+}
 
 if (hasErrors) {
   console.error(`\n❌ Compatibility check failed for ${target}`);
@@ -587,11 +598,13 @@ const testCode = `
   }
 `;
 
-console.log('Features:', detect(testCode));
-console.log('ES5 compatible:', check(testCode, { target: 'es5' }));
-console.log('Minimum version:', getMinimumESVersion(testCode));
-
-console.log(' Integration test passed!');
+(async () => {
+  console.log('Features:', await detect(testCode));
+  console.log('ES5 compatible:', await check(testCode, { target: 'es5' }));
+  console.log('FastBrake results:', await fastBrake(testCode));
+  
+  console.log('✓ Integration test passed!');
+})();
 ```
 
 ## Next Steps
@@ -606,19 +619,16 @@ Once you have fast-brake installed and working:
 ## Quick Reference
 
 ```javascript
-import { fastBrake, detect, check, getMinimumESVersion } from 'fast-brake';
+import { fastBrake, detect, check } from 'fast-brake';
 
-// Throw on incompatible features
-fastBrake(code, { target: 'es5' });
+// Detect features with fastBrake
+const results = await fastBrake(code);
 
 // Detect all features
-const features = detect(code, { quick: false }); // default mode
+const features = await detect(code);
 
 // Check compatibility
-const isCompatible = check(code, { target: 'es2018' });
-
-// Get minimum version
-const minVersion = getMinimumESVersion(code);
+const isCompatible = await check(code, { target: 'es2018' });
 ```
 
 That's it! You're ready to start using fast-brake for ES feature detection.

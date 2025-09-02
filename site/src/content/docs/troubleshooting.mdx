@@ -7,30 +7,21 @@ description: Common issues, debugging tips, and frequently asked questions for f
 
 ### What is fast-brake?
 
-fast-brake is an ES feature detection library that analyzes JavaScript code to identify ECMAScript features and verify compatibility with target ES versions. It uses high-performance pattern matching that can be significantly faster than traditional AST parsers for compatibility checking.
+Fast brake enables a plugins and extension based schema to detect matches using JavaScript very fast. This is useful for detecting ECMAscript api features, Telemetry or other spec pattern matches you'd like to spec with a focus on speed.
 
 ### How does fast-brake work?
 
-fast-brake uses **optimized pattern matching** with a plugin architecture for maximum performance:
-- **Pattern Matching**: Lightning-fast regex-based feature detection
-- **Plugin System**: Load only the detection rules you need (up to 85x faster)
-- **Optional Location Data**: AST-like location information when needed
+fast-brake uses **optimized pattern matching** for maximum speed:
+
+- **String matching where possible** - match strings before pattern matching
+- **High-performance regex patterns** - patterns for each item, such as an ES feature; with string detection before to detect if the pattern matching is even required
+- **Single-pass scanning** - Processes code once for all features
+- **Early exit optimization** - Stops on first incompatible feature when configured
+- **Minimal overhead** - No AST or tokenization
 
 This approach makes it ideal for build tools, linters, and CI/CD pipelines where performance is critical.
 
-### Performance Modes
-
-**Plugin Mode** (recommended):
--  **Up to 85x faster** than baseline
--  Perfect for **development builds** and **hot reloading**
--  Target specific ES versions for maximum speed
-
-**Full Detection Mode**:
--  **Comprehensive coverage** of all ES features
--  **Still 3-4x faster** than AST parsers
--  Ideal for **production builds** and **CI/CD pipelines**
-
-## Common Issues
+## Issues
 
 ### 1. False Positives in Strings/Comments
 
@@ -49,12 +40,14 @@ const code = '"const arrow = () => {}"'; // String contains arrow function
 **Solution**: Use targeted plugins for maximum performance:
 
 ```javascript
-// Slow - runs all patterns
-const features = detect(code);
+// Standard detection
+const features = await detect(code);
 
-// Fast - targeted detection (up to 85x faster!)
-import { detectWithPlugins } from 'fast-brake';
-const features = detectWithPlugins(code, ['es2015']);
+// Using Detector class for more control
+import { Detector } from 'fast-brake';
+const detector = new Detector();
+await detector.initialize();
+const result = detector.detectFast(code);
 ```
 
 ### 3. Missing Feature Detection
@@ -64,10 +57,9 @@ const features = detectWithPlugins(code, ['es2015']);
 **Solution**: Check if the feature is supported:
 
 ```javascript
-import { QUICK_PATTERNS } from 'fast-brake/constants';
-
-// Check available patterns
-console.log(Object.keys(QUICK_PATTERNS));
+// Check if a feature is being detected
+const features = await detect(code);
+console.log('Detected features:', features.map(f => f.name));
 
 // For unsupported features, consider contributing!
 ```
@@ -79,9 +71,9 @@ console.log(Object.keys(QUICK_PATTERNS));
 **Solution**: Verify the version mapping:
 
 ```javascript
-import { FEATURE_VERSIONS } from 'fast-brake/constants';
-
-console.log(FEATURE_VERSIONS['optional_chaining']); // 'es2020'
+// Verify version mapping
+const features = await detect('const x = obj?.prop');
+console.log(features); // Should show version: 'es2020'
 ```
 
 ## Debugging Techniques
@@ -91,14 +83,19 @@ console.log(FEATURE_VERSIONS['optional_chaining']); // 'es2020'
 Enable detailed detection information:
 
 ```javascript
-const features = detect(code, { includeLoc: true });
+const features = await detect(code);
 
 features.forEach(feature => {
   console.log(`Feature: ${feature.name}`);
   console.log(`Version: ${feature.version}`);
-  console.log(`Location: line ${feature.loc.start.line}, column ${feature.loc.start.column}`);
-  console.log(`Snippet: ${feature.snippet}`);
 });
+
+// For more detailed debugging
+import { Detector } from 'fast-brake';
+const detector = new Detector();
+await detector.initialize();
+const result = detector.detectFast(code);
+console.log('Detection result:', result);
 ```
 
 ### 2. Pattern Testing
@@ -106,14 +103,12 @@ features.forEach(feature => {
 Test individual patterns:
 
 ```javascript
-import { QUICK_PATTERNS } from 'fast-brake/constants';
+// Test if specific patterns are matching
+const testCode = 'const arrow = () => {}';
+const features = await detect(testCode);
 
-const pattern = QUICK_PATTERNS.arrow_functions;
-const matches = code.match(pattern);
-
-if (matches) {
-  console.log('Pattern matched:', matches[0]);
-  console.log('At position:', matches.index);
+if (features.some(f => f.name === 'arrow_functions')) {
+  console.log('Arrow function pattern matched');
 }
 ```
 
@@ -122,13 +117,14 @@ if (matches) {
 Debug specific plugins:
 
 ```javascript
-import { loadPlugin } from 'fast-brake/plugins';
+import { Detector } from 'fast-brake';
 
-const plugin = loadPlugin(['es2015']);
-const results = plugin.detect(code);
+// Debug with specific plugin
+const detector = new Detector();
+await detector.initialize(); // Can pass plugins array here
 
-console.log('Plugin patterns:', Object.keys(plugin.patterns));
-console.log('Detection results:', results);
+const result = detector.detectFast(code);
+console.log('Detection result:', result);
 ```
 
 ## Performance Optimization
@@ -136,50 +132,62 @@ console.log('Detection results:', results);
 ### 1. Use Targeted Plugins
 
 ```javascript
-// Development - fast feedback
-const features = detectWithPlugins(code, ['es2015']);
+// Standard detection
+const features = await detect(code);
 
-// Production - comprehensive
-const features = detectWithPlugins(code, ['all']);
+// Using Detector for batch processing
+const detector = new Detector();
+await detector.initialize();
+
+// Process multiple files
+const results = files.map(file => detector.detectFast(file.content));
 ```
 
 ### 2. Batch Processing
 
 ```javascript
-const detector = getDetector(); // Reuse singleton
+// Create and reuse detector instance
+const detector = new Detector();
+await detector.initialize();
 
 const results = files.map(file => ({
   path: file.path,
-  features: detector.detect(file.content)
+  result: detector.detectFast(file.content)
 }));
 ```
 
 ### 3. Early Exit Strategy
 
 ```javascript
-try {
-  fastBrake(code, { 
-    target: 'es5',
-    throwOnFirst: true // Exit on first incompatible feature
-  });
-} catch (error) {
-  console.error('Incompatible:', error.feature);
+// Check compatibility with early exit
+const isCompatible = await check(code, { 
+  target: 'es5',
+  throwOnFirst: true // Exit on first incompatible feature
+});
+
+if (!isCompatible) {
+  const features = await detect(code);
+  console.error('Incompatible features:', features);
 }
 ```
 
 ## Error Messages
 
-### "ES feature requires X but target is Y"
+### Pattern/Rule Incompatibility
 
-This error means your code uses features from a newer ES version than your target.
+This means your code contains patterns from a rule newer than your target.
 
 ```javascript
-// Code uses arrow functions (ES2015)
-const fn = () => {};
+// Code uses const (ES2015 pattern)
+const code = 'const fn = () => {};';
 
 // But target is ES5
-fastBrake(code, { target: 'es5' });
-// Error: ES feature "arrow_functions" requires es2015 but target is es5
+const isCompatible = await check(code, { target: 'es5' });
+console.log(isCompatible); // false
+
+const patterns = await detect(code);
+console.log(patterns); // [{ name: 'let_const', version: 'es2015' }]
+// 'version' contains the rule name 'es2015'
 ```
 
 **Solutions:**
@@ -192,7 +200,8 @@ fastBrake(code, { target: 'es5' });
 This error occurs when requesting a non-existent plugin.
 
 ```javascript
-detectWithPlugins(code, ['es2030']); // Error: Unknown plugin
+// Check available ES versions
+const validTargets = ['es5', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'es2022'];
 ```
 
 **Solution**: Check available plugins:
@@ -222,18 +231,17 @@ module.exports = {
 
 **Rollup**:
 ```javascript
-import { fastBrake } from 'fast-brake';
+import { check } from 'fast-brake';
 
 export default {
   plugins: [{
     name: 'fast-brake',
-    transform(code) {
-      try {
-        fastBrake(code, { target: 'es2015' });
-        return null;
-      } catch (error) {
-        this.error(error.message);
+    async transform(code) {
+      const isCompatible = await check(code, { target: 'es2015' });
+      if (!isCompatible) {
+        this.error('Code is not ES2015 compatible');
       }
+      return null;
     }
   }]
 };
