@@ -1,38 +1,38 @@
-import { test, expect, describe } from 'bun:test';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { test, expect, describe } from "bun:test";
+import { existsSync } from "fs";
+import { join } from "path";
 
-describe('Benchmarker', () => {
-  test('benchmark script exists', () => {
-    const scriptPath = join(__dirname, '../src/benchmark.ts');
+describe("Benchmarker", () => {
+  test("benchmark script exists", () => {
+    const scriptPath = join(__dirname, "../src/benchmark.ts");
     expect(existsSync(scriptPath)).toBe(true);
   });
 
-  test('generate-table script exists', () => {
-    const scriptPath = join(__dirname, '../src/generate-table.ts');
+  test("generate-table script exists", () => {
+    const scriptPath = join(__dirname, "../src/generate-table.ts");
     expect(existsSync(scriptPath)).toBe(true);
   });
 
-  test('package.json has benchmark scripts', () => {
-    const pkg = require('../package.json');
+  test("package.json has benchmark scripts", () => {
+    const pkg = require("../package.json");
     expect(pkg.scripts.benchmark).toBeDefined();
-    expect(pkg.scripts['benchmark:table']).toBeDefined();
+    expect(pkg.scripts["benchmark:table"]).toBeDefined();
   });
 
-  test('can import and use fast-brake', async () => {
-    const { detect } = require('fast-brake');
-    
-    const testCode = 'const arrow = () => {};';
+  test("can import and use fast-brake", async () => {
+    const { detect } = require("fast-brake");
+
+    const testCode = "const arrow = () => {};";
     const features = await detect(testCode);
-    
+
     expect(features).toBeDefined();
     expect(features.length).toBeGreaterThan(0);
-    expect(features[0].version).toBe('es2015');
+    expect(features[0].version).toBe("es2015");
   });
 
-  test('has CLI table dependencies for output', () => {
-    const pkg = require('../package.json');
-    expect(pkg.dependencies['cli-table3']).toBeDefined();
-    expect(pkg.dependencies['picocolors']).toBeDefined();
+  test("has CLI table dependencies for output", () => {
+    const pkg = require("../package.json");
+    expect(pkg.dependencies["cli-table3"]).toBeDefined();
+    expect(pkg.dependencies["picocolors"]).toBeDefined();
   });
 });

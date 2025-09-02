@@ -52,13 +52,9 @@ class Detector {
 
 The **Plugin System** allows targeted detection for specific use cases.
 
-```typescript
-interface Plugin {
-  patterns: Record<string, RegExp>
-  detect(code: string): PluginResult[]
-  check(code: string): boolean
-}
-```
+import { PluginInterfaceExample, ES2015PluginExample, CustomPluginExample } from '../../components/docs/PluginExamples';
+
+<PluginInterfaceExample />
 
 **Available Plugins:**
 - **ES Version Plugins**: es5, es2015, es2016, etc.
@@ -255,6 +251,16 @@ top_level_await: /^[^{]*\bawait\s/m
 
 Plugins enable targeted detection for specific use cases:
 
+### ES2015 Plugin Example
+
+<ES2015PluginExample />
+
+### Custom Plugin Example
+
+<CustomPluginExample />
+
+### Using Plugins
+
 ```typescript
 // Use specific plugins for maximum performance
 import { detectWithPlugins } from 'fast-brake';
@@ -317,14 +323,9 @@ export const FEATURE_VERSIONS = {
 };
 ```
 
-2. **Add to plugin system:**
-```typescript
-// Create a new plugin in src/plugins/
-export const myPlugin: Plugin = {
-  patterns: { /* your patterns */ },
-  detect: (code) => { /* detection logic */ }
-};
-```
+2. **Create your custom plugin:**
+
+See the Custom Plugin Example above for a complete implementation of a React Hooks detection plugin.
 
 ### Custom Detection Logic
 

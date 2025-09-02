@@ -6,9 +6,9 @@ function oldSchool() {
 }
 
 var obj = {
-  method: function() {
-    return 'hello';
-  }
+  method: function () {
+    return "hello";
+  },
 };
 
 for (var i = 0; i < 10; i++) {
@@ -16,14 +16,14 @@ for (var i = 0; i < 10; i++) {
 }
 
 if (true) {
-  var scoped = 'not really';
+  var scoped = "not really";
 }
 
 function Constructor() {
-  this.prop = 'value';
+  this.prop = "value";
 }
 
-Constructor.prototype.method = function() {
+Constructor.prototype.method = function () {
   return this.prop;
 };
 

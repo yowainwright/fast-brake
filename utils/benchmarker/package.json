@@ -1,5 +1,5 @@
 {
-  "name": "@fast-brake/benchmarker",
+  "name": "fast-brake-benchmarker",
   "version": "0.0.1",
   "description": "Benchmarking suite for fast-brake",
   "type": "module",
@@ -8,7 +8,8 @@
     "test:run": "bun test tests",
     "build:pkg": "echo 'Skipping benchmarker build (utility only)'",
     "clean": "rimraf dist",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format": "turbo run format:run",
+    "format:run": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "typecheck:run": "tsc --noEmit",
     "lint:run": "oxlint src tests",

@@ -30,6 +30,7 @@ bun run lint
 ## Benchmarks
 
 The benchmarker tests parsing performance on various ES feature sets:
+
 - ES5 code
 - ES2015 features (arrow functions, classes, template literals)
 - ES2020 features (optional chaining, nullish coalescing)
@@ -38,6 +39,7 @@ The benchmarker tests parsing performance on various ES feature sets:
 ## Output
 
 Generates performance comparison tables showing:
+
 - Parse time for each parser
 - Memory usage
 - Feature detection accuracy

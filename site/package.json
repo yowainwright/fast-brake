@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo 'add me'",
     "build": "astro build",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,astro}\"",
+    "format": "turbo run format:run",
+    "format:run": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,astro}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,astro}\"",
     "typecheck:run": "astro check && tsc --noEmit",
     "lint:run": "oxlint .",

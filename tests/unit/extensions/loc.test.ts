@@ -1,176 +1,148 @@
 import { test, expect, describe } from "bun:test";
-import { locExtension } from "../../../src/extensions/loc";
-import extensionsSchema from "../../../src/extensionsSchema.json";
+import { locExtension } from "../../../src/extensions/loc/index";
+import { ExtensionInput } from "../../../src/extensions/loc/types";
 
 describe("LOC Extension", () => {
-  describe("Schema Compliance", () => {
-    test("should have all required top-level properties", () => {
-      expect(locExtension).toHaveProperty("name");
-      expect(locExtension).toHaveProperty("description");
-      expect(locExtension).toHaveProperty("spec");
-    });
-
-    test("should have correct property types", () => {
-      expect(typeof locExtension.name).toBe("string");
-      expect(typeof locExtension.description).toBe("string");
-      expect(typeof locExtension.spec).toBe("object");
-    });
-
-    test("should have non-empty required fields", () => {
-      expect(locExtension.name.length).toBeGreaterThan(0);
-      expect(locExtension.description.length).toBeGreaterThan(0);
-    });
-
-    test("should have spec with required properties", () => {
-      expect(locExtension.spec).toHaveProperty("code");
-      expect(locExtension.spec).toHaveProperty("result");
-      expect(typeof locExtension.spec.code).toBe("string");
-      expect(typeof locExtension.spec.result).toBe("object");
-    });
-
-    test("should have result with all required DetectMatch properties", () => {
-      const { result } = locExtension.spec;
-
-      // Required properties from schema
-      expect(result).toHaveProperty("name");
-      expect(result).toHaveProperty("match");
-      expect(result).toHaveProperty("spec");
-      expect(result).toHaveProperty("rule");
-
-      // Check types
-      expect(typeof result.name).toBe("string");
-      expect(typeof result.match).toBe("string");
-      expect(typeof result.spec).toBe("object");
-      expect(typeof result.rule).toBe("string");
-
-      // Optional index property
-      if (result.index !== undefined) {
-        expect(typeof result.index).toBe("number");
-      }
-    });
-
-    test("should not have extra properties at root level", () => {
-      const allowedKeys = ["name", "description", "spec"];
-      const actualKeys = Object.keys(locExtension);
-
-      actualKeys.forEach((key) => {
-        expect(allowedKeys).toContain(key);
-      });
-    });
-  });
-
-  describe("Extension Specifics", () => {
-    test("should have correct name", () => {
-      expect(locExtension.name).toBe("loc");
-    });
-
-    test("should have descriptive description", () => {
-      expect(locExtension.description).toContain("location");
-      expect(locExtension.description.length).toBeGreaterThan(20);
-    });
-
-    test("should have valid example code", () => {
-      const { code } = locExtension.spec;
-      expect(code).toBeTruthy();
-      expect(code).toContain("=>"); // Should contain arrow function
-    });
-
-    test("should have complete loc information in result", () => {
-      const { loc } = locExtension.spec.result.spec;
-
-      expect(loc).toBeDefined();
-      expect(loc).toHaveProperty("start");
-      expect(loc).toHaveProperty("end");
-      expect(loc).toHaveProperty("offset");
-      expect(loc).toHaveProperty("length");
-
-      // Validate start position
-      expect(loc.start).toHaveProperty("line");
-      expect(loc.start).toHaveProperty("column");
-      expect(typeof loc.start.line).toBe("number");
-      expect(typeof loc.start.column).toBe("number");
-      expect(loc.start.line).toBeGreaterThan(0);
-      expect(loc.start.column).toBeGreaterThanOrEqual(0);
-
-      // Validate end position
-      expect(loc.end).toHaveProperty("line");
-      expect(loc.end).toHaveProperty("column");
-      expect(typeof loc.end.line).toBe("number");
-      expect(typeof loc.end.column).toBe("number");
-      expect(loc.end.line).toBeGreaterThanOrEqual(loc.start.line);
-
-      // Validate offset and length
-      expect(typeof loc.offset).toBe("number");
-      expect(typeof loc.length).toBe("number");
-      expect(loc.offset).toBeGreaterThanOrEqual(0);
-      expect(loc.length).toBeGreaterThan(0);
-    });
-
-    test("should have consistent match and location data", () => {
-      const { result } = locExtension.spec;
-
-      // Match length should equal loc.length
-      expect(result.match.length).toBe(result.spec.loc.length);
-
-      // Index should match offset if provided
-      if (result.index !== undefined) {
-        expect(result.index).toBe(result.spec.loc.offset);
-      }
-    });
-
-    test("should have valid arrow function detection", () => {
-      const { result } = locExtension.spec;
-
-      expect(result.name).toBe("arrow-function");
-      expect(result.match).toBe("() =>");
-      expect(result.rule).toContain("arrow");
-    });
-
-    test("should have realistic example values", () => {
-      const { result, code } = locExtension.spec;
-
-      // Code should contain the match
-      expect(code).toContain(result.match);
-
-      // Index should be within code bounds
-      if (result.index !== undefined) {
-        expect(result.index).toBeLessThan(code.length);
-        expect(result.index).toBeGreaterThanOrEqual(0);
-      }
-    });
-  });
-
-  describe("Data Integrity", () => {
-    test("should have immutable structure", () => {
-      const original = JSON.stringify(locExtension);
-      const frozen = Object.freeze(locExtension);
-
-      expect(() => {
-        // @ts-ignore - Testing runtime behavior
-        frozen.name = "modified";
-      }).toThrow();
-
-      expect(JSON.stringify(locExtension)).toBe(original);
-    });
-
-    test("should be serializable", () => {
-      const serialized = JSON.stringify(locExtension);
-      const deserialized = JSON.parse(serialized);
-
-      expect(deserialized).toEqual(locExtension);
-    });
-
-    test("should not contain undefined values", () => {
-      const checkUndefined = (obj: any, path = ""): void => {
-        Object.entries(obj).forEach(([key, value]) => {
-          expect(value).not.toBeUndefined();
-          if (value && typeof value === "object") {
-            checkUndefined(value, `${path}.${key}`);
-          }
-        });
+  describe("processLOCExtension", () => {
+    test("should calculate correct line and column positions", () => {
+      const input: ExtensionInput = {
+        code: "function test() {\n  return 42;\n}",
+        result: {
+          name: "return-statement",
+          match: "return 42",
+          spec: {},
+          rule: "return-pattern",
+          index: 20,
+        },
       };
 
-      checkUndefined(locExtension);
+      const output = locExtension.process(input);
+
+      expect(output.spec.loc.start.line).toBe(2);
+      expect(output.spec.loc.start.column).toBe(2);
+      expect(output.spec.loc.end.line).toBe(2);
+      expect(output.spec.loc.end.column).toBe(11);
+      expect(output.spec.loc.offset).toBe(20);
+      expect(output.spec.loc.length).toBe(9);
+    });
+
+    test("should handle single line code", () => {
+      const input: ExtensionInput = {
+        code: "const arrow = () => { return 42; }",
+        result: {
+          name: "arrow-function",
+          match: "() =>",
+          spec: {},
+          rule: "arrow-function-pattern",
+          index: 14,
+        },
+      };
+
+      const output = locExtension.process(input);
+
+      expect(output.spec.loc.start.line).toBe(1);
+      expect(output.spec.loc.start.column).toBe(14);
+      expect(output.spec.loc.end.line).toBe(1);
+      expect(output.spec.loc.end.column).toBe(19);
+    });
+
+    test("should handle empty match at position 0", () => {
+      const input: ExtensionInput = {
+        code: "const test = 123;",
+        result: {
+          name: "const-declaration",
+          match: "const",
+          spec: {},
+          rule: "const-pattern",
+        },
+      };
+
+      const output = locExtension.process(input);
+
+      expect(output.spec.loc.offset).toBe(0);
+      expect(output.spec.loc.start.line).toBe(1);
+      expect(output.spec.loc.start.column).toBe(0);
+    });
+
+    test("should preserve existing spec properties", () => {
+      const input: ExtensionInput = {
+        code: "function test() {}",
+        result: {
+          name: "function",
+          match: "function test",
+          spec: {
+            customProp: "value",
+            nested: { prop: true },
+          },
+          rule: "function-pattern",
+          index: 0,
+        },
+      };
+
+      const output = locExtension.process(input);
+
+      expect(output.spec.customProp).toBe("value");
+      expect(output.spec.nested.prop).toBe(true);
+      expect(output.spec.loc).toBeDefined();
+    });
+
+    test("should handle multiline matches", () => {
+      const input: ExtensionInput = {
+        code: "line1\nline2\nline3\nline4",
+        result: {
+          name: "multiline",
+          match: "line2\nline3",
+          spec: {},
+          rule: "multiline-pattern",
+          index: 6,
+        },
+      };
+
+      const output = locExtension.process(input);
+
+      expect(output.spec.loc.start.line).toBe(2);
+      expect(output.spec.loc.start.column).toBe(0);
+      expect(output.spec.loc.end.line).toBe(3);
+      expect(output.spec.loc.end.column).toBe(5);
+      expect(output.spec.loc.length).toBe(11);
+    });
+
+    test("should return all required properties", () => {
+      const input: ExtensionInput = {
+        code: "test code",
+        result: {
+          name: "test",
+          match: "test",
+          spec: {},
+          rule: "test-rule",
+          index: 0,
+        },
+      };
+
+      const output = locExtension.process(input);
+
+      expect(output).toHaveProperty("name");
+      expect(output).toHaveProperty("match");
+      expect(output).toHaveProperty("spec");
+      expect(output).toHaveProperty("rule");
+      expect(output.spec).toHaveProperty("loc");
+    });
+  });
+
+  describe("Extension metadata", () => {
+    test("should export correct metadata", () => {
+      expect(locExtension.name).toBe("loc");
+      expect(locExtension.description).toContain("location information");
+      expect(locExtension.spec).toBeDefined();
+      expect(locExtension.process).toBeDefined();
+      expect(typeof locExtension.process).toBe("function");
+    });
+
+    test("should have valid example in spec", () => {
+      expect(locExtension.spec.code).toBe("const arrow = () => { return 42; }");
+      expect(locExtension.spec.result.name).toBe("arrow-function");
+      expect(locExtension.spec.result.match).toBe("() =>");
+      expect(locExtension.spec.result.spec.loc).toBeDefined();
     });
   });
 });

@@ -2,11 +2,7 @@
   "name": "telemetry",
   "description": "Detects telemetry and tracking code",
   "spec": {
-    "orderedRules": [
-      "info",
-      "warning",
-      "error"
-    ],
+    "orderedRules": ["info", "warning", "error"],
     "matches": {
       "google_analytics": {
         "rule": "warning",

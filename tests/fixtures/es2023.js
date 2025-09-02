@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 const numbers = [1, 2, 3, 4, 5];
 
-const lastEven = numbers.findLast(n => n % 2 === 0);
+const lastEven = numbers.findLast((n) => n % 2 === 0);
 console.log(lastEven);
 
-const lastEvenIndex = numbers.findLastIndex(n => n % 2 === 0);
+const lastEvenIndex = numbers.findLastIndex((n) => n % 2 === 0);
 console.log(lastEvenIndex);
 
 const reversed = numbers.toReversed();
@@ -19,8 +19,8 @@ console.log(spliced);
 const updated = numbers.with(2, 100);
 console.log(updated);
 
-const items = ['apple', 'banana', 'cherry'];
-items.toReversed().forEach(item => {
+const items = ["apple", "banana", "cherry"];
+items.toReversed().forEach((item) => {
   console.log(item);
 });
 

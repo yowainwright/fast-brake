@@ -23,12 +23,12 @@ const isDisjoint = setA.isDisjointFrom(new Set([7, 8, 9]));
 console.log(isDisjoint);
 
 const pattern = /(?<year>\d{4})-(?<month>\d{2})-(?<year>\d{2})/;
-const match = '2025-03-15'.match(pattern);
+const match = "2025-03-15".match(pattern);
 console.log(match.groups);
 
 const now = Temporal.Now.plainDateTimeISO();
 console.log(now.toString());
 
-const date = Temporal.PlainDate.from('2025-03-15');
+const date = Temporal.PlainDate.from("2025-03-15");
 const nextWeek = date.add({ weeks: 1 });
 console.log(nextWeek.toString());

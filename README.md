@@ -1,4 +1,4 @@
-# Fast Brake 
+# Fast Brake
 
 **Fast braking match detection!** Fast brake enables a plugins and extension based schema to detect matches using JavaScript very fast. This is useful for detecting ECMAscript api features, Telemetry or other spec pattern matches you'd like to spec with a focus on speed.
 
@@ -11,30 +11,30 @@ bun install fast-brake
 ## Quick Start
 
 ```javascript
-import { fastBrake, detect, check } from 'fast-brake';
+import { fastBrake, detect, check } from "fast-brake";
 
 // Basic usage - detect features (returns array of detected features)
-const features = await fastBrake('const x = () => {}');
+const features = await fastBrake("const x = () => {}");
 console.log(features);
 // [{ name: 'arrow_functions', version: 'es2015' }]
 
 // Using with plugins
-import { esAll } from 'fast-brake/src/plugins/esversion';
-import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+import { esAll } from "fast-brake/src/plugins/esversion";
+import { telemetryPlugin } from "fast-brake/src/plugins/telemetry";
 
 const detector = new Detector();
 await detector.initialize([esAll, telemetryPlugin]);
 const results = await detector.detect(code);
 
 // Using with extensions for enhanced metadata
-import { locExtension } from 'fast-brake/src/extensions/loc';
+import { locExtension } from "fast-brake/src/extensions/loc";
 
 const enhancedDetector = new Detector({ extensions: [locExtension] });
 await enhancedDetector.initialize();
 const detailedResults = await enhancedDetector.detect(code);
 
 // Check if code is compatible (returns boolean)
-const isCompatible = await check('const x = () => {}', { target: 'es5' });
+const isCompatible = await check("const x = () => {}", { target: "es5" });
 console.log(isCompatible); // false
 ```
 
@@ -43,6 +43,7 @@ console.log(isCompatible); // false
 Other tools, like the parsers that inspired this utility provide a full AST to process files. They're incredibe! **Fast Brake** is optimized to a different pattern. To detect or find patterns based on matches very fast. Fast Brake is built with auto ES version detection, automatically determining the minimum required ES version for your code.
 
 This is nice for:
+
 - **Build tools** - Validate code compatibility before bundling
 - **Linters** - Check ES version or Telemetry compliance in CI/CD
 - **Transpilers** - Determine which features need polyfilling
@@ -57,14 +58,13 @@ This is nice for:
 - **Programmatic API** - Simple, intuitive interface
 - **Performance First** - Optimized for speed
 - **Plugin enabled** - Mix and match plugins with a basic api
-- **Simple interface** - Clean and straightforward API 
+- **Simple interface** - Clean and straightforward API
 
 ## Why this was made?
 
 Pre-2025, detecting issues that can cause es issues fast in bundles, dependencies is a necessity for CI/CD. In 2025, with Telemetry, Privacy Policies, and AI, it's important to know what you have going on in your files. This is why fast-brake was built!
 
 Initially, I was inspired by [acorn.js](), then [meriyah]() (amazing tools). I submitted a pull request so I could implement plugins using meriyah. [name]() provided inside into another direction which led me to making fast-brake—which is built on a very simple api to enable an architecture based on failing fast.
-
 
 ## Pattern-Based Detection
 
@@ -81,7 +81,7 @@ fast-brake uses **optimized pattern matching** for maximum speed:
 const features = detect(code);
 
 // Stop on first incompatible feature (fastest)
-fastBrake(code, { target: 'es5', throwOnFirst: true });
+fastBrake(code, { target: "es5", throwOnFirst: true });
 ```
 
 ## API Reference
@@ -91,19 +91,20 @@ fastBrake(code, { target: 'es5', throwOnFirst: true });
 Analyzes code and returns detected features. This is an async function.
 
 ```javascript
-import { fastBrake } from 'fast-brake';
+import { fastBrake } from "fast-brake";
 
-const features = await fastBrake('const x = () => {}');
+const features = await fastBrake("const x = () => {}");
 console.log(features);
 // [{ name: 'arrow_functions', version: 'es2015' }]
 
 // With custom plugins
-const features = await fastBrake(code, { 
-  plugins: [myCustomPlugin] 
+const features = await fastBrake(code, {
+  plugins: [myCustomPlugin],
 });
 ```
 
 **Parameters:**
+
 - `code` (string): Code to analyze
 - `options` (optional):
   - `plugins` (Plugin[]): Array of plugins to use for detection
@@ -117,7 +118,7 @@ const features = await fastBrake(code, {
 Returns an array of detected features. This is an async function.
 
 ```javascript
-import { detect } from 'fast-brake';
+import { detect } from "fast-brake";
 
 const features = await detect(`
   const arrow = () => {};
@@ -129,23 +130,25 @@ console.log(features);
 
 // With plugins
 const features = await detect(code, {
-  plugins: [esAll, telemetryPlugin]
+  plugins: [esAll, telemetryPlugin],
 });
 ```
 
 **Parameters:**
+
 - `code` (string): Code to analyze
 - `options` (optional):
   - `plugins` (Plugin[]): Array of plugins to use for detection
 
 **Returns:** `Promise<DetectedFeature[]>`
+
 ```typescript
 interface DetectedFeature {
-  name: string;        // Feature name (e.g., 'arrow_functions')
-  version: string;     // Required ES version (e.g., 'es2015')
-  line?: number;       // Line number where feature was found
-  column?: number;     // Column number where feature was found
-  snippet?: string;    // Code snippet containing the feature
+  name: string; // Feature name (e.g., 'arrow_functions')
+  version: string; // Required ES version (e.g., 'es2015')
+  line?: number; // Line number where feature was found
+  column?: number; // Column number where feature was found
+  snippet?: string; // Code snippet containing the feature
 }
 ```
 
@@ -154,22 +157,23 @@ interface DetectedFeature {
 Returns a boolean indicating if code is compatible with the target version. This is an async function.
 
 ```javascript
-import { check } from 'fast-brake';
+import { check } from "fast-brake";
 
-const isES5Compatible = await check('var x = 10;', { target: 'es5' });
+const isES5Compatible = await check("var x = 10;", { target: "es5" });
 console.log(isES5Compatible); // true
 
-const hasES6Features = await check('const x = () => {};', { target: 'es5' });
+const hasES6Features = await check("const x = () => {};", { target: "es5" });
 console.log(hasES6Features); // false
 
 // With custom plugins
-const isCompatible = await check(code, { 
-  target: 'es5',
-  plugins: [myPlugin]
+const isCompatible = await check(code, {
+  target: "es5",
+  plugins: [myPlugin],
 });
 ```
 
 **Parameters:**
+
 - `code` (string): Code to analyze
 - `options` (DetectionOptions):
   - `target` (string): Target ES version
@@ -185,7 +189,7 @@ const isCompatible = await check(code, {
 Fast Brake also exports these classes and utilities:
 
 ```javascript
-import { Detector, Scanner, FastBrakeCache } from 'fast-brake';
+import { Detector, Scanner, FastBrakeCache } from "fast-brake";
 
 // Create a detector instance with custom plugins
 const detector = new Detector();
@@ -208,25 +212,25 @@ Each plugin follows the types defined in the [Plugin Schema](https://github.com/
 
 ```typescript
 interface Plugin {
-  name: string;        // Unique plugin identifier
+  name: string; // Unique plugin identifier
   description: string; // Plugin description
-  spec: PluginSpec;    // Plugin specification
+  spec: PluginSpec; // Plugin specification
 }
 
 interface PluginSpec {
-  orderedRules: string[];                    // Ordered list of rules (e.g., ES versions)
-  matches: Record<string, PluginMatch>;      // Detection patterns mapped by feature name
+  orderedRules: string[]; // Ordered list of rules (e.g., ES versions)
+  matches: Record<string, PluginMatch>; // Detection patterns mapped by feature name
 }
 
 interface PluginMatch {
-  rule: string;                 // Rule this match belongs to (e.g., "es2015")
-  strings?: string[];           // Fast string patterns to check first
-  patterns?: PluginPattern[];   // Regex patterns for detailed matching
+  rule: string; // Rule this match belongs to (e.g., "es2015")
+  strings?: string[]; // Fast string patterns to check first
+  patterns?: PluginPattern[]; // Regex patterns for detailed matching
 }
 
 interface PluginPattern {
-  pattern: string;      // Regex pattern string
-  identifier?: string;  // Optional identifier for the pattern
+  pattern: string; // Regex pattern string
+  identifier?: string; // Optional identifier for the pattern
 }
 ```
 
@@ -235,22 +239,22 @@ interface PluginPattern {
 Plugins can be passed to any of the main functions:
 
 ```javascript
-import { fastBrake, detect, check } from 'fast-brake';
-import { es2020 } from 'fast-brake/src/plugins/esversion';
-import { telemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+import { fastBrake, detect, check } from "fast-brake";
+import { es2020 } from "fast-brake/src/plugins/esversion";
+import { telemetryPlugin } from "fast-brake/src/plugins/telemetry";
 
 // Pass single plugin
 const features = await fastBrake(code, { plugins: [es2020] });
 
 // Pass multiple plugins
-const results = await detect(code, { 
-  plugins: [es2020, telemetryPlugin] 
+const results = await detect(code, {
+  plugins: [es2020, telemetryPlugin],
 });
 
 // Use with check function
-const isCompatible = await check(code, { 
-  target: 'es2020',
-  plugins: [es2020, telemetryPlugin] 
+const isCompatible = await check(code, {
+  target: "es2020",
+  plugins: [es2020, telemetryPlugin],
 });
 ```
 
@@ -263,15 +267,18 @@ const myPlugin = {
   spec: {
     orderedRules: ["rule1", "rule2"],
     matches: {
-      "feature_name": {
+      feature_name: {
         rule: "rule1",
         strings: ["console.log"],
         patterns: [
-          { pattern: "console\\.(log|warn|error)", identifier: "console_methods" }
-        ]
-      }
-    }
-  }
+          {
+            pattern: "console\\.(log|warn|error)",
+            identifier: "console_methods",
+          },
+        ],
+      },
+    },
+  },
 };
 ```
 
@@ -280,10 +287,11 @@ const myPlugin = {
 Fast Brake includes several built-in plugins for different detection needs:
 
 ### 1. ES Version Plugin
+
 Detects ECMAScript features from ES5 through ES2025.
 
 ```javascript
-import { es5, es2015, es2020, esAll } from 'fast-brake/src/plugins/esversion';
+import { es5, es2015, es2020, esAll } from "fast-brake/src/plugins/esversion";
 
 // Use specific version checks
 const plugin = es2015; // Checks for features newer than ES2015
@@ -292,11 +300,15 @@ const plugin = es2015; // Checks for features newer than ES2015
 const allFeatures = esAll; // Detects all ES features
 ```
 
-### 2. Telemetry Plugin 
+### 2. Telemetry Plugin
+
 Identifies analytics and tracking code patterns.
 
 ```javascript
-import { telemetryPlugin, strictTelemetryPlugin } from 'fast-brake/src/plugins/telemetry';
+import {
+  telemetryPlugin,
+  strictTelemetryPlugin,
+} from "fast-brake/src/plugins/telemetry";
 
 // Standard telemetry detection
 const plugin = telemetryPlugin;
@@ -306,20 +318,22 @@ const strict = strictTelemetryPlugin;
 ```
 
 ### 3. Browserlist Plugin
+
 Checks compatibility with specific browser versions.
 
 ```javascript
-import browserlistPlugin from 'fast-brake/src/plugins/browserlist';
+import browserlistPlugin from "fast-brake/src/plugins/browserlist";
 
 // Use the browserlist plugin
 const plugin = browserlistPlugin;
 ```
 
 ### 4. Detect Plugin
+
 Auto-detects the minimum required ES version.
 
 ```javascript
-import detectPlugin from 'fast-brake/src/plugins/detect';
+import detectPlugin from "fast-brake/src/plugins/detect";
 
 // Automatically determine minimum ES version
 const plugin = detectPlugin;
@@ -335,18 +349,20 @@ Each extension follows the types defined in the [Extension Schema](https://githu
 
 ```typescript
 interface Extension {
-  name: string;        // Extension name
-  description: string; // Extension description  
-  spec: {             // Extension specification
-    code: string;     // Example code
-    result: {         // Example result
+  name: string; // Extension name
+  description: string; // Extension description
+  spec: {
+    // Extension specification
+    code: string; // Example code
+    result: {
+      // Example result
       name: string;
       match: string;
-      spec: object;   // Additional metadata
+      spec: object; // Additional metadata
       rule: string;
       index?: number;
-    }
-  }
+    };
+  };
 }
 ```
 
@@ -355,9 +371,9 @@ interface Extension {
 Extensions can be passed to enhance detection with additional metadata:
 
 ```javascript
-import { Detector } from 'fast-brake';
-import { locExtension } from 'fast-brake/src/extensions/loc';
-import { throwExtension } from 'fast-brake/src/extensions/throw';
+import { Detector } from "fast-brake";
+import { locExtension } from "fast-brake/src/extensions/loc";
+import { throwExtension } from "fast-brake/src/extensions/throw";
 
 // Use single extension
 const detector = new Detector({ extensions: [locExtension] });
@@ -365,8 +381,8 @@ await detector.initialize();
 const results = await detector.detect(code);
 
 // Use multiple extensions
-const enhancedDetector = new Detector({ 
-  extensions: [locExtension, throwExtension] 
+const enhancedDetector = new Detector({
+  extensions: [locExtension, throwExtension],
 });
 await enhancedDetector.initialize();
 const detailedResults = await enhancedDetector.detect(code);
@@ -375,10 +391,11 @@ const detailedResults = await enhancedDetector.detect(code);
 ### Built-in Extensions
 
 #### 1. throw Extension
+
 Provides metadata for error throwing patterns:
 
 ```javascript
-import { throwExtension } from 'fast-brake/src/extensions/throw';
+import { throwExtension } from "fast-brake/src/extensions/throw";
 
 console.log(throwExtension);
 // {
@@ -397,11 +414,12 @@ console.log(throwExtension);
 // }
 ```
 
-#### 2. loc Extension  
+#### 2. loc Extension
+
 Provides metadata for location enrichment:
 
 ```javascript
-import { locExtension } from 'fast-brake/src/extensions/loc';
+import { locExtension } from "fast-brake/src/extensions/loc";
 
 console.log(locExtension);
 // {
@@ -432,98 +450,108 @@ console.log(locExtension);
 #### EsVersion (default plugin)
 
 #### ES2015 (ES6) Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Arrow Functions | `=>` | `const fn = () => {}` |
-| Template Literals | `` ` `` | `` `Hello ${name}` `` |
-| Classes | `class` | `class MyClass {}` |
-| Let/Const | `let`/`const` | `const x = 10` |
-| Destructuring | `[...]`/`{...}` | `const [a, b] = arr` |
-| Spread/Rest | `...` | `[...arr]` |
-| For-of Loops | `for...of` | `for (const item of items)` |
-| Default Parameters | `param = value` | `function fn(x = 10)` |
+
+| Feature            | Pattern         | Example                     |
+| ------------------ | --------------- | --------------------------- |
+| Arrow Functions    | `=>`            | `const fn = () => {}`       |
+| Template Literals  | `` ` ``         | `` `Hello ${name}` ``       |
+| Classes            | `class`         | `class MyClass {}`          |
+| Let/Const          | `let`/`const`   | `const x = 10`              |
+| Destructuring      | `[...]`/`{...}` | `const [a, b] = arr`        |
+| Spread/Rest        | `...`           | `[...arr]`                  |
+| For-of Loops       | `for...of`      | `for (const item of items)` |
+| Default Parameters | `param = value` | `function fn(x = 10)`       |
 
 #### ES2016 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Exponentiation | `**` | `2 ** 3` |
+
+| Feature        | Pattern | Example  |
+| -------------- | ------- | -------- |
+| Exponentiation | `**`    | `2 ** 3` |
 
 #### ES2017 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
+
+| Feature     | Pattern         | Example                                 |
+| ----------- | --------------- | --------------------------------------- |
 | Async/Await | `async`/`await` | `async function fn() { await promise }` |
 
 #### ES2018 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Async Iteration | `for await` | `for await (const item of asyncIterable)` |
-| Rest/Spread Properties | `{...obj}` | `const newObj = {...obj}` |
+
+| Feature                | Pattern     | Example                                   |
+| ---------------------- | ----------- | ----------------------------------------- |
+| Async Iteration        | `for await` | `for await (const item of asyncIterable)` |
+| Rest/Spread Properties | `{...obj}`  | `const newObj = {...obj}`                 |
 
 #### ES2019 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Array.flat() | `.flat()` | `arr.flat()` |
+
+| Feature         | Pattern      | Example           |
+| --------------- | ------------ | ----------------- |
+| Array.flat()    | `.flat()`    | `arr.flat()`      |
 | Array.flatMap() | `.flatMap()` | `arr.flatMap(fn)` |
 
 #### ES2020 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Optional Chaining | `?.` | `obj?.prop?.method?.()` |
-| Nullish Coalescing | `??` | `value ?? 'default'` |
-| BigInt | `123n` | `const big = 123n` |
+
+| Feature            | Pattern              | Example                        |
+| ------------------ | -------------------- | ------------------------------ |
+| Optional Chaining  | `?.`                 | `obj?.prop?.method?.()`        |
+| Nullish Coalescing | `??`                 | `value ?? 'default'`           |
+| BigInt             | `123n`               | `const big = 123n`             |
 | Promise.allSettled | `Promise.allSettled` | `Promise.allSettled(promises)` |
-| globalThis | `globalThis` | `globalThis.myVar` |
+| globalThis         | `globalThis`         | `globalThis.myVar`             |
 
 #### ES2021 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Logical Assignment | `\|\|=`, `&&=`, `??=` | `x ??= 'default'` |
-| Numeric Separators | `1_000_000` | `const million = 1_000_000` |
-| String.replaceAll | `.replaceAll()` | `str.replaceAll('old', 'new')` |
-| Promise.any | `Promise.any` | `Promise.any(promises)` |
+
+| Feature            | Pattern               | Example                        |
+| ------------------ | --------------------- | ------------------------------ |
+| Logical Assignment | `\|\|=`, `&&=`, `??=` | `x ??= 'default'`              |
+| Numeric Separators | `1_000_000`           | `const million = 1_000_000`    |
+| String.replaceAll  | `.replaceAll()`       | `str.replaceAll('old', 'new')` |
+| Promise.any        | `Promise.any`         | `Promise.any(promises)`        |
 
 #### ES2022 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Private Fields | `#field` | `class C { #private = 1 }` |
-| Static Blocks | `static {}` | `class C { static { /* init */ } }` |
-| Array.at() | `.at()` | `arr.at(-1)` |
-| Object.hasOwn | `Object.hasOwn` | `Object.hasOwn(obj, 'prop')` |
-| Top-level Await | `await` (module) | `const data = await fetch(url)` |
+
+| Feature         | Pattern          | Example                             |
+| --------------- | ---------------- | ----------------------------------- |
+| Private Fields  | `#field`         | `class C { #private = 1 }`          |
+| Static Blocks   | `static {}`      | `class C { static { /* init */ } }` |
+| Array.at()      | `.at()`          | `arr.at(-1)`                        |
+| Object.hasOwn   | `Object.hasOwn`  | `Object.hasOwn(obj, 'prop')`        |
+| Top-level Await | `await` (module) | `const data = await fetch(url)`     |
 
 #### ES2023 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Array.findLast() | `.findLast()` | `arr.findLast(x => x > 10)` |
+
+| Feature               | Pattern            | Example                          |
+| --------------------- | ------------------ | -------------------------------- |
+| Array.findLast()      | `.findLast()`      | `arr.findLast(x => x > 10)`      |
 | Array.findLastIndex() | `.findLastIndex()` | `arr.findLastIndex(x => x > 10)` |
-| Array.toReversed() | `.toReversed()` | `arr.toReversed()` |
-| Array.toSorted() | `.toSorted()` | `arr.toSorted()` |
-| Array.toSpliced() | `.toSpliced()` | `arr.toSpliced(1, 2, 'new')` |
-| Array.with() | `.with()` | `arr.with(0, 'new')` |
-| Hashbang | `#!` | `#!/usr/bin/env node` |
+| Array.toReversed()    | `.toReversed()`    | `arr.toReversed()`               |
+| Array.toSorted()      | `.toSorted()`      | `arr.toSorted()`                 |
+| Array.toSpliced()     | `.toSpliced()`     | `arr.toSpliced(1, 2, 'new')`     |
+| Array.with()          | `.with()`          | `arr.with(0, 'new')`             |
+| Hashbang              | `#!`               | `#!/usr/bin/env node`            |
 
 #### ES2024 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| RegExp v flag | `/pattern/v` | `/[\p{Letter}]/v` |
-| Array.fromAsync() | `Array.fromAsync` | `Array.fromAsync(asyncIterable)` |
+
+| Feature               | Pattern                 | Example                                                        |
+| --------------------- | ----------------------- | -------------------------------------------------------------- |
+| RegExp v flag         | `/pattern/v`            | `/[\p{Letter}]/v`                                              |
+| Array.fromAsync()     | `Array.fromAsync`       | `Array.fromAsync(asyncIterable)`                               |
 | Promise.withResolvers | `Promise.withResolvers` | `const { promise, resolve, reject } = Promise.withResolvers()` |
-| Object.groupBy() | `Object.groupBy` | `Object.groupBy(items, item => item.category)` |
-| Map.groupBy() | `Map.groupBy` | `Map.groupBy(items, item => item.category)` |
+| Object.groupBy()      | `Object.groupBy`        | `Object.groupBy(items, item => item.category)`                 |
+| Map.groupBy()         | `Map.groupBy`           | `Map.groupBy(items, item => item.category)`                    |
 
 #### ES2025 Features
-| Feature | Pattern | Example |
-|---------|---------|---------|
-| Temporal API | `Temporal.` | `Temporal.Now.plainDateISO()` |
-| RegExp duplicate named groups | `(?<name>)` | `/(?<year>\d{4})-(?<year>\d{2})/` |
-| Set methods | `.intersection()` | `setA.intersection(setB)` |
-| | `.union()` | `setA.union(setB)` |
-| | `.difference()` | `setA.difference(setB)` |
-| | `.symmetricDifference()` | `setA.symmetricDifference(setB)` |
-| | `.isSubsetOf()` | `setA.isSubsetOf(setB)` |
-| | `.isSupersetOf()` | `setA.isSupersetOf(setB)` |
-| | `.isDisjointFrom()` | `setA.isDisjointFrom(setB)` |
 
+| Feature                       | Pattern                  | Example                           |
+| ----------------------------- | ------------------------ | --------------------------------- |
+| Temporal API                  | `Temporal.`              | `Temporal.Now.plainDateISO()`     |
+| RegExp duplicate named groups | `(?<name>)`              | `/(?<year>\d{4})-(?<year>\d{2})/` |
+| Set methods                   | `.intersection()`        | `setA.intersection(setB)`         |
+|                               | `.union()`               | `setA.union(setB)`                |
+|                               | `.difference()`          | `setA.difference(setB)`           |
+|                               | `.symmetricDifference()` | `setA.symmetricDifference(setB)`  |
+|                               | `.isSubsetOf()`          | `setA.isSubsetOf(setB)`           |
+|                               | `.isSupersetOf()`        | `setA.isSupersetOf(setB)`         |
+|                               | `.isDisjointFrom()`      | `setA.isDisjointFrom(setB)`       |
 
 ## Performance Benchmarks
 
@@ -533,74 +561,73 @@ console.log(locExtension);
 
 File size: 0.4 KB
 
-| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
-|--------|-----------|---------|----------|----------|
-| fast-brake (detect) | 0.009 | 110,509 | 1.0x | none |
-| fast-brake (browserlist) | 0.009 | 107,418 | 1.0x | browser check |
-| fast-brake (es2015 only) | 0.010 | 103,786 | 0.9x | es2015 check |
-| fast-brake | 0.010 | 102,154 | 0.9x | none |
-| fast-brake (es5 only) | 0.016 | 60,722 | 0.5x | es5 check |
-| meriyah | 0.020 | 50,081 | 0.5x | parsed |
-| cherow | 0.022 | 45,132 | 0.4x | parsed |
-| esprima | 0.029 | 34,307 | 0.3x | parsed |
-| acorn | 0.034 | 29,149 | 0.3x | parsed |
-| espree | 0.040 | 25,202 | 0.2x | parsed |
-| @babel/parser | 0.060 | 16,778 | 0.2x | parsed |
+| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
+| ------------------------ | --------- | ------- | -------- | ------------- |
+| fast-brake (detect)      | 0.009     | 110,509 | 1.0x     | none          |
+| fast-brake (browserlist) | 0.009     | 107,418 | 1.0x     | browser check |
+| fast-brake (es2015 only) | 0.010     | 103,786 | 0.9x     | es2015 check  |
+| fast-brake               | 0.010     | 102,154 | 0.9x     | none          |
+| fast-brake (es5 only)    | 0.016     | 60,722  | 0.5x     | es5 check     |
+| meriyah                  | 0.020     | 50,081  | 0.5x     | parsed        |
+| cherow                   | 0.022     | 45,132  | 0.4x     | parsed        |
+| esprima                  | 0.029     | 34,307  | 0.3x     | parsed        |
+| acorn                    | 0.034     | 29,149  | 0.3x     | parsed        |
+| espree                   | 0.040     | 25,202  | 0.2x     | parsed        |
+| @babel/parser            | 0.060     | 16,778  | 0.2x     | parsed        |
 
 ### ES2015 (Modern)
 
 File size: 0.7 KB
 
-| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
-|--------|-----------|---------|----------|----------|
-| fast-brake | 0.004 | 225,519 | 1.0x | none |
-| fast-brake (detect) | 0.005 | 191,799 | 0.9x | none |
-| fast-brake (es5 only) | 0.014 | 71,126 | 0.3x | es5 check |
-| fast-brake (browserlist) | 0.016 | 61,496 | 0.3x | browser check |
-| fast-brake (es2015 only) | 0.018 | 55,386 | 0.2x | es2015 check |
-| cherow | 0.019 | 53,240 | 0.2x | parsed |
-| meriyah | 0.020 | 51,039 | 0.2x | parsed |
-| acorn | 0.047 | 21,317 | 0.1x | parsed |
-| @babel/parser | 0.056 | 17,905 | 0.1x | parsed |
-| espree | 0.056 | 17,848 | 0.1x | parsed |
-| esprima | - | - | - | parse error |
+| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
+| ------------------------ | --------- | ------- | -------- | ------------- |
+| fast-brake               | 0.004     | 225,519 | 1.0x     | none          |
+| fast-brake (detect)      | 0.005     | 191,799 | 0.9x     | none          |
+| fast-brake (es5 only)    | 0.014     | 71,126  | 0.3x     | es5 check     |
+| fast-brake (browserlist) | 0.016     | 61,496  | 0.3x     | browser check |
+| fast-brake (es2015 only) | 0.018     | 55,386  | 0.2x     | es2015 check  |
+| cherow                   | 0.019     | 53,240  | 0.2x     | parsed        |
+| meriyah                  | 0.020     | 51,039  | 0.2x     | parsed        |
+| acorn                    | 0.047     | 21,317  | 0.1x     | parsed        |
+| @babel/parser            | 0.056     | 17,905  | 0.1x     | parsed        |
+| espree                   | 0.056     | 17,848  | 0.1x     | parsed        |
+| esprima                  | -         | -       | -        | parse error   |
 
 ### ES2022 (Latest)
 
 File size: 1.2 KB
 
-| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
-|--------|-----------|---------|----------|----------|
-| fast-brake | 0.002 | 589,507 | 1.0x | none |
-| fast-brake (detect) | 0.004 | 242,608 | 0.4x | none |
-| fast-brake (es2015 only) | 0.007 | 143,859 | 0.2x | es2015 check |
-| fast-brake (es5 only) | 0.009 | 108,805 | 0.2x | es5 check |
-| fast-brake (browserlist) | 0.009 | 105,517 | 0.2x | browser check |
-| meriyah | 0.020 | 50,117 | 0.1x | parsed |
-| acorn | 0.037 | 27,354 | 0.0x | parsed |
-| espree | 0.042 | 23,809 | 0.0x | parsed |
-| @babel/parser | 0.045 | 22,266 | 0.0x | parsed |
-| esprima | - | - | - | parse error |
-| cherow | - | - | - | parse error |
+| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
+| ------------------------ | --------- | ------- | -------- | ------------- |
+| fast-brake               | 0.002     | 589,507 | 1.0x     | none          |
+| fast-brake (detect)      | 0.004     | 242,608 | 0.4x     | none          |
+| fast-brake (es2015 only) | 0.007     | 143,859 | 0.2x     | es2015 check  |
+| fast-brake (es5 only)    | 0.009     | 108,805 | 0.2x     | es5 check     |
+| fast-brake (browserlist) | 0.009     | 105,517 | 0.2x     | browser check |
+| meriyah                  | 0.020     | 50,117  | 0.1x     | parsed        |
+| acorn                    | 0.037     | 27,354  | 0.0x     | parsed        |
+| espree                   | 0.042     | 23,809  | 0.0x     | parsed        |
+| @babel/parser            | 0.045     | 22,266  | 0.0x     | parsed        |
+| esprima                  | -         | -       | -        | parse error   |
+| cherow                   | -         | -       | -        | parse error   |
 
 ### Large File (100x)
 
 File size: 69.4 KB
 
-| Parser | Time (ms) | Ops/sec | Relative | Accuracy |
-|--------|-----------|---------|----------|----------|
-| fast-brake | 0.001 | 696,419 | 1.0x | none |
-| fast-brake (detect) | 0.005 | 209,121 | 0.3x | none |
-| fast-brake (es5 only) | 0.010 | 98,251 | 0.1x | es5 check |
-| fast-brake (browserlist) | 0.682 | 1,467 | 0.0x | browser check |
-| fast-brake (es2015 only) | 0.989 | 1,011 | 0.0x | es2015 check |
-| cherow | 1.019 | 981 | 0.0x | parsed |
-| meriyah | 1.083 | 923 | 0.0x | parsed |
-| @babel/parser | - | - | - | parse error |
-| acorn | - | - | - | parse error |
-| esprima | - | - | - | parse error |
-| espree | - | - | - | parse error |
-
+| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
+| ------------------------ | --------- | ------- | -------- | ------------- |
+| fast-brake               | 0.001     | 696,419 | 1.0x     | none          |
+| fast-brake (detect)      | 0.005     | 209,121 | 0.3x     | none          |
+| fast-brake (es5 only)    | 0.010     | 98,251  | 0.1x     | es5 check     |
+| fast-brake (browserlist) | 0.682     | 1,467   | 0.0x     | browser check |
+| fast-brake (es2015 only) | 0.989     | 1,011   | 0.0x     | es2015 check  |
+| cherow                   | 1.019     | 981     | 0.0x     | parsed        |
+| meriyah                  | 1.083     | 923     | 0.0x     | parsed        |
+| @babel/parser            | -         | -       | -        | parse error   |
+| acorn                    | -         | -       | -        | parse error   |
+| esprima                  | -         | -       | -        | parse error   |
+| espree                   | -         | -       | -        | parse error   |
 
 <!-- BENCHMARK_END -->
 
@@ -618,12 +645,14 @@ Based on the latest benchmarks:
 ### When to use Quick vs Full mode
 
 **Quick Mode** (`{ quick: true }`):
+
 - **Up to 7x faster** than full mode
 - Perfect for **build tools** and **hot reloading**
 - **Pattern-based detection** without tokenizer validation
 - Use when **speed is critical**
 
 **Full Mode** (default):
+
 - **High accuracy** with tokenizer validation
 - **Still faster** than AST parsers
 - **Recommended** for most use cases
@@ -633,59 +662,62 @@ Based on the latest benchmarks:
 
 Fast-brake supports detection of all ES versions from ES5 through ES2025+:
 
-| ES Version | Chrome | Firefox | Safari | Node.js | Key Features |
-|------------|--------|---------|--------|---------|--------------|
-| ES5 (2009) | 5+ | 4+ | 5+ | 0.10+ | Strict mode, JSON, Array methods |
-| ES2015/ES6 | 51+ | 54+ | 10+ | 6+ | Arrow functions, Classes, Template literals |
-| ES2016 | 52+ | 55+ | 10.1+ | 7+ | Exponentiation, Array.includes |
-| ES2017 | 58+ | 53+ | 11+ | 8+ | Async/await, Object.entries |
-| ES2018 | 64+ | 58+ | 12+ | 10+ | Rest/spread, Async iteration |
-| ES2019 | 73+ | 62+ | 12.1+ | 12+ | Array.flat, Object.fromEntries |
-| ES2020 | 80+ | 74+ | 13.1+ | 14+ | Optional chaining, Nullish coalescing |
-| ES2021 | 85+ | 79+ | 14.1+ | 15+ | Logical assignment, String.replaceAll |
-| ES2022 | 94+ | 93+ | 15.4+ | 16+ | Top-level await, Class fields |
-| ES2023 | 110+ | 104+ | 16.4+ | 19+ | Array methods (toReversed, toSorted, with) |
-| ES2024 | 120+ | 119+ | 17.2+ | 21+ | Promise.withResolvers, Object.groupBy |
-| ES2025 | 125+ | 125+ | 18+ | 22+ | Set methods, Temporal API |
+| ES Version | Chrome | Firefox | Safari | Node.js | Key Features                                |
+| ---------- | ------ | ------- | ------ | ------- | ------------------------------------------- |
+| ES5 (2009) | 5+     | 4+      | 5+     | 0.10+   | Strict mode, JSON, Array methods            |
+| ES2015/ES6 | 51+    | 54+     | 10+    | 6+      | Arrow functions, Classes, Template literals |
+| ES2016     | 52+    | 55+     | 10.1+  | 7+      | Exponentiation, Array.includes              |
+| ES2017     | 58+    | 53+     | 11+    | 8+      | Async/await, Object.entries                 |
+| ES2018     | 64+    | 58+     | 12+    | 10+     | Rest/spread, Async iteration                |
+| ES2019     | 73+    | 62+     | 12.1+  | 12+     | Array.flat, Object.fromEntries              |
+| ES2020     | 80+    | 74+     | 13.1+  | 14+     | Optional chaining, Nullish coalescing       |
+| ES2021     | 85+    | 79+     | 14.1+  | 15+     | Logical assignment, String.replaceAll       |
+| ES2022     | 94+    | 93+     | 15.4+  | 16+     | Top-level await, Class fields               |
+| ES2023     | 110+   | 104+    | 16.4+  | 19+     | Array methods (toReversed, toSorted, with)  |
+| ES2024     | 120+   | 119+    | 17.2+  | 21+     | Promise.withResolvers, Object.groupBy       |
+| ES2025     | 125+   | 125+    | 18+    | 22+     | Set methods, Temporal API                   |
 
 ## Use Cases
 
 ### Build Tool Integration
+
 ```javascript
-import { check } from 'fast-brake';
+import { check } from "fast-brake";
 
 // Validate code before bundling
-if (!check(sourceCode, { target: 'es2015' })) {
-  console.warn('Code requires transpilation for ES2015 compatibility');
+if (!check(sourceCode, { target: "es2015" })) {
+  console.warn("Code requires transpilation for ES2015 compatibility");
 }
 ```
 
 ### Linting Integration
+
 ```javascript
-import { detect } from 'fast-brake';
+import { detect } from "fast-brake";
 
 // Check for features not allowed in your project
 const features = detect(code);
-const modernFeatures = features.filter(f => 
-  ['es2020', 'es2021', 'es2022'].includes(f.version)
+const modernFeatures = features.filter((f) =>
+  ["es2020", "es2021", "es2022"].includes(f.version),
 );
 
 if (modernFeatures.length > 0) {
-  console.error('Modern ES features detected:', modernFeatures);
+  console.error("Modern ES features detected:", modernFeatures);
 }
 ```
 
 ### CI/CD Pipeline
+
 ```javascript
-import { fastBrake } from 'fast-brake';
-import { readFileSync } from 'fs';
+import { fastBrake } from "fast-brake";
+import { readFileSync } from "fs";
 
 // Validate all source files
-const files = ['src/index.js', 'src/utils.js'];
+const files = ["src/index.js", "src/utils.js"];
 for (const file of files) {
-  const code = readFileSync(file, 'utf-8');
+  const code = readFileSync(file, "utf-8");
   try {
-    fastBrake(code, { target: 'es2018' });
+    fastBrake(code, { target: "es2018" });
     console.log(`${file} is ES2018 compatible`);
   } catch (error) {
     console.error(`${file}: ${error.message}`);
@@ -695,16 +727,17 @@ for (const file of files) {
 ```
 
 ### Dynamic Feature Detection
+
 ```javascript
-import { getMinimumESVersion } from 'fast-brake';
+import { getMinimumESVersion } from "fast-brake";
 
 // Determine polyfill requirements
 const userCode = getUserSubmittedCode();
 const requiredVersion = getMinimumESVersion(userCode);
 
-if (requiredVersion === 'es5') {
+if (requiredVersion === "es5") {
   // No polyfills needed
-} else if (requiredVersion === 'es2015') {
+} else if (requiredVersion === "es2015") {
   loadES2015Polyfills();
 } else {
   loadModernPolyfills();
@@ -716,19 +749,19 @@ if (requiredVersion === 'es5') {
 fast-brake includes full TypeScript definitions:
 
 ```typescript
-import { 
-  fastBrake, 
-  detect, 
-  check, 
+import {
+  fastBrake,
+  detect,
+  check,
   getMinimumESVersion,
   DetectedFeature,
-  DetectionOptions 
-} from 'fast-brake';
+  DetectionOptions,
+} from "fast-brake";
 
 const options: DetectionOptions = {
-  target: 'es2015',
+  target: "es2015",
   quick: false,
-  throwOnFirst: true
+  throwOnFirst: true,
 };
 
 const features: DetectedFeature[] = detect(code, options);
