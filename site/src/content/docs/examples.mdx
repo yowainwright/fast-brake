@@ -5,22 +5,37 @@ description: "Real-world examples of using Fast Brake for pattern detection"
 
 ## Quick Start Examples
 
-### Basic Pattern Detection
+### Basic Pattern Detection - Sync (FASTEST)
+
+```javascript
+import { fastBrakeSync } from 'fast-brake';
+
+// Create sync instance - no async overhead
+const fb = fastBrakeSync();
+
+// Check compatibility instantly
+const isES5Compatible = fb.check('const x = () => {}', { target: 'es5' });
+console.log(isES5Compatible); // false - instant result
+
+// Detect patterns synchronously
+const patterns = fb.detect('const x = () => {}');
+console.log(patterns);
+// [{ name: 'let_const', version: 'es2015' }]
+```
+
+### Basic Pattern Detection - Async
 
 ```javascript
 import { detect, check, fastBrake } from 'fast-brake';
 
-// Detect first pattern (using default ES version plugin)
-const patterns = await detect('const x = () => {}');
-console.log(patterns);
-// [{ name: 'let_const', version: 'es2015' }]
-// Note: 'version' contains the rule name from the plugin
-
-// Check compatibility with ES5 rules
+// When async is needed for your workflow
 const isES5Compatible = await check('const x = () => {}', { target: 'es5' });
 console.log(isES5Compatible); // false
 
-// Use fastBrake for pattern detection
+const patterns = await detect('const x = () => {}');
+console.log(patterns);
+// [{ name: 'let_const', version: 'es2015' }]
+
 const results = await fastBrake('const x = () => {}');
 console.log(results);
 // [{ name: 'let_const', version: 'es2015' }]
@@ -28,20 +43,23 @@ console.log(results);
 
 ## Build Tool Integration
 
-### Webpack Configuration
+### Webpack Configuration (Sync - FASTEST)
 
 ```javascript
 // webpack.config.js
-const { check } = require('fast-brake');
+const { fastBrakeSync } = require('fast-brake');
+
+// Initialize once at the top level
+const fb = fastBrakeSync();
 
 module.exports = {
   module: {
     rules: [{
       test: /\.js$/,
       exclude: /node_modules/,
-      use: async function(source, map, meta) {
-        // Check if code needs transpilation
-        const needsTranspile = !await check(source, { target: 'es2015' });
+      use: function(source, map, meta) {
+        // Check synchronously - no async overhead
+        const needsTranspile = !fb.check(source, { target: 'es2015' });
         
         if (needsTranspile) {
           // Use babel-loader for incompatible code
@@ -56,25 +74,27 @@ module.exports = {
 };
 ```
 
-### Rollup Plugin
+### Rollup Plugin (Sync - FASTEST)
 
 ```javascript
 // rollup-plugin-fast-brake.js
-import { check, detect } from 'fast-brake';
+import { fastBrakeSync } from 'fast-brake';
 
 export default function fastBrakePlugin(options = {}) {
   const { target = 'es2015', throwOnIncompatible = false } = options;
+  const fb = fastBrakeSync();
   
   return {
     name: 'fast-brake',
     
-    async transform(code, id) {
+    transform(code, id) {
       if (id.includes('node_modules')) return null;
       
-      const isCompatible = await check(code, { target });
+      // Sync check - no async overhead
+      const isCompatible = fb.check(code, { target });
       
       if (!isCompatible) {
-        const patterns = await detect(code);
+        const patterns = fb.detect(code);
         const message = `File ${id} uses pattern: ${patterns[0]?.name} (requires ${patterns[0]?.version})`;
         
         if (throwOnIncompatible) {

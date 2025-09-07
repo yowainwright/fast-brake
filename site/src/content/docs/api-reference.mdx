@@ -17,23 +17,71 @@ bun add fast-brake
 
 ## Core Functions
 
-### `fastBrake(code)`
+### `fastBrakeSync(options?)` - FASTEST
 
-Analyzes code and returns the first detected pattern match using the default ES version plugin. This is an async function that provides fast detection results.
+Creates a synchronous fast-brake instance with no async overhead. This is the **fastest** way to use fast-brake for performance-critical applications.
+
+```javascript
+import { fastBrakeSync } from 'fast-brake';
+
+// Create sync instance (no plugins)
+const fb = fastBrakeSync();
+const isCompatible = fb.check('const x = () => {}', { target: 'es5' });
+console.log(isCompatible); // false - instant result
+
+// With plugins and extensions
+import { es2015Plugin } from 'fast-brake/plugins/es2015';
+import { locExtension } from 'fast-brake/extensions/loc';
+
+const fbWithPlugins = fastBrakeSync({
+  plugins: [es2015Plugin],
+  extensions: [locExtension]
+});
+
+const features = fbWithPlugins.detect('const x = () => {}');
+// [{ name: 'arrow_functions', version: 'es2015' }]
+```
+
+**Parameters:**
+- `options?` (FastBrakeOptions):
+  - `plugins?` (Plugin[]): Array of plugins to use
+  - `extensions?` (Extension[]): Array of extensions to use
+
+**Returns:** `FastBrakeSyncAPI` with:
+- `detect(code: string): DetectedFeature[]` - Detect patterns synchronously
+- `check(code: string, options: DetectionOptions): boolean` - Check compatibility synchronously
+
+### `fastBrake(code)` or `fastBrake(options)`
+
+Can be used in two ways:
+1. **Direct detection:** Pass code string for quick pattern detection
+2. **Factory pattern:** Pass options to create an async instance with custom plugins
 
 ```javascript
 import { fastBrake } from 'fast-brake';
 
+// Direct detection
 const results = await fastBrake('const x = () => {}');
-console.log(results);
 // [{ name: 'arrow_functions', version: 'es2015' }]
-// Note: 'version' is actually the 'rule' from the plugin
+
+// Factory pattern
+const fb = await fastBrake({
+  plugins: [es2015Plugin],
+  extensions: [locExtension]
+});
+const features = await fb.detect('const x = () => {}');
+const isCompatible = await fb.check('const x = () => {}', { target: 'es5' });
 ```
 
 **Parameters:**
-- `code` (string): Code to analyze
+- When called with `code` (string): Code to analyze
+- When called with `options` (FastBrakeOptions):
+  - `plugins?` (Plugin[]): Array of plugins to use
+  - `extensions?` (Extension[]): Array of extensions to use
 
-**Returns:** `Promise<DetectedFeature[]>` - Array with single detected pattern or empty array
+**Returns:** 
+- With code: `Promise<DetectedFeature[]>` - Array with detected patterns
+- With options: `Promise<FastBrakeAPI>` with async `detect()` and `check()` methods
 
 ### `detect(code)`
 
