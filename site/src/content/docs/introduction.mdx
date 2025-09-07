@@ -55,15 +55,19 @@ fast-brake revolutionizes pattern detection with **optimized pattern matching**:
 - **Early exit optimization** - Stops on first match when configured
 - **Plugin architecture** - Load only the detection rules you need
 - **Zero AST overhead** - No parsing or tree construction required
+- **Sync & Async APIs** - Choose sync for maximum speed, async for workflow integration
 
 ```javascript
 // fast-brake approach - simple and fast
-import { detect, check, fastBrake } from 'fast-brake';
+import { fastBrakeSync, check, detect } from 'fast-brake';
 
-// Process 1000 files in <15ms
-const patterns = await detect(code);           // First pattern match
-const isCompatible = await check(code, { target: 'es5' });
-const results = await fastBrake(code);  // Returns first detected pattern
+// FASTEST: Sync API with no async overhead
+const fbSync = fastBrakeSync();
+const isCompatible = fbSync.check(code, { target: 'es5' }); // <1ms
+
+// Async API when needed for workflows
+const isES5 = await check(code, { target: 'es5' });
+const patterns = await detect(code);
 ```
 
 ## Performance Comparison
@@ -124,20 +128,22 @@ Choose the right plugin configuration for your needs:
 
 ### Build Tools & Bundlers
 ```javascript
-import { check } from 'fast-brake';
+import { fastBrakeSync } from 'fast-brake';
 
-// Validate compatibility before bundling
-if (!await check(sourceCode, { target: 'es2015' })) {
+// FASTEST: Sync API for build tools
+const fb = fastBrakeSync();
+if (!fb.check(sourceCode, { target: 'es2015' })) {
   console.warn('Code requires transpilation');
 }
 ```
 
 ### Linting & CI/CD
 ```javascript
-import { check } from 'fast-brake';
+import { fastBrakeSync } from 'fast-brake';
 
-// Fail builds on incompatible features
-const isCompatible = await check(code, { target: 'es2018' });
+// FASTEST: Sync API for CI/CD pipelines
+const fb = fastBrakeSync();
+const isCompatible = fb.check(code, { target: 'es2018' });
 if (!isCompatible) {
   console.error('Code is not ES2018 compatible');
   process.exit(1);
@@ -173,20 +179,23 @@ npm install fast-brake
 ```
 
 ```javascript
-import { fastBrake, detect, check } from 'fast-brake';
+import { fastBrakeSync, fastBrake, check } from 'fast-brake';
 
-// Detect first pattern (using default ES version plugin)
-const patterns = await detect('const x = () => {}');
-// [{ name: 'let_const', version: 'es2015' }]
-// Note: 'version' contains the rule name from the plugin
+// FASTEST: Sync API (no async overhead)
+const fbSync = fastBrakeSync();
+const isES5Compatible = fbSync.check('const x = () => {}', { target: 'es5' });
+// false - instant result, no await needed
 
-// Check compatibility
-const isES5Compatible = await check('const x = () => {}', { target: 'es5' });
-// false
-
-// Detect patterns with fastBrake
+// Async API (when async is required)
+const isCompatible = await check('const x = () => {}', { target: 'es5' });
 const results = await fastBrake('const x = () => {}');
-// Returns array with first detected pattern
+
+// Factory pattern with plugins
+const fb = fastBrakeSync({
+  plugins: [es2015Plugin],
+  extensions: [locExtension]
+});
+const features = fb.detect('const x = () => {}');
 ```
 
 ## Default Plugin: ES Version Detection

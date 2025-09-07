@@ -116,3 +116,44 @@ export interface Plugin {
   description: string;
   spec: PluginSpec;
 }
+
+export interface Extension {
+  name: string;
+  description: string;
+  process: (input: ExtensionInput) => ExtensionOutput;
+  spec?: Record<string, unknown>;
+}
+
+export interface ExtensionInput {
+  code: string;
+  result: {
+    name: string;
+    match: string;
+    spec: Record<string, unknown>;
+    rule: string;
+    index?: number;
+  };
+}
+
+export interface ExtensionOutput {
+  name: string;
+  match: string;
+  spec: Record<string, unknown>;
+  rule: string;
+  index?: number;
+}
+
+export interface FastBrakeOptions {
+  plugins?: Plugin[];
+  extensions?: Extension[];
+}
+
+export interface FastBrakeAPI {
+  detect: (code: string) => Promise<DetectedFeature[]>;
+  check: (code: string, options: DetectionOptions) => Promise<boolean>;
+}
+
+export interface FastBrakeSyncAPI {
+  detect: (code: string) => DetectedFeature[];
+  check: (code: string, options: DetectionOptions) => boolean;
+}

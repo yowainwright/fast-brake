@@ -20,20 +20,17 @@ bun add fast-brake
 ### 2. Basic Usage
 
 ```javascript
-import { fastBrake, detect, check } from 'fast-brake';
+import { fastBrakeSync, fastBrake, check } from 'fast-brake';
 
-// Check if code is compatible with ES5
-const isES5Compatible = await check('const x = () => {}', { target: 'es5' });
-console.log(isES5Compatible); // false
+// FASTEST: Sync API - no async overhead
+const fb = fastBrakeSync();
+const isES5Compatible = fb.check('const x = () => {}', { target: 'es5' });
+console.log(isES5Compatible); // false - instant result!
 
-// Detect all ES features
-const features = await detect('const x = () => {}');
+// Async API when needed
+const asyncIsCompatible = await check('const x = () => {}', { target: 'es5' });
+const features = await fastBrake('const x = () => {}');
 console.log(features);
-// [{ name: 'arrow_functions', version: 'es2015' }]
-
-// Use fastBrake for detection
-const results = await fastBrake('const x = () => {}');
-console.log(results);
 // [{ name: 'arrow_functions', version: 'es2015' }]
 ```
 
@@ -109,11 +106,12 @@ fast-brake works in all modern browsers:
 
 ### Build Tools
 
-#### Webpack Integration
+#### Webpack Integration (Sync - FASTEST)
 
 ```javascript
 // webpack.config.js
-const { check } = require('fast-brake');
+const { fastBrakeSync } = require('fast-brake');
+const fb = fastBrakeSync();
 
 module.exports = {
   module: {
@@ -145,27 +143,22 @@ module.exports = {
 };
 
 // Custom loader (webpack-loader/fast-brake-loader.js)
-const { check, detect } = require('fast-brake');
+const { fastBrakeSync } = require('fast-brake');
+const fb = fastBrakeSync();
 
-module.exports = async function(source) {
+module.exports = function(source) {
   const options = this.getOptions();
   const target = options.target || 'es5';
-  const mode = options.mode || 'full';
   
-  const isCompatible = await check(source, { 
-    target, 
-    quick: mode === 'quick' 
-  });
+  // Sync check - no async overhead
+  const isCompatible = fb.check(source, { target });
   
   if (!isCompatible) {
-    const features = await detect(source, { target, quick: mode === 'quick' });
-    const incompatible = features.filter(f => 
-      getVersionIndex(f.version) > getVersionIndex(target)
-    );
+    const features = fb.detect(source);
     
     this.emitWarning(new Error(
       `File contains incompatible ES features: ${
-        incompatible.map(f => f.name).join(', ')
+        features.map(f => f.name).join(', ')
       }`
     ));
   }
@@ -619,16 +612,17 @@ Once you have fast-brake installed and working:
 ## Quick Reference
 
 ```javascript
-import { fastBrake, detect, check } from 'fast-brake';
+import { fastBrakeSync, fastBrake, detect, check } from 'fast-brake';
 
-// Detect features with fastBrake
-const results = await fastBrake(code);
+// FASTEST: Sync API
+const fb = fastBrakeSync();
+const isCompatible = fb.check(code, { target: 'es2018' }); // instant
+const features = fb.detect(code); // instant
 
-// Detect all features
-const features = await detect(code);
-
-// Check compatibility
-const isCompatible = await check(code, { target: 'es2018' });
+// Async API when needed
+const asyncResults = await fastBrake(code);
+const asyncFeatures = await detect(code);
+const asyncIsCompatible = await check(code, { target: 'es2018' });
 ```
 
 That's it! You're ready to start using fast-brake for ES feature detection.
