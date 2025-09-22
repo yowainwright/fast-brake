@@ -1,6 +1,6 @@
 {
   "name": "fast-brake",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "fast js feature detection with zero runtime dependencies; analyzes js to verify compatibility",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
