@@ -13,12 +13,14 @@ import type {
 export class Detector {
   private compiledPatterns: Map<string, string>; // Store pattern strings instead of RegExp
   private featureStrings: Record<string, string[]>;
+  private featureExcludes: Record<string, string[]>;
   private plugin: Plugin | null = null;
   private initialized = false;
 
   constructor() {
     this.compiledPatterns = new Map();
     this.featureStrings = {};
+    this.featureExcludes = {};
   }
 
   async initialize(plugin?: Plugin): Promise<void> {
@@ -39,6 +41,7 @@ export class Detector {
   private loadPlugin(plugin: Plugin): void {
     this.compiledPatterns.clear();
     this.featureStrings = {};
+    this.featureExcludes = {};
 
     for (const [matchName, match] of Object.entries(plugin.spec.matches)) {
       if ("strings" in match && match.strings) {
@@ -48,6 +51,9 @@ export class Detector {
         for (const patternObj of match.patterns) {
           this.compiledPatterns.set(matchName, patternObj.pattern);
         }
+      }
+      if ("exclude" in match && match.exclude) {
+        this.featureExcludes[matchName] = match.exclude;
       }
     }
   }
@@ -181,32 +187,50 @@ export class Detector {
     return false;
   }
 
+  private isExcluded(
+    code: string,
+    index: number,
+    featureName: string,
+  ): boolean {
+    const excludes = this.featureExcludes[featureName];
+    if (!excludes || excludes.length === 0) return false;
+
+    const contextStart = Math.max(0, index - 50);
+    const contextEnd = Math.min(code.length, index + 50);
+    const context = code.substring(contextStart, contextEnd);
+
+    for (const exclude of excludes) {
+      if (fastIndexOf(context, exclude) !== -1) return true;
+    }
+    return false;
+  }
+
   private findFirstStringMatch(code: string): DetectionMatch | null {
     for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
       for (const pattern of patterns) {
         const index = fastIndexOf(code, pattern);
-        if (index !== -1) {
-          if (this.plugin) {
-            const rule = this.getPluginRule(featureName);
-            if (!rule) continue;
+        if (index === -1) continue;
+        if (this.isExcluded(code, index, featureName)) continue;
 
-            return {
-              name: featureName,
-              match: pattern,
-              spec: this.plugin.name,
-              rule,
-              index,
-            };
-          } else {
-            // Legacy mode - use feature name as both spec and rule
-            return {
-              name: featureName,
-              match: pattern,
-              spec: "legacy",
-              rule: featureName,
-              index,
-            };
-          }
+        if (this.plugin) {
+          const rule = this.getPluginRule(featureName);
+          if (!rule) continue;
+
+          return {
+            name: featureName,
+            match: pattern,
+            spec: this.plugin.name,
+            rule,
+            index,
+          };
+        } else {
+          return {
+            name: featureName,
+            match: pattern,
+            spec: "legacy",
+            rule: featureName,
+            index,
+          };
         }
       }
     }
@@ -248,28 +272,28 @@ export class Detector {
     for (const [featureName, patterns] of Object.entries(this.featureStrings)) {
       for (const pattern of patterns) {
         const index = fastIndexOf(code, pattern);
-        if (index !== -1) {
-          if (this.plugin) {
-            const rule = this.getPluginRule(featureName);
-            if (!rule) continue;
+        if (index === -1) continue;
+        if (this.isExcluded(code, index, featureName)) continue;
 
-            return {
-              name: featureName,
-              match: pattern,
-              spec: this.plugin.name,
-              rule,
-              index,
-            };
-          } else {
-            // Legacy mode - use feature name as both spec and rule
-            return {
-              name: featureName,
-              match: pattern,
-              spec: "legacy",
-              rule: featureName,
-              index,
-            };
-          }
+        if (this.plugin) {
+          const rule = this.getPluginRule(featureName);
+          if (!rule) continue;
+
+          return {
+            name: featureName,
+            match: pattern,
+            spec: this.plugin.name,
+            rule,
+            index,
+          };
+        } else {
+          return {
+            name: featureName,
+            match: pattern,
+            spec: "legacy",
+            rule: featureName,
+            index,
+          };
         }
       }
     }

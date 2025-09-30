@@ -104,6 +104,7 @@ export interface PluginMatch {
   rule: string;
   strings?: string[];
   patterns?: PluginPattern[];
+  exclude?: string[];
 }
 
 export interface PluginSpec {
