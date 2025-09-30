@@ -148,4 +148,184 @@ describe("Detector", () => {
       expect(result.hasMatch).toBe(true);
     });
   });
+
+  describe("findFirstValidIndex (private method)", () => {
+    test("should find first valid index when pattern appears once", () => {
+      const code = "const arrow = () => {}";
+      const result = detector["findFirstValidIndex"](
+        code,
+        "=>",
+        "arrow_functions",
+      );
+      expect(result).toBe(17);
+    });
+
+    test("should find first non-excluded index when pattern appears multiple times", () => {
+      const code = "const arrow = () => {}; const second = () => {}";
+      const result = detector["findFirstValidIndex"](
+        code,
+        "=>",
+        "arrow_functions",
+      );
+      expect(result).toBe(17);
+    });
+
+    test("should return -1 when pattern not found", () => {
+      const code = "var x = function() {}";
+      const result = detector["findFirstValidIndex"](
+        code,
+        "=>",
+        "arrow_functions",
+      );
+      expect(result).toBe(-1);
+    });
+
+    test("should skip excluded occurrences and return first valid one", () => {
+      const code = "// arrow => comment\nconst fn = () => {}";
+      const result = detector["findFirstValidIndex"](
+        code,
+        "=>",
+        "arrow_functions",
+      );
+      expect(result).toBeGreaterThan(-1);
+    });
+
+    test("should return -1 when all occurrences are excluded", () => {
+      detector["featureExcludes"]["test_feature"] = ["prefix_"];
+      const code = "prefix_pattern prefix_pattern";
+      const result = detector["findFirstValidIndex"](
+        code,
+        "pattern",
+        "test_feature",
+      );
+      expect(result).toBe(-1);
+    });
+  });
+
+  describe("checkPatternMatch (private method)", () => {
+    test("should return null when pattern not found", () => {
+      const code = "var x = 5";
+      const result = detector["checkPatternMatch"](
+        code,
+        "arrow_functions",
+        "=>",
+      );
+      expect(result).toBeNull();
+    });
+
+    test("should return DetectionMatch when pattern found", () => {
+      const code = "const fn = () => {}";
+      const result = detector["checkPatternMatch"](
+        code,
+        "arrow_functions",
+        "=>",
+      );
+      expect(result).not.toBeNull();
+      expect(result?.name).toBe("arrow_functions");
+      expect(result?.match).toBe("=>");
+      expect(result?.index).toBe(14);
+    });
+
+    test("should return null when pattern is excluded", () => {
+      detector["featureExcludes"]["test_feature"] = ["exclude_"];
+      const code = "exclude_pattern";
+      const result = detector["checkPatternMatch"](
+        code,
+        "test_feature",
+        "pattern",
+      );
+      expect(result).toBeNull();
+    });
+
+    test("should include rule from plugin when available", () => {
+      const code = "const fn = () => {}";
+      const result = detector["checkPatternMatch"](
+        code,
+        "arrow_functions",
+        "=>",
+      );
+      expect(result?.rule).toBeDefined();
+      expect(result?.spec).toBe("esversion");
+    });
+
+    test("should use legacy mode when no plugin available", () => {
+      const originalPlugin = detector["plugin"];
+      detector["plugin"] = null;
+      const code = "const fn = () => {}";
+      const result = detector["checkPatternMatch"](
+        code,
+        "arrow_functions",
+        "=>",
+      );
+      expect(result?.spec).toBe("legacy");
+      expect(result?.rule).toBe("arrow_functions");
+      detector["plugin"] = originalPlugin;
+    });
+  });
+
+  describe("isExcluded (private method)", () => {
+    test("should return false when no excludes defined", () => {
+      const code = "const arrow = () => {}";
+      const result = detector["isExcluded"](code, 14, "arrow_functions");
+      expect(result).toBe(false);
+    });
+
+    test("should return true when context ends with exclude pattern", () => {
+      detector["featureExcludes"]["test_feature"] = ["prefix_"];
+      const code = "prefix_pattern";
+      const result = detector["isExcluded"](code, 7, "test_feature");
+      expect(result).toBe(true);
+    });
+
+    test("should return false when context does not end with exclude pattern", () => {
+      detector["featureExcludes"]["test_feature"] = ["prefix_"];
+      const code = "other_pattern";
+      const result = detector["isExcluded"](code, 6, "test_feature");
+      expect(result).toBe(false);
+    });
+
+    test("should check context within 20 characters before index", () => {
+      detector["featureExcludes"]["test_feature"] = ["exclude"];
+      const code = "a".repeat(50) + "exclude" + "pattern";
+      const patternIndex = 57;
+      const result = detector["isExcluded"](code, patternIndex, "test_feature");
+      expect(result).toBe(true);
+    });
+
+    test("should handle index near beginning of string", () => {
+      detector["featureExcludes"]["test_feature"] = ["ex"];
+      const code = "export default";
+      const result = detector["isExcluded"](code, 2, "test_feature");
+      expect(result).toBe(true);
+    });
+  });
+
+  describe("findFirstStringMatch with multiple patterns", () => {
+    test("should find first pattern across multiple feature sets", () => {
+      const code = "const fn = () => {}; const str = `template`;";
+      const result = detector.detectFast(code);
+      expect(result.hasMatch).toBe(true);
+      expect(result.firstMatch?.name).toBe("arrow_functions");
+    });
+
+    test("should handle code with no matches", () => {
+      const code = "var x = 5; function test() { return x; }";
+      const result = detector.detectFast(code);
+      expect(result.hasMatch).toBe(false);
+    });
+
+    test("should return first match when multiple patterns present", () => {
+      const code = "`template` ${() => {}} class Foo {}";
+      const result = detector.detectFast(code);
+      expect(result.hasMatch).toBe(true);
+      expect(result.firstMatch).toBeDefined();
+    });
+
+    test("should skip excluded patterns and find next valid one", () => {
+      detector["featureExcludes"]["template_literals"] = ["comment_"];
+      const code = "comment_`invalid`; const valid = `template`;";
+      const result = detector.detectFast(code);
+      expect(result.hasMatch).toBe(true);
+    });
+  });
 });
