@@ -463,7 +463,7 @@
       "array_group": {
         "rule": "es2025",
         "strings": [".group("],
-        "exclude": ["console.group"]
+        "exclude": ["console"]
       },
       "array_groupToMap": {
         "rule": "es2025",
