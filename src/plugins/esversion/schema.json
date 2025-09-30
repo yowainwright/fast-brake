@@ -459,6 +459,15 @@
             "identifier": ".intersection"
           }
         ]
+      },
+      "array_group": {
+        "rule": "es2025",
+        "strings": [".group("],
+        "exclude": ["console.group"]
+      },
+      "array_groupToMap": {
+        "rule": "es2025",
+        "strings": [".groupToMap("]
       }
     }
   }
