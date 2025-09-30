@@ -338,7 +338,7 @@ export class Detector {
     }
 
     const targetIndex = orderedRules.indexOf(options.target);
-    const matchIndex = orderedRules.indexOf(result.firstMatch!.name);
+    const matchIndex = orderedRules.indexOf(result.firstMatch!.rule);
     const isCompatible = matchIndex <= targetIndex;
 
     return isCompatible;

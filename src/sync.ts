@@ -52,7 +52,11 @@ export function fastBrakeSync(
     },
     check: (code: string, checkOptions: DetectionOptions) => {
       try {
-        return detector.check(code, checkOptions);
+        const opts = { ...checkOptions };
+        if (detector["plugin"]?.spec?.orderedRules) {
+          opts.orderedRules = detector["plugin"].spec.orderedRules;
+        }
+        return detector.check(code, opts);
       } catch {
         return false;
       }
