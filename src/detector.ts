@@ -308,13 +308,13 @@ export class Detector {
   }
 
   private shouldRunPatternDetection(code: string): boolean {
-    const isTinyFile = code.length < TINY_FILE_SIZE;
-    if (isTinyFile) {
-      return false;
+    const hasComplexity = this.hasComplexityIndicators(code);
+    if (hasComplexity) {
+      return true;
     }
 
-    const hasComplexity = this.hasComplexityIndicators(code);
-    return hasComplexity;
+    const isTinyFile = code.length < TINY_FILE_SIZE;
+    return !isTinyFile;
   }
 
   private hasComplexityIndicators(code: string): boolean {
@@ -327,20 +327,43 @@ export class Detector {
   }
 
   check(code: string, options: DetectionOptions): boolean {
-    const result = this.detectFast(code);
-    if (!result.hasMatch) {
-      return true;
-    }
-
     const orderedRules = options.orderedRules;
-    if (!orderedRules) {
+    if (!orderedRules || !this.plugin) {
+      const result = this.detectFast(code);
       return !result.hasMatch;
     }
 
     const targetIndex = orderedRules.indexOf(options.target);
-    const matchIndex = orderedRules.indexOf(result.firstMatch!.rule);
-    const isCompatible = matchIndex <= targetIndex;
+    if (targetIndex === -1) {
+      return false;
+    }
 
-    return isCompatible;
+    const originalPlugin = this.plugin;
+    const filteredMatches: Record<string, any> = {};
+
+    for (const [matchName, match] of Object.entries(this.plugin.spec.matches)) {
+      const ruleIndex = orderedRules.indexOf(match.rule);
+      if (ruleIndex > targetIndex) {
+        filteredMatches[matchName] = match;
+      }
+    }
+
+    const filteredPlugin = {
+      ...this.plugin,
+      spec: {
+        ...this.plugin.spec,
+        matches: filteredMatches,
+      },
+    };
+
+    this.plugin = filteredPlugin;
+    this.loadPlugin(filteredPlugin);
+
+    const result = this.detectFast(code);
+
+    this.plugin = originalPlugin;
+    this.loadPlugin(originalPlugin);
+
+    return !result.hasMatch;
   }
 }
