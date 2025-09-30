@@ -12,6 +12,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./sync": {
+      "types": "./dist/sync.d.ts",
+      "import": "./dist/sync.js",
+      "require": "./dist/sync.cjs"
+    },
     "./plugins/es2015": {
       "types": "./dist/plugins/es2015/index.d.ts",
       "import": "./dist/plugins/es2015/index.js",

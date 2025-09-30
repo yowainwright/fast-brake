@@ -9,7 +9,8 @@ async function getPluginEntries() {
   
   // Add main entry
   entries['index'] = 'src/index.ts';
-  
+  entries['sync'] = 'src/sync.ts';
+
   // Add plugin entries
   const pluginDirs = await readdir(pluginsDir, { withFileTypes: true });
   for (const dir of pluginDirs) {
