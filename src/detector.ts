@@ -308,13 +308,13 @@ export class Detector {
   }
 
   private shouldRunPatternDetection(code: string): boolean {
-    const isTinyFile = code.length < TINY_FILE_SIZE;
-    if (isTinyFile) {
-      return false;
+    const hasComplexity = this.hasComplexityIndicators(code);
+    if (hasComplexity) {
+      return true;
     }
 
-    const hasComplexity = this.hasComplexityIndicators(code);
-    return hasComplexity;
+    const isTinyFile = code.length < TINY_FILE_SIZE;
+    return !isTinyFile;
   }
 
   private hasComplexityIndicators(code: string): boolean {
