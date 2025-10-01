@@ -193,7 +193,7 @@ export class Detector {
   private isExcluded(
     code: string,
     index: number,
-    featureName: string
+    featureName: string,
   ): boolean {
     const excludes = this.featureExcludes[featureName];
     if (!excludes || excludes.length === 0) return false;
@@ -210,7 +210,7 @@ export class Detector {
   private findFirstValidIndex(
     code: string,
     pattern: string,
-    featureName: string
+    featureName: string,
   ): number {
     let pos = 0;
     const indices: number[] = [];
@@ -221,7 +221,7 @@ export class Detector {
     }
 
     const validIndex = indices.find(
-      (idx) => !this.isExcluded(code, idx, featureName)
+      (idx) => !this.isExcluded(code, idx, featureName),
     );
     return validIndex !== undefined ? validIndex : -1;
   }
@@ -229,7 +229,7 @@ export class Detector {
   private checkPatternMatch(
     code: string,
     featureName: string,
-    pattern: string
+    pattern: string,
   ): DetectionMatch | null {
     const index = this.findFirstValidIndex(code, pattern, featureName);
     if (index === -1) return null;
