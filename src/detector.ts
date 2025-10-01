@@ -9,6 +9,7 @@ import type {
   Plugin,
   DetectionOptions,
 } from "./types";
+import { removeComments } from "./removeComments";
 
 export class Detector {
   private compiledPatterns: Map<string, string>; // Store pattern strings instead of RegExp
@@ -80,7 +81,9 @@ export class Detector {
   }
 
   detectFast(code: string): DetectionResult {
-    const stringMatch = this.findFirstStringMatch(code);
+    const transformed = removeComments(code);
+
+    const stringMatch = this.findFirstStringMatch(transformed);
     if (stringMatch) {
       return {
         hasMatch: true,
@@ -89,7 +92,7 @@ export class Detector {
       };
     }
 
-    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    const shouldCheckPatterns = this.shouldRunPatternDetection(transformed);
     if (!shouldCheckPatterns) {
       return {
         hasMatch: false,
@@ -97,7 +100,7 @@ export class Detector {
       };
     }
 
-    const patternMatch = this.findFirstPatternMatch(code);
+    const patternMatch = this.findFirstPatternMatch(transformed);
     if (patternMatch) {
       return {
         hasMatch: true,
@@ -190,7 +193,7 @@ export class Detector {
   private isExcluded(
     code: string,
     index: number,
-    featureName: string,
+    featureName: string
   ): boolean {
     const excludes = this.featureExcludes[featureName];
     if (!excludes || excludes.length === 0) return false;
@@ -207,7 +210,7 @@ export class Detector {
   private findFirstValidIndex(
     code: string,
     pattern: string,
-    featureName: string,
+    featureName: string
   ): number {
     let pos = 0;
     const indices: number[] = [];
@@ -218,7 +221,7 @@ export class Detector {
     }
 
     const validIndex = indices.find(
-      (idx) => !this.isExcluded(code, idx, featureName),
+      (idx) => !this.isExcluded(code, idx, featureName)
     );
     return validIndex !== undefined ? validIndex : -1;
   }
@@ -226,7 +229,7 @@ export class Detector {
   private checkPatternMatch(
     code: string,
     featureName: string,
-    pattern: string,
+    pattern: string
   ): DetectionMatch | null {
     const index = this.findFirstValidIndex(code, pattern, featureName);
     if (index === -1) return null;
