@@ -9,6 +9,7 @@ import type {
   Plugin,
   DetectionOptions,
 } from "./types";
+import { removeComments } from "./removeComments";
 
 export class Detector {
   private compiledPatterns: Map<string, string>; // Store pattern strings instead of RegExp
@@ -80,7 +81,9 @@ export class Detector {
   }
 
   detectFast(code: string): DetectionResult {
-    const stringMatch = this.findFirstStringMatch(code);
+    const transformed = removeComments(code);
+
+    const stringMatch = this.findFirstStringMatch(transformed);
     if (stringMatch) {
       return {
         hasMatch: true,
@@ -89,7 +92,7 @@ export class Detector {
       };
     }
 
-    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    const shouldCheckPatterns = this.shouldRunPatternDetection(transformed);
     if (!shouldCheckPatterns) {
       return {
         hasMatch: false,
@@ -97,7 +100,7 @@ export class Detector {
       };
     }
 
-    const patternMatch = this.findFirstPatternMatch(code);
+    const patternMatch = this.findFirstPatternMatch(transformed);
     if (patternMatch) {
       return {
         hasMatch: true,
