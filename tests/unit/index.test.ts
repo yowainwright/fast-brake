@@ -56,6 +56,42 @@ describe("fast-brake main API", () => {
       const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
     });
+
+    test("should parse comments", async () => {
+      const code = `(function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(1);
+
+
+/***/ })
+`;
+
+      const result = await fastBrake(code);
+      expect(result).toEqual([]);
+    });
+
+    test.only("should ignore single-line comments", async () => {
+      const code = `// same as const x = 4;
+var x = 4;
+
+// same as const y = 2;
+var y = 2;
+
+// same as x ** y
+Math.pow(x, y);
+
+// comment without trailing empty line () => "test"`;
+
+      const result = await fastBrake(code);
+      expect(result).toEqual([]);
+    });
+
+    test("should ignore multi-line comments", async () => {
+      const code = `/** [1,2,3,4].map(x => x ** 2) */`;
+
+      const result = await fastBrake(code);
+      expect(result).toEqual([]);
+    });
   });
 
   describe("detect function", () => {
