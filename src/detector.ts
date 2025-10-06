@@ -9,6 +9,7 @@ import type {
   Plugin,
   DetectionOptions,
 } from "./types";
+import { scrubCode } from "./scrubCode";
 
 export class Detector {
   private compiledPatterns: Map<string, string>; // Store pattern strings instead of RegExp
@@ -65,22 +66,28 @@ export class Detector {
   }
 
   detectBoolean(code: string): boolean {
-    const hasStringMatch = this.checkStrings(code);
+    const scrubbed = scrubCode(code);
+
+    const hasStringMatch = this.checkStrings(scrubbed);
     if (hasStringMatch) {
       return true;
     }
 
-    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    const shouldCheckPatterns = this.shouldRunPatternDetection(scrubbed);
     if (!shouldCheckPatterns) {
       return false;
     }
 
-    const hasPatternMatch = this.checkPatterns(code);
+    const hasPatternMatch = this.checkPatterns(scrubbed);
     return hasPatternMatch;
   }
 
   detectFast(code: string): DetectionResult {
-    const stringMatch = this.findFirstStringMatch(code);
+    const scrubbed = scrubCode(code);
+
+    console.log(scrubbed)
+
+    const stringMatch = this.findFirstStringMatch(scrubbed);
     if (stringMatch) {
       return {
         hasMatch: true,
@@ -89,7 +96,7 @@ export class Detector {
       };
     }
 
-    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    const shouldCheckPatterns = this.shouldRunPatternDetection(scrubbed);
     if (!shouldCheckPatterns) {
       return {
         hasMatch: false,
@@ -97,7 +104,7 @@ export class Detector {
       };
     }
 
-    const patternMatch = this.findFirstPatternMatch(code);
+    const patternMatch = this.findFirstPatternMatch(scrubbed);
     if (patternMatch) {
       return {
         hasMatch: true,
@@ -113,7 +120,9 @@ export class Detector {
   }
 
   detectDetailed(code: string): DetectionResult {
-    const stringMatch = this.findFirstStringMatchDetailed(code);
+    const scrubbed = scrubCode(code);
+
+    const stringMatch = this.findFirstStringMatchDetailed(scrubbed);
     if (stringMatch) {
       return {
         hasMatch: true,
@@ -122,7 +131,7 @@ export class Detector {
       };
     }
 
-    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
+    const shouldCheckPatterns = this.shouldRunPatternDetection(scrubbed);
     if (!shouldCheckPatterns) {
       return {
         hasMatch: false,
@@ -130,7 +139,7 @@ export class Detector {
       };
     }
 
-    const patternMatch = this.findFirstPatternMatchDetailed(code);
+    const patternMatch = this.findFirstPatternMatchDetailed(scrubbed);
     if (patternMatch) {
       return {
         hasMatch: true,
