@@ -70,7 +70,6 @@ export default function Search({ searchData }: SearchProps) {
 
   return (
     <>
-      {/* Search Button */}
       <button
         onClick={() => {
           setIsOpen(true);
@@ -98,24 +97,20 @@ export default function Search({ searchData }: SearchProps) {
         </kbd>
       </button>
 
-      {/* Search Modal */}
       {isOpen &&
         createPortal(
           <>
-            {/* Backdrop */}
             <div
               className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
               onClick={() => setIsOpen(false)}
             />
 
-            {/* Modal Container */}
             <div className="fixed inset-0 z-[101] overflow-y-auto">
               <div className="flex min-h-full items-start justify-center pt-[10vh] p-4">
                 <div
                   ref={searchRef}
                   className="relative w-full max-w-2xl bg-base-100 rounded-xl shadow-2xl overflow-hidden border border-base-content/10"
                 >
-                  {/* Search Input */}
                   <div className="flex items-center p-4 border-b border-base-content/10">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -144,7 +139,6 @@ export default function Search({ searchData }: SearchProps) {
                     </kbd>
                   </div>
 
-                  {/* Search Results */}
                   <div className="max-h-[60vh] overflow-y-auto">
                     {query.length > 0 && results.length === 0 && (
                       <div className="p-8 text-center text-base-content/50">

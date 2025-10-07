@@ -2,6 +2,7 @@ import type { Plugin, PluginMatch } from "../../types";
 import browserlistPlugin from "./schema.json";
 import { ES_VERSIONS } from "../../constants";
 import { fastIndexOf, getCachedRegex } from "../../utils";
+import { jscommentsPreprocessor } from "../jscomments";
 
 export interface BrowserTarget {
   name: string;
@@ -140,3 +141,9 @@ export const legacyBrowsers = createBrowserlistPlugin([
   "safari 11",
 ]);
 export const defaultBrowsers = createBrowserlistPlugin("defaults");
+
+/**
+ * Default preprocessors for browserlist plugin
+ * Includes jscomments to strip comments before detection
+ */
+export const defaultPreprocessors = [jscommentsPreprocessor];

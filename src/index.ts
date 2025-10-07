@@ -40,7 +40,6 @@ export async function fastBrake(
     await instanceDetector.initialize();
   }
 
-  // Return API object
   return {
     detect: async (code: string) => {
       const result = instanceDetector.detectFast(code);
@@ -65,7 +64,6 @@ export async function detect(code: string): Promise<DetectedFeature[]> {
   await ensureInitialized();
   const result = detector.detectFast(code);
   if (result.firstMatch) {
-    // Use the rule as the version for the esversion plugin
     return [{ name: result.firstMatch.name, version: result.firstMatch.rule }];
   }
   return [];

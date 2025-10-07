@@ -9,7 +9,6 @@ interface BenchmarkResult {
   accuracy?: string;
 }
 
-// Auto-generated benchmark data
 const benchmarkData: BenchmarkResult[] = [
   {
     parser: "fast-brake",
