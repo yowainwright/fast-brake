@@ -11,7 +11,7 @@ import type {
 } from "./types";
 
 export class Detector {
-  private compiledPatterns: Map<string, string>; // Store pattern strings instead of RegExp
+  private compiledPatterns: Map<string, string>;
   private featureStrings: Record<string, string[]>;
   private featureExcludes: Record<string, string[]>;
   private plugin: Plugin | null = null;
@@ -64,19 +64,43 @@ export class Detector {
     return match ? match.rule : null;
   }
 
+  private buildDetectionMatch(
+    featureName: string,
+    matchStr: string,
+    index: number,
+  ): DetectionMatch | null {
+    const hasPlugin = this.plugin !== null;
+    if (!hasPlugin) {
+      return {
+        name: featureName,
+        match: matchStr,
+        spec: "legacy",
+        rule: featureName,
+        index,
+      };
+    }
+
+    const rule = this.getPluginRule(featureName);
+    const hasRule = rule !== null;
+    if (!hasRule) return null;
+
+    return {
+      name: featureName,
+      match: matchStr,
+      spec: this.plugin!.name,
+      rule,
+      index,
+    };
+  }
+
   detectBoolean(code: string): boolean {
     const hasStringMatch = this.checkStrings(code);
-    if (hasStringMatch) {
-      return true;
-    }
+    if (hasStringMatch) return true;
 
     const shouldCheckPatterns = this.shouldRunPatternDetection(code);
-    if (!shouldCheckPatterns) {
-      return false;
-    }
+    if (!shouldCheckPatterns) return false;
 
-    const hasPatternMatch = this.checkPatterns(code);
-    return hasPatternMatch;
+    return this.checkPatterns(code);
   }
 
   detectFast(code: string): DetectionResult {
@@ -113,7 +137,7 @@ export class Detector {
   }
 
   detectDetailed(code: string): DetectionResult {
-    const stringMatch = this.findFirstStringMatchDetailed(code);
+    const stringMatch = this.findFirstStringMatch(code);
     if (stringMatch) {
       return {
         hasMatch: true,
@@ -130,7 +154,7 @@ export class Detector {
       };
     }
 
-    const patternMatch = this.findFirstPatternMatchDetailed(code);
+    const patternMatch = this.findFirstPatternMatch(code);
     if (patternMatch) {
       return {
         hasMatch: true,
@@ -229,43 +253,26 @@ export class Detector {
     pattern: string,
   ): DetectionMatch | null {
     const index = this.findFirstValidIndex(code, pattern, featureName);
-    if (index === -1) return null;
+    const hasValidIndex = index !== -1;
+    if (!hasValidIndex) return null;
 
-    if (this.plugin) {
-      const rule = this.getPluginRule(featureName);
-      if (!rule) return null;
-
-      return {
-        name: featureName,
-        match: pattern,
-        spec: this.plugin.name,
-        rule,
-        index,
-      };
-    }
-
-    return {
-      name: featureName,
-      match: pattern,
-      spec: "legacy",
-      rule: featureName,
-      index,
-    };
+    return this.buildDetectionMatch(featureName, pattern, index);
   }
 
   private findFirstStringMatch(code: string): DetectionMatch | null {
-    const entries = Object.entries(this.featureStrings);
-    const mapEntryToPatterns = ([featureName, patterns]: [string, string[]]) =>
-      patterns.map((pattern) => ({ featureName, pattern }));
-    const expandedPatterns = entries.map(mapEntryToPatterns);
-    const allPatterns = expandedPatterns.flat();
+    const allPatterns = Object.entries(this.featureStrings).flatMap(
+      ([featureName, patterns]) =>
+        patterns.map((pattern) => ({ featureName, pattern })),
+    );
 
-    const checkPattern = (item: { featureName: string; pattern: string }) =>
-      this.checkPatternMatch(code, item.featureName, item.pattern);
-    const matches = allPatterns.map(checkPattern);
+    const matches = allPatterns.map(({ featureName, pattern }) =>
+      this.checkPatternMatch(code, featureName, pattern),
+    );
+
     const firstMatch = matches.find((match) => match !== null);
+    const hasMatch = firstMatch !== undefined;
 
-    return firstMatch !== undefined ? firstMatch : null;
+    return hasMatch ? firstMatch : null;
   }
 
   private findFirstPatternMatch(code: string): DetectionMatch | null {
@@ -273,73 +280,12 @@ export class Detector {
       const pattern = getCachedRegex(patternStr);
       const match = pattern.exec(code);
       if (match) {
-        if (this.plugin) {
-          const rule = this.getPluginRule(featureName);
-          if (!rule) continue;
-
-          return {
-            name: featureName,
-            match: match[0],
-            spec: this.plugin.name,
-            rule,
-            index: match.index,
-          };
-        } else {
-          // Legacy mode - use feature name as both spec and rule
-          return {
-            name: featureName,
-            match: match[0],
-            spec: "legacy",
-            rule: featureName,
-            index: match.index,
-          };
-        }
-      }
-    }
-    return null;
-  }
-
-  private findFirstStringMatchDetailed(code: string): DetectionMatch | null {
-    const entries = Object.entries(this.featureStrings);
-    const mapEntryToPatterns = ([featureName, patterns]: [string, string[]]) =>
-      patterns.map((pattern) => ({ featureName, pattern }));
-    const expandedPatterns = entries.map(mapEntryToPatterns);
-    const allPatterns = expandedPatterns.flat();
-
-    const checkPattern = (item: { featureName: string; pattern: string }) =>
-      this.checkPatternMatch(code, item.featureName, item.pattern);
-    const matches = allPatterns.map(checkPattern);
-    const firstMatch = matches.find((match) => match !== null);
-
-    return firstMatch !== undefined ? firstMatch : null;
-  }
-
-  private findFirstPatternMatchDetailed(code: string): DetectionMatch | null {
-    for (const [featureName, patternStr] of this.compiledPatterns.entries()) {
-      const pattern = getCachedRegex(patternStr);
-      const match = pattern.exec(code);
-      if (match) {
-        if (this.plugin) {
-          const rule = this.getPluginRule(featureName);
-          if (!rule) continue;
-
-          return {
-            name: featureName,
-            match: match[0],
-            spec: this.plugin.name,
-            rule,
-            index: match.index,
-          };
-        } else {
-          // Legacy mode - use feature name as both spec and rule
-          return {
-            name: featureName,
-            match: match[0],
-            spec: "legacy",
-            rule: featureName,
-            index: match.index,
-          };
-        }
+        const result = this.buildDetectionMatch(
+          featureName,
+          match[0],
+          match.index,
+        );
+        if (result) return result;
       }
     }
     return null;
@@ -347,9 +293,7 @@ export class Detector {
 
   private shouldRunPatternDetection(code: string): boolean {
     const hasComplexity = this.hasComplexityIndicators(code);
-    if (hasComplexity) {
-      return true;
-    }
+    if (hasComplexity) return true;
 
     const isTinyFile = code.length < TINY_FILE_SIZE;
     return !isTinyFile;
@@ -377,14 +321,15 @@ export class Detector {
     }
 
     const originalPlugin = this.plugin;
-    const filteredMatches: Record<string, any> = {};
-
-    for (const [matchName, match] of Object.entries(this.plugin.spec.matches)) {
-      const ruleIndex = orderedRules.indexOf(match.rule);
-      if (ruleIndex > targetIndex) {
-        filteredMatches[matchName] = match;
-      }
-    }
+    const matches = this.plugin.spec.matches;
+    const filteredMatches = Object.entries(matches).reduce(
+      (acc, [matchName, match]) => {
+        const ruleIndex = orderedRules.indexOf(match.rule);
+        const shouldInclude = ruleIndex > targetIndex;
+        return shouldInclude ? { ...acc, [matchName]: match } : acc;
+      },
+      {},
+    );
 
     const filteredPlugin = {
       ...this.plugin,

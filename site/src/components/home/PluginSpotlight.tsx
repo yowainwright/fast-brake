@@ -92,9 +92,7 @@ const examplePluginCode = `const telemetryPlugin = {
   }
 };`;
 
-// Syntax highlighting helper
 function highlightToken(token: string, isString: boolean = false): JSX.Element {
-  // Keywords
   if (["interface", "const", "string", "Record"].includes(token)) {
     return (
       <span className="text-purple-600 dark:text-purple-400 font-semibold">
@@ -102,13 +100,11 @@ function highlightToken(token: string, isString: boolean = false): JSX.Element {
       </span>
     );
   }
-  // Types
   if (
     ["Plugin", "PluginSpec", "PluginMatch", "PluginPattern"].includes(token)
   ) {
     return <span className="text-blue-600 dark:text-blue-400">{token}</span>;
   }
-  // Property names
   if (
     [
       "name",
@@ -127,7 +123,6 @@ function highlightToken(token: string, isString: boolean = false): JSX.Element {
       <span className="text-orange-600 dark:text-orange-400">{token}</span>
     );
   }
-  // Strings
   if (
     isString ||
     (token.startsWith('"') && token.endsWith('"')) ||
@@ -135,7 +130,6 @@ function highlightToken(token: string, isString: boolean = false): JSX.Element {
   ) {
     return <span className="text-green-600 dark:text-green-400">{token}</span>;
   }
-  // Arrays/Objects
   if (["[", "]", "{", "}"].includes(token)) {
     return (
       <span className="text-gray-600 dark:text-gray-400 font-bold">
@@ -143,12 +137,10 @@ function highlightToken(token: string, isString: boolean = false): JSX.Element {
       </span>
     );
   }
-  // Default
   return <span className="text-base-content">{token}</span>;
 }
 
 function highlightLine(line: string): JSX.Element {
-  // Simple tokenization for syntax highlighting
   const tokens: JSX.Element[] = [];
   let current = "";
   let inString = false;
@@ -209,7 +201,6 @@ function CodeBlock({
 
   return (
     <div className="bg-base-200 rounded-2xl p-6 lg:p-8 relative overflow-hidden">
-      {/* Spotlight gradient effect */}
       <div
         className="absolute inset-0 pointer-events-none opacity-30"
         style={{
@@ -226,7 +217,6 @@ function CodeBlock({
         {title}
       </h3>
 
-      {/* Code block */}
       <pre className="text-sm overflow-x-auto relative z-10">
         <code className="language-typescript">
           {codeLines.map((line, i) => {
@@ -271,7 +261,6 @@ export default function PluginSpotlight({
   const [isManual, setIsManual] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-rotate
   useEffect(() => {
     if (!isManual) {
       intervalRef.current = setInterval(() => {
@@ -294,7 +283,6 @@ export default function PluginSpotlight({
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    // Resume auto-rotation after 10 seconds
     setTimeout(() => setIsManual(false), 10000);
   };
 
@@ -302,7 +290,6 @@ export default function PluginSpotlight({
 
   return (
     <div className={className}>
-      {/* Unified section selector buttons */}
       <div className="flex flex-wrap gap-2 mb-6 justify-center">
         {sections.map((section) => (
           <button
@@ -323,7 +310,6 @@ export default function PluginSpotlight({
         ))}
       </div>
 
-      {/* Code blocks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <CodeBlock
           code={pluginSchemaCode}

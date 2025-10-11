@@ -97,6 +97,11 @@
       "import": "./dist/plugins/esversion/index.js",
       "require": "./dist/plugins/esversion/index.cjs"
     },
+    "./plugins/jscomments": {
+      "types": "./dist/plugins/jscomments/index.d.ts",
+      "import": "./dist/plugins/jscomments/index.js",
+      "require": "./dist/plugins/jscomments/index.cjs"
+    },
     "./extensions/loc": {
       "types": "./dist/extensions/loc.d.ts",
       "import": "./dist/extensions/loc.js",
@@ -108,6 +113,7 @@
   ],
   "scripts": {
     "generate": "bun utils/generator/src/generate-schema.ts",
+    "generate:fixtures": "bun scripts/generate-fixtures.ts",
     "build": "turbo run build:pkg",
     "build:pkg": "bun run clean && bun run build:run",
     "build:run": "tsup",
@@ -126,12 +132,15 @@
     "preview": "bun run --cwd site preview",
     "release": "release-it",
     "test": "turbo run test:run",
-    "test:run": "bun test tests/unit tests/integration/integration.test.ts --timeout 5000",
+    "test:run": "bun test --preload ./tests/setup.ts tests/unit tests/integration/integration.test.ts --timeout 5000",
     "test:all": "bun test tests/**/*.test.ts --timeout 5000",
     "test:unit": "turbo run test:unit",
-    "test:unit:run": "bun test tests/unit/*.test.ts --timeout 5000",
+    "test:unit:run": "bun test --preload ./tests/setup.ts tests/unit/*.test.ts --timeout 5000",
     "test:integration": "turbo run test:integration",
     "test:integration:run": "bun test tests/integration/integration.test.ts --timeout 5000",
+    "test:e2e": "bun test tests/e2e/*.test.ts --timeout 30000",
+    "test:e2e:open-source": "bun test tests/e2e/open-source.test.ts --timeout 30000",
+    "test:e2e:comments": "bun test tests/e2e/comments.test.ts --timeout 10000",
     "test:watch": "bun test --watch tests/**/*.test.ts",
     "benchmark": "bun run --cwd utils/benchmarker src/benchmark.ts",
     "benchmark:run": "bun utils/benchmarker/src/benchmark.ts",
