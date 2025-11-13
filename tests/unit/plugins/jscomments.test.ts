@@ -1,6 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import {
   jscommentsPreprocessor,
+  safePreprocessor,
   stripComments,
 } from "../../../src/plugins/jscomments";
 import { defaultPreprocessors as esversionPreprocessors } from "../../../src/plugins/esversion";
@@ -33,16 +34,16 @@ const x = 1;
     expect(jscommentsPreprocessor(code)).toBe(stripComments(code));
   });
 
-  test("should be included in esversion default preprocessors", () => {
+  test("safePreprocessor should be included in esversion default preprocessors", () => {
     expect(esversionPreprocessors).toBeDefined();
     expect(Array.isArray(esversionPreprocessors)).toBe(true);
-    expect(esversionPreprocessors).toContain(jscommentsPreprocessor);
+    expect(esversionPreprocessors).toContain(safePreprocessor);
   });
 
-  test("should be included in browserlist default preprocessors", () => {
+  test("safePreprocessor should be included in browserlist default preprocessors", () => {
     expect(browserlistPreprocessors).toBeDefined();
     expect(Array.isArray(browserlistPreprocessors)).toBe(true);
-    expect(browserlistPreprocessors).toContain(jscommentsPreprocessor);
+    expect(browserlistPreprocessors).toContain(safePreprocessor);
   });
 
   test("preprocessor chain should work correctly", () => {

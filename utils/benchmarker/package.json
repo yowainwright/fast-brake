@@ -5,8 +5,6 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test:run": "bun test tests",
-    "build:pkg": "echo 'Skipping benchmarker build (utility only)'",
     "clean": "rimraf dist",
     "format": "turbo run format:run",
     "format:run": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",

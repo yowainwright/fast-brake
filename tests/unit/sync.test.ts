@@ -66,7 +66,7 @@ describe("fastBrakeSync", () => {
     test("should process extensions and add to detected feature", () => {
       const mockExtension = {
         name: "test-extension",
-        process: (context: any) => {
+        process: () => {
           return {
             spec: {
               customField: "value",
@@ -92,14 +92,14 @@ describe("fastBrakeSync", () => {
     test("should handle multiple extensions in order", () => {
       const ext1 = {
         name: "ext1",
-        process: (context: any) => ({
+        process: () => ({
           spec: { field1: "value1" },
         }),
       };
 
       const ext2 = {
         name: "ext2",
-        process: (context: any) => ({
+        process: () => ({
           spec: { field2: "value2" },
         }),
       };
@@ -145,7 +145,7 @@ describe("fastBrakeSync", () => {
     test("should handle extension with no spec returned", () => {
       const mockExtension = {
         name: "test-extension",
-        process: (context: any) => ({
+        process: () => ({
           spec: undefined,
         }),
       };
@@ -183,7 +183,7 @@ describe("fastBrakeSync", () => {
     test("should handle extension errors gracefully", () => {
       const errorExtension = {
         name: "error-extension",
-        process: (context: any) => {
+        process: () => {
           throw new Error("Extension error");
         },
       };

@@ -41,6 +41,7 @@ export function skipString(
   code: string,
   i: number,
   quote: string,
+  blankContent: boolean = false,
 ): { result: string; index: number } {
   let result = quote;
   let index = i + 1;
@@ -48,25 +49,38 @@ export function skipString(
 
   while (index < len) {
     const ch = code[index];
-    result += ch;
-
     const isEscape = ch === "\\";
+
     if (isEscape) {
       index++;
       const hasNext = index < len;
-      if (hasNext) {
-        result += code[index];
-        index++;
+      if (!hasNext) continue;
+
+      const next = code[index];
+      const isEscapedNewline = next === "\n";
+
+      if (blankContent) {
+        result += isEscapedNewline ? "\n" : " ";
+      } else {
+        result += ch + next;
       }
+      index++;
       continue;
     }
 
     const isClosingQuote = ch === quote;
     if (isClosingQuote) {
+      result += quote;
       index++;
       break;
     }
 
+    if (blankContent) {
+      const isNewline = ch === "\n";
+      result += isNewline ? "\n" : " ";
+    } else {
+      result += ch;
+    }
     index++;
   }
 
@@ -149,7 +163,10 @@ export function countNewlines(text: string): number {
   return parts.length - 1;
 }
 
-export function stripComments(code: string): string {
+export function stripComments(
+  code: string,
+  blankStrings: boolean = false,
+): string {
   let result = "";
   let i = 0;
   const len = code.length;
@@ -181,7 +198,7 @@ export function stripComments(code: string): string {
 
     const isQuote = char === '"' || char === "'";
     if (isQuote) {
-      const skip = skipString(code, i, char);
+      const skip = skipString(code, i, char, blankStrings);
       result += skip.result;
       i = skip.index;
       continue;
@@ -189,7 +206,7 @@ export function stripComments(code: string): string {
 
     const isBacktick = char === "`";
     if (isBacktick) {
-      const skip = skipString(code, i, "`");
+      const skip = skipString(code, i, "`", blankStrings);
       result += skip.result;
       i = skip.index;
       continue;
@@ -211,12 +228,28 @@ export function stripComments(code: string): string {
   return result;
 }
 
+export function stripCommentsAndStrings(code: string): string {
+  return stripComments(code, true);
+}
+
 /**
  * Preprocessor function for stripping JavaScript comments
  * Use with DetectionOptions.preprocessors
  */
 export function jscommentsPreprocessor(code: string): string {
   return stripComments(code);
+}
+
+/**
+ * Preprocessor function that strips both comments AND string contents
+ * This prevents false positives from patterns inside strings
+ * Use this to fix issues like:
+ * - "image_123" triggering numeric separator detection
+ * - "**" triggering exponentiation detection
+ * - "?." inside strings triggering optional chaining detection
+ */
+export function safePreprocessor(code: string): string {
+  return stripCommentsAndStrings(code);
 }
 
 export default jscommentsPreprocessor;

@@ -1,7 +1,8 @@
 import { readFileSync } from "fs";
 import { TINY_FILE_SIZE, COMPLEXITY_INDICATORS } from "./constants";
 import { loadPlugin } from "./plugins/loader";
-import { getCachedRegex, fastIndexOf } from "./utils";
+import { getCachedRegex } from "./utils";
+import { safePreprocessor } from "./plugins/jscomments";
 import type {
   DetectionMode,
   DetectionMatch,
@@ -69,8 +70,7 @@ export class Detector {
     matchStr: string,
     index: number,
   ): DetectionMatch | null {
-    const hasPlugin = this.plugin !== null;
-    if (!hasPlugin) {
+    if (!this.plugin) {
       return {
         name: featureName,
         match: matchStr,
@@ -81,25 +81,20 @@ export class Detector {
     }
 
     const rule = this.getPluginRule(featureName);
-    const hasRule = rule !== null;
-    if (!hasRule) return null;
+    if (!rule) return null;
 
     return {
       name: featureName,
       match: matchStr,
-      spec: this.plugin!.name,
+      spec: this.plugin.name,
       rule,
       index,
     };
   }
 
   detectBoolean(code: string): boolean {
-    const hasStringMatch = this.checkStrings(code);
-    if (hasStringMatch) return true;
-
-    const shouldCheckPatterns = this.shouldRunPatternDetection(code);
-    if (!shouldCheckPatterns) return false;
-
+    if (this.checkStrings(code)) return true;
+    if (!this.shouldRunPatternDetection(code)) return false;
     return this.checkPatterns(code);
   }
 
@@ -191,24 +186,17 @@ export class Detector {
   }
 
   private checkStrings(code: string): boolean {
-    for (const patterns of Object.values(this.featureStrings)) {
-      for (const pattern of patterns) {
-        if (fastIndexOf(code, pattern) !== -1) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return Object.values(this.featureStrings).some((patterns) =>
+      patterns.some((pattern) => code.indexOf(pattern) !== -1),
+    );
   }
 
   private checkPatterns(code: string): boolean {
-    for (const patternStr of this.compiledPatterns.values()) {
+    const patterns = Array.from(this.compiledPatterns.values());
+    return patterns.some((patternStr) => {
       const pattern = getCachedRegex(patternStr);
-      if (pattern.test(code)) {
-        return true;
-      }
-    }
-    return false;
+      return pattern.test(code);
+    });
   }
 
   private isExcluded(
@@ -222,10 +210,7 @@ export class Detector {
     const contextStart = Math.max(0, index - 20);
     const contextBefore = code.substring(contextStart, index);
 
-    for (const exclude of excludes) {
-      if (contextBefore.endsWith(exclude)) return true;
-    }
-    return false;
+    return excludes.some((exclude) => contextBefore.endsWith(exclude));
   }
 
   private findFirstValidIndex(
@@ -253,8 +238,7 @@ export class Detector {
     pattern: string,
   ): DetectionMatch | null {
     const index = this.findFirstValidIndex(code, pattern, featureName);
-    const hasValidIndex = index !== -1;
-    if (!hasValidIndex) return null;
+    if (index === -1) return null;
 
     return this.buildDetectionMatch(featureName, pattern, index);
   }
@@ -269,49 +253,42 @@ export class Detector {
       this.checkPatternMatch(code, featureName, pattern),
     );
 
-    const firstMatch = matches.find((match) => match !== null);
-    const hasMatch = firstMatch !== undefined;
-
-    return hasMatch ? firstMatch : null;
+    return matches.find((match) => match !== null) ?? null;
   }
 
   private findFirstPatternMatch(code: string): DetectionMatch | null {
-    for (const [featureName, patternStr] of this.compiledPatterns.entries()) {
-      const pattern = getCachedRegex(patternStr);
-      const match = pattern.exec(code);
-      if (match) {
-        const result = this.buildDetectionMatch(
-          featureName,
-          match[0],
-          match.index,
-        );
-        if (result) return result;
-      }
-    }
-    return null;
+    const entries = Array.from(this.compiledPatterns.entries());
+
+    const validMatch = entries
+      .map(([featureName, patternStr]) => {
+        const pattern = getCachedRegex(patternStr);
+        const match = pattern.exec(code);
+        if (!match) return null;
+
+        return this.buildDetectionMatch(featureName, match[0], match.index);
+      })
+      .find((result) => result !== null);
+
+    return validMatch ?? null;
   }
 
   private shouldRunPatternDetection(code: string): boolean {
-    const hasComplexity = this.hasComplexityIndicators(code);
-    if (hasComplexity) return true;
-
-    const isTinyFile = code.length < TINY_FILE_SIZE;
-    return !isTinyFile;
+    return this.hasComplexityIndicators(code) || code.length >= TINY_FILE_SIZE;
   }
 
   private hasComplexityIndicators(code: string): boolean {
-    for (const indicator of COMPLEXITY_INDICATORS) {
-      if (fastIndexOf(code, indicator) !== -1) {
-        return true;
-      }
-    }
-    return false;
+    return COMPLEXITY_INDICATORS.some(
+      (indicator) => code.indexOf(indicator) !== -1,
+    );
   }
 
   check(code: string, options: DetectionOptions): boolean {
+    const preprocessors = options.preprocessors || [safePreprocessor];
+    const processedCode = preprocessors.reduce((acc, fn) => fn(acc), code);
+
     const orderedRules = options.orderedRules;
     if (!orderedRules || !this.plugin) {
-      const result = this.detectFast(code);
+      const result = this.detectFast(processedCode);
       return !result.hasMatch;
     }
 
@@ -342,7 +319,7 @@ export class Detector {
     this.plugin = filteredPlugin;
     this.loadPlugin(filteredPlugin);
 
-    const result = this.detectFast(code);
+    const result = this.detectFast(processedCode);
 
     this.plugin = originalPlugin;
     this.loadPlugin(originalPlugin);

@@ -64,13 +64,26 @@ const result = stripComments(code);
 
 ## API
 
+### `safePreprocessor(code: string): string`
+
+**Recommended preprocessor** that strips both comments AND string contents to prevent false positives. This is now the default in `esversion` and `browserlist` plugins.
+
+Use this to fix issues like:
+- `"image_123"` triggering numeric separator detection
+- `"**"` triggering exponentiation detection
+- `"?."` inside strings triggering optional chaining detection
+
 ### `jscommentsPreprocessor(code: string): string`
 
-Main preprocessor function for use with DetectionOptions.
+Preprocessor that only strips comments (preserves string contents). May cause false positives.
 
-### `stripComments(code: string): string`
+### `stripComments(code: string, blankStrings?: boolean): string`
 
-Strips all JavaScript comments from code while preserving line numbers.
+Strips JavaScript comments from code while preserving line numbers. Set `blankStrings` to `true` to also blank out string contents.
+
+### `stripCommentsAndStrings(code: string): string`
+
+Strips both comments and string contents. Alias for `stripComments(code, true)`.
 
 ### Helper Functions
 
