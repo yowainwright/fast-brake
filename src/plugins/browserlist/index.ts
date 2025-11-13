@@ -1,8 +1,8 @@
 import type { Plugin, PluginMatch } from "../../types";
 import browserlistPlugin from "./schema.json";
 import { ES_VERSIONS } from "../../constants";
-import { fastIndexOf, getCachedRegex } from "../../utils";
-import { jscommentsPreprocessor } from "../jscomments";
+import { getCachedRegex } from "../../utils";
+import { safePreprocessor } from "../jscomments";
 
 export interface BrowserTarget {
   name: string;
@@ -49,10 +49,6 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
   for (const browser of browserArray) {
     const trimmed = browser.trim().toLowerCase();
 
-    const hasLast = fastIndexOf(trimmed, "last");
-    const hasPercent = fastIndexOf(trimmed, "%");
-    const isDefaults = trimmed === "defaults";
-
     const browserMatch = trimmed.match(browserRegex);
     if (browserMatch) {
       const name = browserMatch[1];
@@ -66,7 +62,7 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
           version,
         });
       }
-    } else if (hasLast !== -1) {
+    } else if (trimmed.includes("last")) {
       const versionMatch = trimmed.match(lastVersionRegex);
       if (versionMatch) {
         const versions = parseInt(versionMatch[1], 10);
@@ -76,7 +72,7 @@ export function parseBrowserlist(browsers: string | string[]): BrowserTarget[] {
           { name: "safari", version: 17 - versions },
         );
       }
-    } else if (isDefaults || hasPercent !== -1) {
+    } else if (trimmed === "defaults" || trimmed.includes("%")) {
       targets.push(
         { name: "chrome", version: 80 },
         { name: "firefox", version: 74 },
@@ -144,6 +140,7 @@ export const defaultBrowsers = createBrowserlistPlugin("defaults");
 
 /**
  * Default preprocessors for browserlist plugin
- * Includes jscomments to strip comments before detection
+ * Uses safePreprocessor to strip comments and string contents
+ * This prevents false positives from patterns inside strings
  */
-export const defaultPreprocessors = [jscommentsPreprocessor];
+export const defaultPreprocessors = [safePreprocessor];

@@ -1,7 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { getCachedRegex, fastIndexOf } from "../../src/utils";
+import { getCachedRegex } from "../../src/utils";
 import {
   stripComments,
   countNewlines,
@@ -34,52 +34,6 @@ describe("getCachedRegex", () => {
     regex.exec("test test test");
     const regex2 = getCachedRegex("test", "g");
     expect(regex2.lastIndex).toBe(0);
-  });
-});
-
-describe("fastIndexOf", () => {
-  test("should find pattern at beginning", () => {
-    const result = fastIndexOf("hello world", "hello");
-    expect(result).toBe(0);
-  });
-
-  test("should find pattern in middle", () => {
-    const result = fastIndexOf("hello world", "world");
-    expect(result).toBe(6);
-  });
-
-  test("should return -1 when pattern not found", () => {
-    const result = fastIndexOf("hello world", "foo");
-    expect(result).toBe(-1);
-  });
-
-  test("should handle empty pattern", () => {
-    const result = fastIndexOf("hello", "");
-    expect(result).toBe(0);
-  });
-
-  test("should handle pattern longer than text", () => {
-    const result = fastIndexOf("hi", "hello");
-    expect(result).toBe(-1);
-  });
-
-  test("should handle long patterns", () => {
-    const longPattern = "this is a very long pattern to search for";
-    const text = "some text before " + longPattern + " and after";
-    const result = fastIndexOf(text, longPattern);
-    expect(result).toBe(17);
-  });
-
-  test("should respect startIndex parameter", () => {
-    const text = "hello hello hello";
-    const result = fastIndexOf(text, "hello", 6);
-    expect(result).toBe(6);
-  });
-
-  test("should handle special characters in pattern", () => {
-    const text = "const regex = /test.*pattern/";
-    const result = fastIndexOf(text, ".*");
-    expect(result).toBe(19);
   });
 });
 

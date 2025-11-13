@@ -33,8 +33,6 @@ export const VERSION_ORDER = [
   "esnext",
 ];
 
-export const VERSIONS = VERSION_ORDER;
-
 export const MODULE_ONLY_FEATURES = ["import", "export"];
 
 export const DEFAULT_SCAN_EXTENSIONS = [
@@ -55,12 +53,15 @@ export const DEFAULT_IGNORE_PATHS = [
 
 export const TINY_FILE_SIZE = 500;
 export const COMPLEXITY_INDICATORS = [
+  "const",
+  "let",
   "async",
   "await",
   "class",
   "extends",
   "?.",
   "??",
+  "**",
   "=>",
   "...",
   "yield",

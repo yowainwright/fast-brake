@@ -1,6 +1,6 @@
 import type { Plugin } from "../../types";
 import esversionPlugin from "./schema.json";
-import { jscommentsPreprocessor } from "../jscomments";
+import { safePreprocessor } from "../jscomments";
 
 export function createESVersionPlugin(targetVersion: string = "es5"): Plugin {
   const plugin = esversionPlugin as Plugin;
@@ -96,8 +96,9 @@ export function getESVersionPlugin(version: string): Plugin {
 
 /**
  * Default preprocessors for esversion plugin
- * Includes jscomments to strip comments before detection
+ * Uses safePreprocessor to strip comments and string contents
+ * This prevents false positives from patterns inside strings
  */
-export const defaultPreprocessors = [jscommentsPreprocessor];
+export const defaultPreprocessors = [safePreprocessor];
 
 export default esAll;

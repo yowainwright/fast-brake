@@ -1,7 +1,6 @@
 import { readdirSync, statSync, existsSync } from "fs";
 import { join, extname } from "path";
 import { DEFAULT_SCAN_EXTENSIONS, DEFAULT_IGNORE_PATHS } from "./constants";
-import { fastIndexOf } from "./utils";
 import type { ScanOptions, ScanResult, ScanContext } from "./types";
 
 export class Scanner {
@@ -51,15 +50,10 @@ export class Scanner {
     ignorePatterns: string[],
     extensionSet: Set<string>,
   ): void {
-    const shouldTerminate = this.checkTermination(depth, context);
-    if (shouldTerminate) {
-      return;
-    }
+    if (depth > context.maxDepth || context.shouldStop) return;
 
     const entries = this.readDirectorySafe(dirPath);
-    if (!entries) {
-      return;
-    }
+    if (!entries) return;
 
     this.processEntries(
       entries,
@@ -71,10 +65,6 @@ export class Scanner {
     );
   }
 
-  private checkTermination(depth: number, context: ScanContext): boolean {
-    return depth > context.maxDepth || context.shouldStop;
-  }
-
   private processEntries(
     entries: string[],
     dirPath: string,
@@ -84,14 +74,9 @@ export class Scanner {
     extensionSet: Set<string>,
   ): void {
     for (const entry of entries) {
-      if (context.shouldStop) {
-        break;
-      }
+      if (context.shouldStop) break;
 
-      const shouldProcess = this.shouldProcessEntry(entry, ignorePatterns);
-      if (!shouldProcess) {
-        continue;
-      }
+      if (this.shouldIgnore(entry, ignorePatterns)) continue;
 
       const fullPath = join(dirPath, entry);
       this.processEntry(
@@ -105,10 +90,6 @@ export class Scanner {
     }
   }
 
-  private shouldProcessEntry(entry: string, ignorePatterns: string[]): boolean {
-    return !this.shouldIgnore(entry, ignorePatterns);
-  }
-
   private processEntry(
     fullPath: string,
     name: string,
@@ -118,12 +99,9 @@ export class Scanner {
     extensionSet: Set<string>,
   ): void {
     const stats = this.getStatsSafe(fullPath);
-    if (!stats) {
-      return;
-    }
+    if (!stats) return;
 
-    const isDirectory = stats.isDirectory();
-    if (isDirectory) {
+    if (stats.isDirectory()) {
       this.walkDirectory(
         fullPath,
         depth + 1,
@@ -134,12 +112,9 @@ export class Scanner {
       return;
     }
 
-    const isFile = stats.isFile();
-    if (!isFile) {
-      return;
+    if (stats.isFile()) {
+      this.processFile(fullPath, name, context, extensionSet);
     }
-
-    this.processFile(fullPath, name, context, extensionSet);
   }
 
   private processFile(
@@ -149,32 +124,18 @@ export class Scanner {
     extensionSet: Set<string>,
   ): void {
     const ext = extname(name);
-    const hasValidExtension = extensionSet.has(ext);
+    if (!extensionSet.has(ext)) return;
 
-    if (!hasValidExtension) {
-      return;
-    }
-
-    this.addResult(fullPath, ext, context);
-    this.checkStopConditions(context);
-  }
-
-  private addResult(fullPath: string, ext: string, context: ScanContext): void {
-    const newResult: ScanResult = {
+    context.results.push({
       path: fullPath,
       type: "file",
       extension: ext,
-    };
+    });
 
-    context.results.push(newResult);
-  }
-
-  private checkStopConditions(context: ScanContext): void {
-    const limitReached =
-      context.limit && context.results.length >= context.limit;
-    const shouldStop = context.earlyExit || limitReached;
-
-    if (shouldStop) {
+    if (
+      context.earlyExit ||
+      (context.limit && context.results.length >= context.limit)
+    ) {
       context.shouldStop = true;
     }
   }
@@ -204,8 +165,7 @@ export class Scanner {
         return true;
       }
 
-      const hasWildcard = fastIndexOf(pattern, "*") !== -1;
-      if (!hasWildcard) {
+      if (!pattern.includes("*")) {
         continue;
       }
 
@@ -218,29 +178,10 @@ export class Scanner {
   }
 
   private simpleGlobMatch(str: string, pattern: string): boolean {
-    const isWildcardOnly = pattern === "*";
-    if (isWildcardOnly) {
-      return true;
-    }
-
-    const isExtensionPattern = pattern.startsWith("*.");
-    if (isExtensionPattern) {
-      const ext = pattern.slice(1);
-      return str.endsWith(ext);
-    }
-
-    const isPrefixPattern = pattern.endsWith("*");
-    if (isPrefixPattern) {
-      const prefix = pattern.slice(0, -1);
-      return str.startsWith(prefix);
-    }
-
-    const isSuffixPattern = pattern.startsWith("*");
-    if (isSuffixPattern) {
-      const suffix = pattern.slice(1);
-      return str.endsWith(suffix);
-    }
-
+    if (pattern === "*") return true;
+    if (pattern.startsWith("*.")) return str.endsWith(pattern.slice(1));
+    if (pattern.endsWith("*")) return str.startsWith(pattern.slice(0, -1));
+    if (pattern.startsWith("*")) return str.endsWith(pattern.slice(1));
     return false;
   }
 }

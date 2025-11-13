@@ -66,7 +66,7 @@ describe("Telemetry Plugin", () => {
   });
 
   test("should have proper match structure", () => {
-    for (const [name, match] of Object.entries(telemetryPlugin.spec.matches)) {
+    for (const [, match] of Object.entries(telemetryPlugin.spec.matches)) {
       expect(match.rule).toBeDefined();
       expect(match.strings || match.patterns).toBeDefined();
     }
