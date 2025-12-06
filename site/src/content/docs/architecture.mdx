@@ -20,6 +20,37 @@ graph TD
 
 This approach delivers up to **85x faster performance** with targeted plugins compared to traditional AST parsers.
 
+## Module Types
+
+Fast Brake has three types of optional, composable modules:
+
+| Module | Purpose | Location | Examples |
+|--------|---------|----------|----------|
+| **Preprocessors** | Transform code before detection | `src/plugins/` (core) | `jscomments` - strips comments/strings |
+| **Plugins** | Define detection patterns/schemas | `src/plugins/` (bundled) | `esversion` - ES feature patterns |
+| **Extensions** | Enrich detection results | `extensions/` (separate packages) | `fast-brake-acorn` - AST validation |
+
+### Preprocessors
+
+Preprocessors prepare code for accurate detection. The `jscomments` preprocessor is core infrastructure - parsing JavaScript without comment/string awareness produces unreliable results.
+
+Preprocessors with external dependencies (TypeScript, JSX, Flow) are separate packages:
+- `fast-brake-typescript-preprocessor`
+- `fast-brake-jsx-preprocessor`
+- `fast-brake-flow-preprocessor`
+
+### Plugins
+
+Plugins answer: **"What are we looking for?"**
+
+They provide pattern schemas for detection. Bundled plugins (`esversion`, `telemetry`) have no external dependencies and ship with fast-brake.
+
+### Extensions
+
+Extensions answer: **"What else can we learn about the match?"**
+
+They enrich results post-detection (line numbers, AST validation, code frames). Extensions with external dependencies live in `extensions/` as separate workspace packages that users install as needed.
+
 ## Core Architecture Components
 
 ### 1. Detector Engine (`src/detector.ts`)

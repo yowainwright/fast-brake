@@ -1,0 +1,46 @@
+{
+  "name": "@fast-brake/skip-comments",
+  "version": "0.0.1",
+  "description": "Fast comment and string detection for JavaScript without preprocessing - checks if a position is inside a comment or string literal",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run build:run",
+    "build:run": "bun build ./src/index.ts --outdir ./dist --target node --format esm && bun build ./src/index.ts --outdir ./dist --target node --format cjs --outfile ./dist/index.cjs && tsc --emitDeclarationOnly",
+    "clean": "rm -rf dist",
+    "test": "bun test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "fast-brake",
+    "comments",
+    "string-literals",
+    "skip",
+    "detection",
+    "preprocessor",
+    "javascript",
+    "typescript"
+  ],
+  "author": "Jeff Wainwright <https:jeffry.in> (yowainwright@gmail.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yowainwright/fast-brake.git",
+    "directory": "preprocessors/skip-comments"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

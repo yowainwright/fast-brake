@@ -12,7 +12,7 @@ async function getEntries() {
   const pluginDirs = readdirSync(pluginsDir, { withFileTypes: true });
   const pluginEntries = Array.from(
     pluginDirs.filter((dir) => dir.isDirectory()),
-    (dir) => `src/plugins/${dir.name}/index.ts`
+    (dir) => `src/plugins/${dir.name}/index.ts`,
   );
 
   const pluginBase = ["src/plugins/index.ts", "src/plugins/loader.ts"];
@@ -20,7 +20,7 @@ async function getEntries() {
   const extensionDirs = readdirSync(extensionsDir, { withFileTypes: true });
   const extensionEntries = Array.from(
     extensionDirs.filter((dir) => dir.isDirectory()),
-    (dir) => `src/extensions/${dir.name}/index.ts`
+    (dir) => `src/extensions/${dir.name}/index.ts`,
   );
 
   return [...base, ...pluginEntries, ...pluginBase, ...extensionEntries];

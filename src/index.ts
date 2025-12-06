@@ -1,10 +1,25 @@
 import { Detector } from "./detector";
+import { DEFAULT_TIMEOUT_MS } from "./constants";
 import type {
   DetectionOptions,
   DetectedFeature,
   FastBrakeOptions,
   FastBrakeAPI,
 } from "./types";
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  operation: string,
+): Promise<T> {
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(
+      () => reject(new Error(`${operation} timed out after ${ms}ms`)),
+      ms,
+    );
+  });
+  return Promise.race([promise, timeout]);
+}
 
 const detector = new Detector();
 let detectorInitialized = false;
@@ -73,9 +88,15 @@ export async function check(
   code: string,
   options: DetectionOptions,
 ): Promise<boolean> {
-  await ensureInitialized();
-  try {
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+  const checkOperation = async (): Promise<boolean> => {
+    await ensureInitialized();
     return detector.check(code, options);
+  };
+
+  try {
+    return await withTimeout(checkOperation(), timeoutMs, "check");
   } catch {
     return false;
   }
@@ -84,6 +105,11 @@ export async function check(
 export type {
   DetectionOptions,
   DetectedFeature,
+  DetectionMatch,
+  DetectionResult,
+  DetectAllResult,
+  DetectFastOptions,
+  Preprocessor,
   BrowserVersions,
   Feature,
   SchemaJson,
@@ -93,11 +119,17 @@ export type {
   Extension,
   ExtensionInput,
   ExtensionOutput,
+  Plugin,
+  PluginSpec,
+  PluginMatch,
+  PluginPattern,
+  LogLevel,
 } from "./types";
 
 export { Detector } from "./detector";
 export { Scanner } from "./scanner";
 export { FastBrakeCache } from "./cache";
+export { setPluginLogLevel } from "./plugins/loader";
 
 export { fastBrakeSync } from "./sync";
 

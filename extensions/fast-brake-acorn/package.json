@@ -1,0 +1,44 @@
+{
+  "name": "fast-brake-acorn",
+  "version": "0.0.0",
+  "description": "AST validation extension for fast-brake using acorn",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run build:run",
+    "build:run": "bun build ./src/index.ts --outdir ./dist --target node --format esm && bun build ./src/index.ts --outdir ./dist --target node --format cjs --outfile ./dist/index.cjs",
+    "clean": "rm -rf dist",
+    "test": "bun test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "fast-brake",
+    "acorn",
+    "ast",
+    "validation",
+    "extension"
+  ],
+  "author": "Jeff Wainwright <https:jeffry.in> (yowainwright@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "acorn": "^8.14.0"
+  },
+  "peerDependencies": {
+    "fast-brake": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

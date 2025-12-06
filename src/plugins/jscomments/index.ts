@@ -43,7 +43,7 @@ export function skipString(
   quote: string,
   blankContent: boolean = false,
 ): { result: string; index: number } {
-  let result = quote;
+  const chars: string[] = [quote];
   let index = i + 1;
   const len = code.length;
 
@@ -60,9 +60,9 @@ export function skipString(
       const isEscapedNewline = next === "\n";
 
       if (blankContent) {
-        result += isEscapedNewline ? "\n" : " ";
+        chars.push(isEscapedNewline ? "\n" : " ");
       } else {
-        result += ch + next;
+        chars.push(ch, next);
       }
       index++;
       continue;
@@ -70,21 +70,21 @@ export function skipString(
 
     const isClosingQuote = ch === quote;
     if (isClosingQuote) {
-      result += quote;
+      chars.push(quote);
       index++;
       break;
     }
 
     if (blankContent) {
       const isNewline = ch === "\n";
-      result += isNewline ? "\n" : " ";
+      chars.push(isNewline ? "\n" : " ");
     } else {
-      result += ch;
+      chars.push(ch);
     }
     index++;
   }
 
-  return { result, index };
+  return { result: chars.join(""), index };
 }
 
 export function isRegexFlag(ch: string): boolean {
@@ -102,20 +102,20 @@ export function skipRegex(
   code: string,
   i: number,
 ): { result: string; index: number } {
-  let result = "/";
+  const chars: string[] = ["/"];
   let index = i + 1;
   const len = code.length;
 
   while (index < len) {
     const ch = code[index];
-    result += ch;
+    chars.push(ch);
 
     const isEscape = ch === "\\";
     if (isEscape) {
       index++;
       const hasNext = index < len;
       if (hasNext) {
-        result += code[index];
+        chars.push(code[index]);
         index++;
       }
       continue;
@@ -125,7 +125,7 @@ export function skipRegex(
     if (isRegexEnd) {
       index++;
       while (index < len && isRegexFlag(code[index])) {
-        result += code[index];
+        chars.push(code[index]);
         index++;
       }
       break;
@@ -140,7 +140,7 @@ export function skipRegex(
     index++;
   }
 
-  return { result, index };
+  return { result: chars.join(""), index };
 }
 
 export function isRegexContext(code: string, i: number): boolean {
@@ -163,69 +163,240 @@ export function countNewlines(text: string): number {
   return parts.length - 1;
 }
 
+interface StripState {
+  code: string;
+  index: number;
+  copyStart: number;
+  parts: string[];
+}
+
+function handleLineComment(state: StripState): boolean {
+  const { code, index } = state;
+  const char = code[index];
+  const nextChar = code[index + 1];
+  const isLineComment = char === "/" && nextChar === "/";
+  if (!isLineComment) return false;
+
+  state.parts.push(code.substring(state.copyStart, index));
+
+  const newlineIndex = code.indexOf("\n", index);
+  const hasNewline = newlineIndex !== -1;
+  if (!hasNewline) {
+    state.index = code.length;
+    state.copyStart = code.length;
+    return true;
+  }
+
+  state.parts.push("\n");
+  state.index = newlineIndex + 1;
+  state.copyStart = state.index;
+  return true;
+}
+
+function handleBlockComment(state: StripState): boolean {
+  const { code, index } = state;
+  const char = code[index];
+  const nextChar = code[index + 1];
+  const isBlockComment = char === "/" && nextChar === "*";
+  if (!isBlockComment) return false;
+
+  state.parts.push(code.substring(state.copyStart, index));
+
+  const endIndex = code.indexOf("*/", index + 2);
+  const hasEnd = endIndex !== -1;
+  if (!hasEnd) {
+    state.index = code.length;
+    state.copyStart = code.length;
+    return true;
+  }
+
+  const comment = code.substring(index, endIndex + 2);
+  const newlineCount = countNewlines(comment);
+  for (let n = 0; n < newlineCount; n++) {
+    state.parts.push("\n");
+  }
+
+  state.index = endIndex + 2;
+  state.copyStart = state.index;
+  return true;
+}
+
+function findStringEnd(code: string, start: number, quote: string): number {
+  let i = start + 1;
+  const len = code.length;
+
+  while (i < len) {
+    const ch = code[i];
+    const isEscape = ch === "\\";
+    if (isEscape) {
+      i += 2;
+      continue;
+    }
+
+    const isClosingQuote = ch === quote;
+    if (isClosingQuote) {
+      return i + 1;
+    }
+
+    i++;
+  }
+
+  return len;
+}
+
+function handleStringPreserve(state: StripState, quote: string): void {
+  const endIndex = findStringEnd(state.code, state.index, quote);
+  state.index = endIndex;
+}
+
+function handleStringBlank(state: StripState, quote: string): void {
+  state.parts.push(state.code.substring(state.copyStart, state.index));
+
+  const blanked = blankStringContents(state.code, state.index, quote);
+  state.parts.push(blanked.result);
+  state.index = blanked.endIndex;
+  state.copyStart = state.index;
+}
+
+export function blankChar(ch: string): string {
+  const isNewline = ch === "\n";
+  return isNewline ? "\n" : " ";
+}
+
+export function handleEscapeInBlank(
+  code: string,
+  index: number,
+  parts: string[],
+): number {
+  const nextIndex = index + 1;
+  const hasNext = nextIndex < code.length;
+  if (!hasNext) return nextIndex;
+
+  const next = code[nextIndex];
+  parts.push(blankChar(next));
+  return nextIndex + 1;
+}
+
+export function blankStringContents(
+  code: string,
+  start: number,
+  quote: string,
+): { result: string; endIndex: number } {
+  const parts: string[] = [quote];
+  let i = start + 1;
+  const len = code.length;
+
+  while (i < len) {
+    const ch = code[i];
+    const isEscape = ch === "\\";
+
+    if (isEscape) {
+      i = handleEscapeInBlank(code, i, parts);
+      continue;
+    }
+
+    const isClosingQuote = ch === quote;
+    if (isClosingQuote) {
+      parts.push(quote);
+      return { result: parts.join(""), endIndex: i + 1 };
+    }
+
+    parts.push(blankChar(ch));
+    i++;
+  }
+
+  return { result: parts.join(""), endIndex: len };
+}
+
+function handleQuote(state: StripState, blankStrings: boolean): boolean {
+  const char = state.code[state.index];
+  const isQuote = char === '"' || char === "'" || char === "`";
+  if (!isQuote) return false;
+
+  if (blankStrings) {
+    handleStringBlank(state, char);
+  } else {
+    handleStringPreserve(state, char);
+  }
+
+  return true;
+}
+
+function findRegexEnd(code: string, start: number): number {
+  let i = start + 1;
+  const len = code.length;
+
+  while (i < len) {
+    const ch = code[i];
+    const isEscape = ch === "\\";
+
+    if (isEscape) {
+      i += 2;
+      continue;
+    }
+
+    const isRegexEnd = ch === "/";
+    if (isRegexEnd) {
+      i++;
+      while (i < len && isRegexFlag(code[i])) {
+        i++;
+      }
+      return i;
+    }
+
+    const isNewline = ch === "\n";
+    if (isNewline) {
+      return i + 1;
+    }
+
+    i++;
+  }
+
+  return len;
+}
+
+function handleRegex(state: StripState): boolean {
+  const { code, index } = state;
+  const char = code[index];
+  const isSlash = char === "/";
+  if (!isSlash) return false;
+
+  const isRegex = isRegexContext(code, index);
+  if (!isRegex) return false;
+
+  state.index = findRegexEnd(code, index);
+  return true;
+}
+
 export function stripComments(
   code: string,
   blankStrings: boolean = false,
 ): string {
-  let result = "";
-  let i = 0;
-  const len = code.length;
+  const state: StripState = {
+    code,
+    index: 0,
+    copyStart: 0,
+    parts: [],
+  };
 
-  while (i < len) {
-    const char = code[i];
-    const nextChar = code[i + 1];
+  while (state.index < code.length) {
+    const handledLineComment = handleLineComment(state);
+    if (handledLineComment) continue;
 
-    const isLineComment = char === "/" && nextChar === "/";
-    if (isLineComment) {
-      const newlineIndex = code.indexOf("\n", i);
-      const hasNewline = newlineIndex !== -1;
-      if (!hasNewline) break;
-      result += "\n";
-      i = newlineIndex + 1;
-      continue;
-    }
+    const handledBlockComment = handleBlockComment(state);
+    if (handledBlockComment) continue;
 
-    const isBlockComment = char === "/" && nextChar === "*";
-    if (isBlockComment) {
-      const endIndex = code.indexOf("*/", i + 2);
-      const hasEnd = endIndex !== -1;
-      if (!hasEnd) break;
-      const comment = code.substring(i, endIndex + 2);
-      result += "\n".repeat(countNewlines(comment));
-      i = endIndex + 2;
-      continue;
-    }
+    const handledQuote = handleQuote(state, blankStrings);
+    if (handledQuote) continue;
 
-    const isQuote = char === '"' || char === "'";
-    if (isQuote) {
-      const skip = skipString(code, i, char, blankStrings);
-      result += skip.result;
-      i = skip.index;
-      continue;
-    }
+    const handledRegex = handleRegex(state);
+    if (handledRegex) continue;
 
-    const isBacktick = char === "`";
-    if (isBacktick) {
-      const skip = skipString(code, i, "`", blankStrings);
-      result += skip.result;
-      i = skip.index;
-      continue;
-    }
-
-    const isSlash = char === "/";
-    const isRegex = isSlash && isRegexContext(code, i);
-    if (isRegex) {
-      const skip = skipRegex(code, i);
-      result += skip.result;
-      i = skip.index;
-      continue;
-    }
-
-    result += char;
-    i++;
+    state.index++;
   }
 
-  return result;
+  state.parts.push(code.substring(state.copyStart));
+  return state.parts.join("");
 }
 
 export function stripCommentsAndStrings(code: string): string {

@@ -22,11 +22,19 @@
     },
     "test:integration": {
       "dependsOn": ["^build:pkg"],
-      "inputs": ["src/**/*.ts", "tests/integration/**/*.ts", "tests/fixtures/**/*.js"]
+      "inputs": [
+        "src/**/*.ts",
+        "tests/integration/**/*.ts",
+        "tests/fixtures/**/*.js"
+      ]
     },
     "test:integration:run": {
       "dependsOn": ["^build:pkg"],
-      "inputs": ["src/**/*.ts", "tests/integration/**/*.ts", "tests/fixtures/**/*.js"]
+      "inputs": [
+        "src/**/*.ts",
+        "tests/integration/**/*.ts",
+        "tests/fixtures/**/*.js"
+      ]
     },
     "lint:run": {
       "inputs": ["src/**/*.ts", "tests/**/*.ts"]
@@ -38,10 +46,18 @@
       "inputs": ["src/**/*.ts", "tests/**/*.ts", "tsconfig.json"]
     },
     "benchmark": {
-      "inputs": ["src/**/*.ts", "tests/integration/benchmarks.ts", "tests/fixtures/**/*.js"]
+      "inputs": [
+        "src/**/*.ts",
+        "tests/integration/benchmarks.ts",
+        "tests/fixtures/**/*.js"
+      ]
     },
     "benchmark:run": {
-      "inputs": ["src/**/*.ts", "tests/integration/benchmarks.ts", "tests/fixtures/**/*.js"]
+      "inputs": [
+        "src/**/*.ts",
+        "tests/integration/benchmarks.ts",
+        "tests/fixtures/**/*.js"
+      ]
     },
     "dev": {
       "cache": false,

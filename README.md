@@ -33,7 +33,7 @@ import { locExtension } from "fast-brake/extensions/loc";
 // Sync version (fastest for repeated operations)
 const fbSync = fastBrakeSync({
   plugins: [es2015Plugin],
-  extensions: [locExtension]
+  extensions: [locExtension],
 });
 const syncIsCompatible = fbSync.check("const x = () => {}", { target: "es5" });
 const syncFeatures = fbSync.detect("const x = () => {}");
@@ -41,9 +41,11 @@ const syncFeatures = fbSync.detect("const x = () => {}");
 // Async version (when async is needed)
 const fb = await fastBrake({
   plugins: [es2015Plugin],
-  extensions: [locExtension]
+  extensions: [locExtension],
 });
-const asyncIsCompatible = await fb.check("const x = () => {}", { target: "es5" });
+const asyncIsCompatible = await fb.check("const x = () => {}", {
+  target: "es5",
+});
 const asyncFeatures = await fb.detect("const x = () => {}");
 ```
 
@@ -98,6 +100,7 @@ fastBrake(code, { target: "es5", throwOnFirst: true });
 ### `fastBrake(code)` or `fastBrake(options)`
 
 Can be used in two ways:
+
 1. **Direct detection:** Pass code string to detect features using default settings
 2. **Factory pattern:** Pass options to create an instance with custom plugins/extensions
 
@@ -111,7 +114,7 @@ const features = await fastBrake("const x = () => {}");
 // Factory pattern (async)
 const fb = await fastBrake({
   plugins: [es2015Plugin],
-  extensions: [locExtension]
+  extensions: [locExtension],
 });
 const features = await fb.detect("const x = () => {}");
 const isCompatible = await fb.check("const x = () => {}", { target: "es5" });
@@ -124,7 +127,8 @@ const isCompatible = await fb.check("const x = () => {}", { target: "es5" });
   - `plugins` (Plugin[]): Array of plugins to use
   - `extensions` (Extension[]): Array of extensions to use
 
-**Returns:** 
+**Returns:**
+
 - With code: `Promise<DetectedFeature[]>`
 - With options: `Promise<FastBrakeAPI>` with `detect()` and `check()` methods
 
@@ -211,7 +215,7 @@ import { locExtension } from "fast-brake/extensions/loc";
 // Create sync instance with plugins and extensions
 const fbSync = fastBrakeSync({
   plugins: [es2015Plugin],
-  extensions: [locExtension]
+  extensions: [locExtension],
 });
 
 // Use synchronously (no await needed)
@@ -244,6 +248,22 @@ const scanner = new Scanner();
 // Cache for performance optimization
 const cache = new FastBrakeCache();
 ```
+
+## Architecture
+
+Fast Brake has a modular architecture with three types of optional components:
+
+| Component         | Purpose                           | Location                          | Examples                               |
+| ----------------- | --------------------------------- | --------------------------------- | -------------------------------------- |
+| **Preprocessors** | Transform code before detection   | `src/plugins/` (core)             | `jscomments` - strips comments/strings |
+| **Plugins**       | Define detection patterns/schemas | `src/plugins/` (bundled)          | `esversion` - ES feature patterns      |
+| **Extensions**    | Enrich detection results          | `extensions/` (separate packages) | `fast-brake-acorn` - AST validation    |
+
+**Preprocessors** prepare code for accurate detection. The `jscomments` preprocessor is core - parsing JS without comment awareness is unreliable. Other preprocessors (TypeScript, JSX, Flow) may be separate packages with external dependencies.
+
+**Plugins** answer "what are we looking for?" They provide pattern schemas for detection. Bundled plugins have no external dependencies.
+
+**Extensions** answer "what else can we learn?" They enrich results post-detection (e.g., line numbers, AST validation). Extensions with external dependencies live in `extensions/` as separate workspace packages.
 
 ## Plugin System
 
