@@ -47,6 +47,8 @@ export interface DetectionOptions {
   ignorePatterns?: string[];
   preprocessors?: Array<(code: string) => string>;
   orderedRules?: string[];
+  maxFileSize?: number;
+  timeoutMs?: number;
 }
 export interface LocEnrichedFeature extends DetectedFeature {
   loc: Location;
@@ -93,6 +95,7 @@ export interface DetectionResult {
   hasMatch: boolean;
   mode: DetectionMode;
   firstMatch?: DetectionMatch;
+  error?: string;
 }
 
 export interface PluginPattern {
@@ -158,3 +161,24 @@ export interface FastBrakeSyncAPI {
   detect: (code: string) => DetectedFeature[];
   check: (code: string, options: DetectionOptions) => boolean;
 }
+
+export type Preprocessor = (code: string) => string;
+
+export type LogLevel = "silent" | "warn" | "error";
+
+export interface DetectAllResult {
+  hasMatch: boolean;
+  matches: DetectionMatch[];
+  processedCode: string;
+}
+
+export type {
+  BrakeChars,
+  ValidatorName,
+  ValidatorContext,
+  BrakeValidator,
+  ValidatorRef,
+  BrakeStage,
+  BrakePresetName,
+  BrakeConfig,
+} from "./brake/types";

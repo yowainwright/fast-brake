@@ -1,7 +1,11 @@
 import { test, expect, describe } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { getCachedRegex } from "../../src/utils";
+import {
+  getCachedRegex,
+  normalizeZeroWidth,
+  clearRegexCache,
+} from "../../src/utils";
 import {
   stripComments,
   countNewlines,
@@ -216,5 +220,61 @@ describe("findPrevNonSpace", () => {
   test("should handle newlines and tabs", () => {
     const code = "hello\n\t ";
     expect(findPrevNonSpace(code, 7)).toBe(4);
+  });
+});
+
+describe("normalizeZeroWidth", () => {
+  test("should return unchanged string without zero-width characters", () => {
+    const code = "const x = 1;";
+    const result = normalizeZeroWidth(code);
+    expect(result).toBe(code);
+  });
+
+  test("should strip zero-width space (U+200B)", () => {
+    const code = "const\u200B x = 1;";
+    const result = normalizeZeroWidth(code);
+    expect(result).toBe("const x = 1;");
+  });
+
+  test("should strip zero-width non-joiner (U+200C)", () => {
+    const code = "const\u200C x = 1;";
+    const result = normalizeZeroWidth(code);
+    expect(result).toBe("const x = 1;");
+  });
+
+  test("should strip zero-width joiner (U+200D)", () => {
+    const code = "const\u200D x = 1;";
+    const result = normalizeZeroWidth(code);
+    expect(result).toBe("const x = 1;");
+  });
+
+  test("should strip byte order mark (U+FEFF)", () => {
+    const code = "\uFEFFconst x = 1;";
+    const result = normalizeZeroWidth(code);
+    expect(result).toBe("const x = 1;");
+  });
+
+  test("should strip soft hyphen (U+00AD)", () => {
+    const code = "const\u00AD x = 1;";
+    const result = normalizeZeroWidth(code);
+    expect(result).toBe("const x = 1;");
+  });
+
+  test("should strip multiple zero-width characters", () => {
+    const code = "\uFEFFconst\u200B x\u200C =\u200D 1;";
+    const result = normalizeZeroWidth(code);
+    expect(result).toBe("const x = 1;");
+  });
+});
+
+describe("clearRegexCache", () => {
+  test("should clear the regex cache", () => {
+    const regex1 = getCachedRegex("unique-pattern-for-clear-test");
+    expect(regex1).toBeDefined();
+
+    clearRegexCache();
+
+    const regex2 = getCachedRegex("unique-pattern-for-clear-test");
+    expect(regex2).not.toBe(regex1);
   });
 });

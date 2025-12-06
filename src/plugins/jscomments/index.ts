@@ -43,7 +43,7 @@ export function skipString(
   quote: string,
   blankContent: boolean = false,
 ): { result: string; index: number } {
-  let result = quote;
+  const chars: string[] = [quote];
   let index = i + 1;
   const len = code.length;
 
@@ -60,9 +60,9 @@ export function skipString(
       const isEscapedNewline = next === "\n";
 
       if (blankContent) {
-        result += isEscapedNewline ? "\n" : " ";
+        chars.push(isEscapedNewline ? "\n" : " ");
       } else {
-        result += ch + next;
+        chars.push(ch, next);
       }
       index++;
       continue;
@@ -70,21 +70,21 @@ export function skipString(
 
     const isClosingQuote = ch === quote;
     if (isClosingQuote) {
-      result += quote;
+      chars.push(quote);
       index++;
       break;
     }
 
     if (blankContent) {
       const isNewline = ch === "\n";
-      result += isNewline ? "\n" : " ";
+      chars.push(isNewline ? "\n" : " ");
     } else {
-      result += ch;
+      chars.push(ch);
     }
     index++;
   }
 
-  return { result, index };
+  return { result: chars.join(""), index };
 }
 
 export function isRegexFlag(ch: string): boolean {
@@ -102,20 +102,20 @@ export function skipRegex(
   code: string,
   i: number,
 ): { result: string; index: number } {
-  let result = "/";
+  const chars: string[] = ["/"];
   let index = i + 1;
   const len = code.length;
 
   while (index < len) {
     const ch = code[index];
-    result += ch;
+    chars.push(ch);
 
     const isEscape = ch === "\\";
     if (isEscape) {
       index++;
       const hasNext = index < len;
       if (hasNext) {
-        result += code[index];
+        chars.push(code[index]);
         index++;
       }
       continue;
@@ -125,7 +125,7 @@ export function skipRegex(
     if (isRegexEnd) {
       index++;
       while (index < len && isRegexFlag(code[index])) {
-        result += code[index];
+        chars.push(code[index]);
         index++;
       }
       break;
@@ -140,7 +140,7 @@ export function skipRegex(
     index++;
   }
 
-  return { result, index };
+  return { result: chars.join(""), index };
 }
 
 export function isRegexContext(code: string, i: number): boolean {
@@ -167,7 +167,7 @@ export function stripComments(
   code: string,
   blankStrings: boolean = false,
 ): string {
-  let result = "";
+  const chars: string[] = [];
   let i = 0;
   const len = code.length;
 
@@ -180,7 +180,7 @@ export function stripComments(
       const newlineIndex = code.indexOf("\n", i);
       const hasNewline = newlineIndex !== -1;
       if (!hasNewline) break;
-      result += "\n";
+      chars.push("\n");
       i = newlineIndex + 1;
       continue;
     }
@@ -191,7 +191,10 @@ export function stripComments(
       const hasEnd = endIndex !== -1;
       if (!hasEnd) break;
       const comment = code.substring(i, endIndex + 2);
-      result += "\n".repeat(countNewlines(comment));
+      const newlineCount = countNewlines(comment);
+      for (let n = 0; n < newlineCount; n++) {
+        chars.push("\n");
+      }
       i = endIndex + 2;
       continue;
     }
@@ -199,7 +202,7 @@ export function stripComments(
     const isQuote = char === '"' || char === "'";
     if (isQuote) {
       const skip = skipString(code, i, char, blankStrings);
-      result += skip.result;
+      chars.push(skip.result);
       i = skip.index;
       continue;
     }
@@ -207,7 +210,7 @@ export function stripComments(
     const isBacktick = char === "`";
     if (isBacktick) {
       const skip = skipString(code, i, "`", blankStrings);
-      result += skip.result;
+      chars.push(skip.result);
       i = skip.index;
       continue;
     }
@@ -216,16 +219,16 @@ export function stripComments(
     const isRegex = isSlash && isRegexContext(code, i);
     if (isRegex) {
       const skip = skipRegex(code, i);
-      result += skip.result;
+      chars.push(skip.result);
       i = skip.index;
       continue;
     }
 
-    result += char;
+    chars.push(char);
     i++;
   }
 
-  return result;
+  return chars.join("");
 }
 
 export function stripCommentsAndStrings(code: string): string {

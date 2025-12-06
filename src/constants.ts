@@ -52,6 +52,8 @@ export const DEFAULT_IGNORE_PATHS = [
 ];
 
 export const TINY_FILE_SIZE = 500;
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const DEFAULT_TIMEOUT_MS = 30000; // 30 seconds
 export const COMPLEXITY_INDICATORS = [
   "const",
   "let",

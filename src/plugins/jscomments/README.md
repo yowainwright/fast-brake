@@ -38,6 +38,7 @@ const result = detector.detectFast(cleaned);
 ### With Default Plugins
 
 The jscomments preprocessor is included by default in:
+
 - `esversion` plugin (`defaultPreprocessors`)
 - `browserlist` plugin (`defaultPreprocessors`)
 
@@ -69,6 +70,7 @@ const result = stripComments(code);
 **Recommended preprocessor** that strips both comments AND string contents to prevent false positives. This is now the default in `esversion` and `browserlist` plugins.
 
 Use this to fix issues like:
+
 - `"image_123"` triggering numeric separator detection
 - `"**"` triggering exponentiation detection
 - `"?."` inside strings triggering optional chaining detection

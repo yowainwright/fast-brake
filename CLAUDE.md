@@ -9,6 +9,7 @@ This document provides coding guidelines and best practices for working with the
 Prefer immutable data structures and avoid mutating variables.
 
 **Good:**
+
 ```typescript
 const filteredMatches = Object.entries(matches).reduce((acc, [name, match]) => {
   const shouldInclude = ruleIndex > targetIndex;
@@ -17,6 +18,7 @@ const filteredMatches = Object.entries(matches).reduce((acc, [name, match]) => {
 ```
 
 **Avoid:**
+
 ```typescript
 const filteredMatches = {};
 for (const [name, match] of Object.entries(matches)) {
@@ -31,6 +33,7 @@ for (const [name, match] of Object.entries(matches)) {
 Use array prototype methods (`map`, `filter`, `reduce`, `some`, `find`, etc.) instead of `for` loops when possible.
 
 **Good:**
+
 ```typescript
 private checkStrings(code: string): boolean {
   return Object.values(this.featureStrings).some(patterns =>
@@ -40,6 +43,7 @@ private checkStrings(code: string): boolean {
 ```
 
 **Avoid:**
+
 ```typescript
 private checkStrings(code: string): boolean {
   for (const patterns of Object.values(this.featureStrings)) {
@@ -58,6 +62,7 @@ private checkStrings(code: string): boolean {
 Extract complex conditions into named boolean variables for clarity.
 
 **Good:**
+
 ```typescript
 const hasPlugin = this.plugin !== null;
 if (!hasPlugin) {
@@ -66,6 +71,7 @@ if (!hasPlugin) {
 ```
 
 **Avoid:**
+
 ```typescript
 if (!this.plugin) {
   return defaultValue;
@@ -77,6 +83,7 @@ if (!this.plugin) {
 Keep object property values simple and move complex logic outside.
 
 **Good:**
+
 ```typescript
 const rule = this.getPluginRule(featureName);
 const hasRule = rule !== null;
@@ -89,6 +96,7 @@ return {
 ```
 
 **Avoid:**
+
 ```typescript
 return {
   name: featureName,
@@ -102,6 +110,7 @@ return {
 Avoid regex when simple string operations suffice. Use character comparisons and `indexOf` for better performance.
 
 **Good:**
+
 ```typescript
 export function isWordChar(ch: string): boolean {
   return (
@@ -115,6 +124,7 @@ export function isWordChar(ch: string): boolean {
 ```
 
 **Avoid:**
+
 ```typescript
 export function isWordChar(ch: string): boolean {
   return /\w/.test(ch);
@@ -126,6 +136,7 @@ export function isWordChar(ch: string): boolean {
 Use early returns to reduce nesting and improve readability.
 
 **Good:**
+
 ```typescript
 detectBoolean(code: string): boolean {
   const hasStringMatch = this.checkStrings(code);
@@ -139,6 +150,7 @@ detectBoolean(code: string): boolean {
 ```
 
 **Avoid:**
+
 ```typescript
 detectBoolean(code: string): boolean {
   const hasStringMatch = this.checkStrings(code);
@@ -160,6 +172,7 @@ detectBoolean(code: string): boolean {
 Extract duplicate code into reusable functions.
 
 **Good:**
+
 ```typescript
 private buildDetectionMatch(
   featureName: string,
@@ -184,6 +197,7 @@ Duplicating the same object construction logic across multiple methods.
 ### 2. Comment Stripping
 
 The `stripComments()` utility:
+
 - Preserves line numbers by replacing comments with newlines
 - Handles strings, template literals, and regex to avoid false positives
 - Uses zero regex for maximum performance
@@ -199,6 +213,7 @@ The `stripComments()` utility:
 ### Integration Tests
 
 E2E tests should validate against real-world codebases:
+
 - lodash
 - ramda
 - es-toolkit

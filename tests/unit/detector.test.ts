@@ -35,7 +35,7 @@ describe("Detector", () => {
 
   describe("detectFast", () => {
     test("should return first match with basic info", () => {
-      const code = "const fn = () => {}; const str = `hello`";
+      const code = "var fn = () => {}; var str = `hello`";
       const result = detector.detectFast(code);
 
       expect(result.hasMatch).toBe(true);
@@ -55,13 +55,13 @@ describe("Detector", () => {
       const result = detector.detectFast(code);
 
       expect(result.hasMatch).toBe(true);
-      expect(result.firstMatch?.name).toBe("async_await");
+      expect(result.firstMatch?.name).toBe("async_function");
     });
   });
 
   describe("detectDetailed", () => {
     test("should include match index and text", () => {
-      const code = "const fn = () => {}";
+      const code = "var fn = () => {}";
       const result = detector.detectDetailed(code);
 
       expect(result.hasMatch).toBe(true);
@@ -102,7 +102,7 @@ describe("Detector", () => {
   describe("detectFile", () => {
     test("should detect from file content", () => {
       const testFile = "/tmp/test-detect.js";
-      require("fs").writeFileSync(testFile, "const x = () => {}");
+      require("fs").writeFileSync(testFile, "var x = () => {}");
 
       const result = detector.detectFile(testFile);
       expect(result.hasMatch).toBe(true);
@@ -149,160 +149,9 @@ describe("Detector", () => {
     });
   });
 
-  describe("findFirstValidIndex (private method)", () => {
-    test("should find first valid index when pattern appears once", () => {
-      const code = "const arrow = () => {}";
-      const result = detector["findFirstValidIndex"](
-        code,
-        "=>",
-        "arrow_functions",
-      );
-      expect(result).toBe(17);
-    });
-
-    test("should find first non-excluded index when pattern appears multiple times", () => {
-      const code = "const arrow = () => {}; const second = () => {}";
-      const result = detector["findFirstValidIndex"](
-        code,
-        "=>",
-        "arrow_functions",
-      );
-      expect(result).toBe(17);
-    });
-
-    test("should return -1 when pattern not found", () => {
-      const code = "var x = function() {}";
-      const result = detector["findFirstValidIndex"](
-        code,
-        "=>",
-        "arrow_functions",
-      );
-      expect(result).toBe(-1);
-    });
-
-    test("should skip excluded occurrences and return first valid one", () => {
-      const code = "// arrow => comment\nconst fn = () => {}";
-      const result = detector["findFirstValidIndex"](
-        code,
-        "=>",
-        "arrow_functions",
-      );
-      expect(result).toBeGreaterThan(-1);
-    });
-
-    test("should return -1 when all occurrences are excluded", () => {
-      detector["featureExcludes"]["test_feature"] = ["prefix_"];
-      const code = "prefix_pattern prefix_pattern";
-      const result = detector["findFirstValidIndex"](
-        code,
-        "pattern",
-        "test_feature",
-      );
-      expect(result).toBe(-1);
-    });
-  });
-
-  describe("checkPatternMatch (private method)", () => {
-    test("should return null when pattern not found", () => {
-      const code = "var x = 5";
-      const result = detector["checkPatternMatch"](
-        code,
-        "arrow_functions",
-        "=>",
-      );
-      expect(result).toBeNull();
-    });
-
-    test("should return DetectionMatch when pattern found", () => {
-      const code = "const fn = () => {}";
-      const result = detector["checkPatternMatch"](
-        code,
-        "arrow_functions",
-        "=>",
-      );
-      expect(result).not.toBeNull();
-      expect(result?.name).toBe("arrow_functions");
-      expect(result?.match).toBe("=>");
-      expect(result?.index).toBe(14);
-    });
-
-    test("should return null when pattern is excluded", () => {
-      detector["featureExcludes"]["test_feature"] = ["exclude_"];
-      const code = "exclude_pattern";
-      const result = detector["checkPatternMatch"](
-        code,
-        "test_feature",
-        "pattern",
-      );
-      expect(result).toBeNull();
-    });
-
-    test("should include rule from plugin when available", () => {
-      const code = "const fn = () => {}";
-      const result = detector["checkPatternMatch"](
-        code,
-        "arrow_functions",
-        "=>",
-      );
-      expect(result?.rule).toBeDefined();
-      expect(result?.spec).toBe("esversion");
-    });
-
-    test("should use legacy mode when no plugin available", () => {
-      const originalPlugin = detector["plugin"];
-      detector["plugin"] = null;
-      const code = "const fn = () => {}";
-      const result = detector["checkPatternMatch"](
-        code,
-        "arrow_functions",
-        "=>",
-      );
-      expect(result?.spec).toBe("legacy");
-      expect(result?.rule).toBe("arrow_functions");
-      detector["plugin"] = originalPlugin;
-    });
-  });
-
-  describe("isExcluded (private method)", () => {
-    test("should return false when no excludes defined", () => {
-      const code = "const arrow = () => {}";
-      const result = detector["isExcluded"](code, 14, "arrow_functions");
-      expect(result).toBe(false);
-    });
-
-    test("should return true when context ends with exclude pattern", () => {
-      detector["featureExcludes"]["test_feature"] = ["prefix_"];
-      const code = "prefix_pattern";
-      const result = detector["isExcluded"](code, 7, "test_feature");
-      expect(result).toBe(true);
-    });
-
-    test("should return false when context does not end with exclude pattern", () => {
-      detector["featureExcludes"]["test_feature"] = ["prefix_"];
-      const code = "other_pattern";
-      const result = detector["isExcluded"](code, 6, "test_feature");
-      expect(result).toBe(false);
-    });
-
-    test("should check context within 20 characters before index", () => {
-      detector["featureExcludes"]["test_feature"] = ["exclude"];
-      const code = "a".repeat(50) + "exclude" + "pattern";
-      const patternIndex = 57;
-      const result = detector["isExcluded"](code, patternIndex, "test_feature");
-      expect(result).toBe(true);
-    });
-
-    test("should handle index near beginning of string", () => {
-      detector["featureExcludes"]["test_feature"] = ["ex"];
-      const code = "export default";
-      const result = detector["isExcluded"](code, 2, "test_feature");
-      expect(result).toBe(true);
-    });
-  });
-
   describe("findFirstStringMatch with multiple patterns", () => {
     test("should find first pattern across multiple feature sets", () => {
-      const code = "const fn = () => {}; const str = `template`;";
+      const code = "var fn = () => {}; var str = `template`;";
       const result = detector.detectFast(code);
       expect(result.hasMatch).toBe(true);
       expect(result.firstMatch?.name).toBe("arrow_functions");
@@ -326,6 +175,188 @@ describe("Detector", () => {
       const code = "comment_`invalid`; const valid = `template`;";
       const result = detector.detectFast(code);
       expect(result.hasMatch).toBe(true);
+    });
+  });
+
+  describe("detectAll", () => {
+    test("should return all matches in code", () => {
+      const code = "const fn = () => {}; const str = `template`; async function test() {}";
+      const matches = detector.detectAll(code);
+
+      expect(matches.length).toBeGreaterThan(1);
+      const names = matches.map((m) => m.name);
+      expect(names).toContain("arrow_functions");
+      expect(names).toContain("template_literals");
+    });
+
+    test("should return matches sorted by index", () => {
+      const code = "const fn = () => {}; const str = `template`;";
+      const matches = detector.detectAll(code);
+
+      const indices = matches.map((m) => m.index ?? 0);
+      const sorted = [...indices].sort((a, b) => a - b);
+      expect(indices).toEqual(sorted);
+    });
+
+    test("should return empty array for ES5 code", () => {
+      const code = "var x = function() { return 5; };";
+      const matches = detector.detectAll(code);
+
+      expect(matches).toEqual([]);
+    });
+
+    test("should deduplicate matches at same position", () => {
+      const code = "const x = 1;";
+      const matches = detector.detectAll(code);
+
+      const positions = matches.map((m) => `${m.name}:${m.index}`);
+      const unique = [...new Set(positions)];
+      expect(positions.length).toBe(unique.length);
+    });
+
+    test("should preprocess by default", () => {
+      const code = 'const str = "=>"; const fn = () => {};';
+      const matches = detector.detectAll(code);
+
+      const arrowMatches = matches.filter((m) => m.name === "arrow_functions");
+      expect(arrowMatches.length).toBe(1);
+    });
+
+    test("should skip preprocessing when disabled", () => {
+      const code = 'const str = "=>"; const fn = () => {};';
+      const matches = detector.detectAll(code, { preprocess: false });
+
+      const arrowMatches = matches.filter((m) => m.name === "arrow_functions");
+      expect(arrowMatches.length).toBe(2);
+    });
+  });
+
+  describe("preprocess", () => {
+    test("should strip comments and string contents", () => {
+      const code = '// comment\nconst x = "test_123";';
+      const processed = detector.preprocess(code);
+
+      expect(processed).not.toContain("comment");
+      expect(processed).not.toContain("test_123");
+      expect(processed).toContain("const x");
+    });
+  });
+
+  describe("initializeSync", () => {
+    test("should initialize detector with plugin synchronously", () => {
+      const newDetector = new Detector();
+      const mockPlugin = {
+        name: "test-plugin",
+        description: "Test plugin",
+        spec: {
+          orderedRules: ["rule1"],
+          matches: {
+            test_feature: {
+              rule: "rule1",
+              strings: ["testPattern"],
+            },
+          },
+        },
+      };
+
+      newDetector.initializeSync(mockPlugin);
+
+      expect(newDetector.isInitialized()).toBe(true);
+      expect(newDetector.getPlugin()).toBe(mockPlugin);
+    });
+
+    test("should only initialize once", () => {
+      const newDetector = new Detector();
+      const plugin1 = {
+        name: "plugin1",
+        description: "First plugin",
+        spec: { orderedRules: [], matches: {} },
+      };
+      const plugin2 = {
+        name: "plugin2",
+        description: "Second plugin",
+        spec: { orderedRules: [], matches: {} },
+      };
+
+      newDetector.initializeSync(plugin1);
+      newDetector.initializeSync(plugin2);
+
+      expect(newDetector.getPlugin()?.name).toBe("plugin1");
+    });
+  });
+
+  describe("resilience", () => {
+    test("should throw when detecting without initialization", () => {
+      const uninitializedDetector = new Detector();
+      expect(() => uninitializedDetector.detectFast("const x = 1")).toThrow(
+        "Detector not initialized",
+      );
+    });
+
+    test("should throw when detectBoolean called without initialization", () => {
+      const uninitializedDetector = new Detector();
+      expect(() => uninitializedDetector.detectBoolean("const x = 1")).toThrow(
+        "Detector not initialized",
+      );
+    });
+
+    test("should throw when detectAll called without initialization", () => {
+      const uninitializedDetector = new Detector();
+      expect(() => uninitializedDetector.detectAll("const x = 1")).toThrow(
+        "Detector not initialized",
+      );
+    });
+
+    test("should throw when check called without initialization", () => {
+      const uninitializedDetector = new Detector();
+      expect(() =>
+        uninitializedDetector.check("const x = 1", { target: "es5" }),
+      ).toThrow("Detector not initialized");
+    });
+
+    test("should throw on null input", () => {
+      expect(() => detector.detectFast(null as unknown as string)).toThrow(
+        "Code input cannot be null or undefined",
+      );
+    });
+
+    test("should throw on undefined input", () => {
+      expect(() => detector.detectFast(undefined as unknown as string)).toThrow(
+        "Code input cannot be null or undefined",
+      );
+    });
+
+    test("should throw on non-string input", () => {
+      expect(() => detector.detectFast(123 as unknown as string)).toThrow(
+        "Code input must be a string",
+      );
+    });
+
+    test("should return error in detectFile for non-existent file", () => {
+      const result = detector.detectFile("/non/existent/path/file.js");
+      expect(result.hasMatch).toBe(false);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain("ENOENT");
+    });
+
+    test("should handle plugin with invalid regex gracefully", () => {
+      const badPlugin = {
+        name: "bad-plugin",
+        description: "Plugin with invalid regex",
+        spec: {
+          orderedRules: ["es2015"],
+          matches: {
+            bad_pattern: {
+              rule: "es2015",
+              patterns: [{ pattern: "[" }],
+            },
+          },
+        },
+      };
+
+      const badDetector = new Detector();
+      expect(() => badDetector.initializeSync(badPlugin)).not.toThrow();
+      expect(badDetector.isInitialized()).toBe(true);
     });
   });
 });

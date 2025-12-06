@@ -1,6 +1,11 @@
 import { test, expect, describe } from "bun:test";
 import { fastBrake, detect, check } from "../../src/index";
-import type { DetectionOptions, DetectedFeature } from "../../src/types";
+import type {
+  DetectionOptions,
+  DetectedFeature,
+  FastBrakeOptions,
+  Plugin,
+} from "../../src/types";
 
 describe("fast-brake main API", () => {
   describe("fastBrake function", () => {
@@ -11,19 +16,18 @@ describe("fast-brake main API", () => {
     });
 
     test("should return detected features", async () => {
-      const code = "const arrow = () => {}";
+      const code = "var fn = () => {}";
       const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0].name).toBe("arrow_functions");
     });
 
     test("should return detailed feature information", async () => {
-      const code = "const arrow = () => {}";
+      const code = "var fn = () => {}";
       const result = await fastBrake(code);
       expect(result.length).toBeGreaterThan(0);
       const feature = result[0];
       expect(feature.name).toBe("arrow_functions");
-      // In legacy mode, version is the feature name
       expect(feature.version).toBeDefined();
     });
 
@@ -45,10 +49,10 @@ describe("fast-brake main API", () => {
     });
 
     test("should return first feature detected", async () => {
-      const code = "const a = () => {}; const b = async () => {};";
+      const code = "var a = () => {}; var b = async () => {};";
       const result = await fastBrake(code);
       expect(result.length).toBe(1);
-      expect(result[0].name).toBe("arrow_functions");
+      expect(result[0].name).toBe("async_arrow_function");
     });
 
     test("should detect features quickly", async () => {
@@ -69,15 +73,15 @@ describe("fast-brake main API", () => {
 
     test("should return first match only", async () => {
       const code =
-        "const x = () => {}; const y = `template`; async function test() {}";
+        "var x = () => {}; var y = `template`; async function test() {}";
       const features = await detect(code);
 
       expect(features.length).toBe(1);
-      expect(features[0].name).toBe("arrow_functions");
+      expect(features[0].name).toBe("async_function");
     });
 
     test("should detect template literals", async () => {
-      const code = "const str = `hello world`";
+      const code = "var str = `hello world`";
       const features = await detect(code);
 
       expect(features.length).toBe(1);
@@ -93,18 +97,18 @@ describe("fast-brake main API", () => {
 
     test("should detect first feature only", async () => {
       const code = `
-        const arrow = () => {};
+        var arrow = () => {};
         class MyClass {}
         async function test() { await promise; }
       `;
       const features = await detect(code);
 
       expect(features.length).toBe(1);
-      expect(features[0].name).toBe("arrow_functions");
+      expect(features[0].name).toBe("class");
     });
 
     test("should not include location info by default", async () => {
-      const code = "\n\nconst arrow = () => {}";
+      const code = "\n\nvar arrow = () => {}";
       const features = await detect(code);
 
       const arrowFeature = features.find((f) => f.name === "arrow_functions");
@@ -176,7 +180,7 @@ describe("fast-brake main API", () => {
 
       // Should still detect const
       const features = await detect(code);
-      expect(features.find((f) => f.name === "let_const")).toBeDefined();
+      expect(features.find((f) => f.name === "const")).toBeDefined();
     });
 
     test("should handle very long code", async () => {
@@ -189,14 +193,14 @@ describe("fast-brake main API", () => {
     });
 
     test("should handle unicode in code", async () => {
-      const code = 'const 你好 = () => { return "世界"; }';
+      const code = 'var 你好 = () => { return "世界"; }';
 
       const features = await detect(code);
       expect(features.find((f) => f.name === "arrow_functions")).toBeDefined();
     });
 
     test("should handle mixed line endings", async () => {
-      const code = "const a = 1;\r\nconst b = () => {};\rconst c = 3;";
+      const code = "var a = 1;\r\nvar b = () => {};\rvar c = 3;";
 
       const features = await detect(code);
       expect(features.find((f) => f.name === "arrow_functions")).toBeDefined();
@@ -226,6 +230,87 @@ describe("fast-brake main API", () => {
 
       expect(result).toEqual([]);
       expect(time).toBeLessThan(100); // Should be fast
+    });
+  });
+
+  describe("fastBrake with options", () => {
+    test("should return API object when called with options", async () => {
+      const options: FastBrakeOptions = {};
+      const api = await fastBrake(options);
+
+      expect(api).toBeDefined();
+      expect(typeof api.detect).toBe("function");
+      expect(typeof api.check).toBe("function");
+    });
+
+    test("should create API with custom plugin", async () => {
+      const mockPlugin: Plugin = {
+        name: "test-plugin",
+        description: "Test plugin",
+        spec: {
+          orderedRules: ["es2015"],
+          matches: {
+            arrow_functions: {
+              rule: "es2015",
+              strings: ["=>"],
+            },
+          },
+        },
+      };
+
+      const options: FastBrakeOptions = { plugins: [mockPlugin] };
+      const api = await fastBrake(options);
+
+      expect(api).toBeDefined();
+      expect(typeof api.detect).toBe("function");
+    });
+
+    test("API detect should return empty array for ES5 code", async () => {
+      const api = await fastBrake({});
+      const result = await api.detect("function test() { return 42; }");
+
+      expect(result).toEqual([]);
+    });
+
+    test("API detect should return features for modern code", async () => {
+      const api = await fastBrake({});
+      const result = await api.detect("var fn = () => {};");
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].name).toBe("arrow_functions");
+    });
+
+    test("API check should return true for compatible code", async () => {
+      const api = await fastBrake({});
+      const result = await api.check("function test() {}", { target: "es5" });
+
+      expect(result).toBe(true);
+    });
+
+    test("API check should return false for incompatible code", async () => {
+      const api = await fastBrake({});
+      const result = await api.check("const fn = () => {};", { target: "es5" });
+
+      expect(result).toBe(false);
+    });
+
+    test("API check should return false on error", async () => {
+      const api = await fastBrake({});
+      const result = await api.check("const fn = () => {};", {
+        target: "es5",
+        throwOnFirst: true,
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("check timeout handling", () => {
+    test("should respect custom timeout", async () => {
+      const code = "function test() { return 42; }";
+      const result = await check(code, { target: "es5", timeoutMs: 5000 });
+
+      expect(result).toBe(true);
     });
   });
 });

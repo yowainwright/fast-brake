@@ -11,14 +11,40 @@ export function fastBrakeSync(
 ): FastBrakeSyncAPI {
   const detector = new Detector();
 
-  if (options.plugins && options.plugins.length > 0) {
-    const plugin = options.plugins[0];
-    detector["plugin"] = plugin;
-    detector["loadPlugin"](plugin);
-    detector["initialized"] = true;
+  const plugins = options.plugins ?? [];
+  const hasPlugins = plugins.length > 0;
+  if (!hasPlugins) {
+    throw new Error("fastBrakeSync requires at least one plugin. Pass plugins in options.");
   }
 
+  detector.initializeSync(plugins[0]);
+
   const extensions = options.extensions || [];
+
+  const applyExtensions = (
+    code: string,
+    firstMatch: NonNullable<ReturnType<typeof detector.detectFast>["firstMatch"]>,
+  ): DetectedFeature => {
+    const baseFeature: DetectedFeature = {
+      name: firstMatch.name,
+      version: firstMatch.rule,
+    };
+
+    return extensions.reduce((feature, extension) => {
+      const extResult = extension.process({
+        code,
+        result: {
+          name: firstMatch.name,
+          match: firstMatch.match,
+          spec: {},
+          rule: firstMatch.rule,
+          index: firstMatch.index,
+        },
+      });
+
+      return extResult.spec ? { ...feature, ...extResult.spec } : feature;
+    }, baseFeature);
+  };
 
   return {
     detect: (code: string) => {
@@ -27,35 +53,16 @@ export function fastBrakeSync(
         return [];
       }
 
-      let detectedFeature: DetectedFeature = {
-        name: result.firstMatch.name,
-        version: result.firstMatch.rule,
-      };
-
-      for (const extension of extensions) {
-        const extResult = extension.process({
-          code,
-          result: {
-            name: result.firstMatch.name,
-            match: result.firstMatch.match,
-            spec: {},
-            rule: result.firstMatch.rule,
-            index: result.firstMatch.index,
-          },
-        });
-        if (extResult.spec) {
-          Object.assign(detectedFeature, extResult.spec);
-        }
-      }
-
-      return [detectedFeature];
+      return [applyExtensions(code, result.firstMatch)];
     },
     check: (code: string, checkOptions: DetectionOptions) => {
       try {
-        const opts = { ...checkOptions };
-        if (detector["plugin"]?.spec?.orderedRules) {
-          opts.orderedRules = detector["plugin"].spec.orderedRules;
-        }
+        const plugin = detector.getPlugin();
+        const orderedRules = plugin?.spec?.orderedRules;
+        const opts = orderedRules
+          ? { ...checkOptions, orderedRules }
+          : checkOptions;
+
         return detector.check(code, opts);
       } catch {
         return false;

@@ -210,7 +210,8 @@
   "workspaces": [
     ".",
     "site",
-    "utils/*"
+    "utils/*",
+    "extensions/*"
   ],
   "devDependencies": {
     "@types/node": "24.1.0",

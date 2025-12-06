@@ -6,7 +6,7 @@ import type { Plugin } from "../../src/types";
 describe("fastBrakeSync", () => {
   test("should detect features synchronously", () => {
     const fb = fastBrakeSync({ plugins: [esversionPlugin as Plugin] });
-    const code = "const arrow = () => {}";
+    const code = "var arrow = () => {}";
     const result = fb.detect(code);
     expect(result.length).toBeGreaterThan(0);
     expect(result[0].name).toBe("arrow_functions");
@@ -55,11 +55,10 @@ describe("fastBrakeSync", () => {
     expect(isCompatible).toBe(false);
   });
 
-  test("should work without plugins", () => {
-    const fb = fastBrakeSync();
-    const code = "var x = 5;";
-    const result = fb.detect(code);
-    expect(result).toEqual([]);
+  test("should throw when no plugins provided", () => {
+    expect(() => fastBrakeSync()).toThrow(
+      "fastBrakeSync requires at least one plugin",
+    );
   });
 
   describe("extension processing", () => {
@@ -131,7 +130,7 @@ describe("fastBrakeSync", () => {
         extensions: [mockExtension],
       });
 
-      const code = "const arrow = () => {}";
+      const code = "var arrow = () => {}";
       fb.detect(code);
 
       expect(capturedContext).toBeDefined();
@@ -155,7 +154,7 @@ describe("fastBrakeSync", () => {
         extensions: [mockExtension],
       });
 
-      const code = "const arrow = () => {}";
+      const code = "var arrow = () => {}";
       const result = fb.detect(code);
 
       expect(result.length).toBeGreaterThan(0);
@@ -213,7 +212,7 @@ describe("fastBrakeSync", () => {
 
     test("should handle very long code strings", () => {
       const fb = fastBrakeSync({ plugins: [esversionPlugin as Plugin] });
-      const longCode = "var x = 1;\n".repeat(10000) + "const arrow = () => {}";
+      const longCode = "var x = 1;\n".repeat(10000) + "var arrow = () => {}";
       const result = fb.detect(longCode);
       expect(result.length).toBeGreaterThan(0);
       expect(result[0].name).toBe("arrow_functions");
@@ -235,11 +234,10 @@ describe("fastBrakeSync", () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    test("should handle empty plugins array", () => {
-      const fb = fastBrakeSync({ plugins: [] });
-      const code = "const arrow = () => {}";
-      const result = fb.detect(code);
-      expect(result).toEqual([]);
+    test("should throw when empty plugins array provided", () => {
+      expect(() => fastBrakeSync({ plugins: [] })).toThrow(
+        "fastBrakeSync requires at least one plugin",
+      );
     });
 
     test("should handle check without orderedRules", () => {

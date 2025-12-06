@@ -205,21 +205,23 @@ function SyntaxHighlighter({
   language: string;
   activeRange?: CodeSection;
 }) {
-  const lines = code.trim().split('\n');
-  const tokens = lines.map(line => [{
-    content: line,
-    types: []
-  }]);
-  
+  const lines = code.trim().split("\n");
+  const tokens = lines.map((line) => [
+    {
+      content: line,
+      types: [],
+    },
+  ]);
+
   return (
     <CodeBlock
       className={`language-${language}`}
-      style={{ backgroundColor: '#011627', color: '#d6deeb' }}
+      style={{ backgroundColor: "#011627", color: "#d6deeb" }}
       tokens={tokens}
       activeRange={activeRange}
       getTokenProps={(token: any) => ({
         children: token.content,
-        className: ''
+        className: "",
       })}
     />
   );

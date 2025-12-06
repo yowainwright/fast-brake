@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "fast-brake",
@@ -12,6 +13,19 @@
         "release-it": "19.0.4",
         "turbo": "2.5.5",
         "typescript": "5.8.3",
+      },
+    },
+    "extensions/fast-brake-acorn": {
+      "name": "fast-brake-acorn",
+      "version": "0.0.0",
+      "dependencies": {
+        "acorn": "^8.14.0",
+      },
+      "devDependencies": {
+        "typescript": "^5.8.3",
+      },
+      "peerDependencies": {
+        "fast-brake": "^0.1.0",
       },
     },
     "site": {
@@ -965,6 +979,10 @@
     "extend": ["extend@3.0.2", "", {}, "sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g=="],
 
     "external-editor": ["external-editor@3.1.0", "", { "dependencies": { "chardet": "^0.7.0", "iconv-lite": "^0.4.24", "tmp": "^0.0.33" } }, "sha512-hMQ4CX1p1izmuLYyZqLMO/qGNw10wSv9QDCPfzXfyFrOaCSSoRfqE1Kf1s5an66J5JZC62NewG+mK49jOCtQew=="],
+
+    "fast-brake": ["fast-brake@0.1.6", "", {}, "sha512-V3j0HTIs70OOxRpbqT0bWVdrmP86s6N8TBPw/WyKJqdJ2Fwh3CuMmlO83uIIDpqik6m1Io9fT6qwNn69EqvXYA=="],
+
+    "fast-brake-acorn": ["fast-brake-acorn@workspace:extensions/fast-brake-acorn"],
 
     "fast-brake-benchmarker": ["fast-brake-benchmarker@workspace:utils/benchmarker"],
 
@@ -1969,6 +1987,8 @@
     "defaults/clone": ["clone@1.0.4", "", {}, "sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg=="],
 
     "escodegen/source-map": ["source-map@0.6.1", "", {}, "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g=="],
+
+    "fast-brake-acorn/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "fast-brake-benchmarker/fast-brake": ["fast-brake@file:", { "devDependencies": { "@commitlint/cli": "19.8.1", "@commitlint/config-conventional": "19.8.1", "@types/node": "24.1.0", "codependence": "^1.0.0-1", "husky": "9.1.7", "is-ci": "^4.1.0", "lint-staged": "16.1.2", "oxlint": "^1.12.0", "prettier": "3.6.2", "release-it": "19.0.4", "rimraf": "6.0.1", "tslib": "2.8.1", "tsup": "8.5.0", "turbo": "2.5.5", "typescript": "5.8.3" } }],
 
