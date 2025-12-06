@@ -253,11 +253,11 @@ const cache = new FastBrakeCache();
 
 Fast Brake has a modular architecture with three types of optional components:
 
-| Component | Purpose | Location | Examples |
-|-----------|---------|----------|----------|
-| **Preprocessors** | Transform code before detection | `src/plugins/` (core) | `jscomments` - strips comments/strings |
-| **Plugins** | Define detection patterns/schemas | `src/plugins/` (bundled) | `esversion` - ES feature patterns |
-| **Extensions** | Enrich detection results | `extensions/` (separate packages) | `fast-brake-acorn` - AST validation |
+| Component         | Purpose                           | Location                          | Examples                               |
+| ----------------- | --------------------------------- | --------------------------------- | -------------------------------------- |
+| **Preprocessors** | Transform code before detection   | `src/plugins/` (core)             | `jscomments` - strips comments/strings |
+| **Plugins**       | Define detection patterns/schemas | `src/plugins/` (bundled)          | `esversion` - ES feature patterns      |
+| **Extensions**    | Enrich detection results          | `extensions/` (separate packages) | `fast-brake-acorn` - AST validation    |
 
 **Preprocessors** prepare code for accurate detection. The `jscomments` preprocessor is core - parsing JS without comment awareness is unreliable. Other preprocessors (TypeScript, JSX, Flow) may be separate packages with external dependencies.
 

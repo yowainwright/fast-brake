@@ -16,6 +16,7 @@ import type {
   DetectionMode,
   DetectionMatch,
   DetectionResult,
+  DetectFastOptions,
   Plugin,
   DetectionOptions,
   Preprocessor,
@@ -23,7 +24,10 @@ import type {
   BrakeStage,
 } from "./types";
 
-const DEFAULT_PREPROCESSORS: Preprocessor[] = [normalizeZeroWidth, safePreprocessor];
+const DEFAULT_PREPROCESSORS: Preprocessor[] = [
+  normalizeZeroWidth,
+  safePreprocessor,
+];
 
 export class Detector {
   private compiledPatterns: Map<string, string>;
@@ -31,8 +35,11 @@ export class Detector {
   private featureExcludes: Record<string, string[]>;
   private plugin: Plugin | null = null;
   private initialized = false;
-  private allStringPatterns: Array<{ pattern: string; featureName: string }> = [];
+  private allStringPatterns: Array<{ pattern: string; featureName: string }> =
+    [];
   private combinedRegex: RegExp | null = null;
+  private combinedStringRegex: RegExp | null = null;
+  private stringPatternIndexToFeature: Map<number, { pattern: string; featureName: string }> = new Map();
   private patternIndexToFeature: Map<number, string> = new Map();
   private brakeStages: BrakeStage[];
 
@@ -45,7 +52,9 @@ export class Detector {
 
   private assertInitialized(): void {
     if (!this.initialized) {
-      throw new Error("Detector not initialized. Call initialize() or initializeSync() first.");
+      throw new Error(
+        "Detector not initialized. Call initialize() or initializeSync() first.",
+      );
     }
   }
 
@@ -97,15 +106,22 @@ export class Detector {
     this.featureExcludes = {};
     this.allStringPatterns = [];
     this.patternIndexToFeature.clear();
+    this.stringPatternIndexToFeature.clear();
 
     const regexParts: string[] = [];
+    const stringRegexParts: string[] = [];
     let patternIndex = 0;
+    let stringPatternIndex = 0;
 
     Object.entries(plugin.spec.matches).forEach(([matchName, match]) => {
       if ("strings" in match && match.strings) {
         this.featureStrings[matchName] = match.strings;
         match.strings.forEach((pattern) => {
           this.allStringPatterns.push({ pattern, featureName: matchName });
+          const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          stringRegexParts.push(`(${escaped})`);
+          this.stringPatternIndexToFeature.set(stringPatternIndex, { pattern, featureName: matchName });
+          stringPatternIndex++;
         });
       }
       if ("patterns" in match && match.patterns) {
@@ -131,6 +147,16 @@ export class Detector {
       }
     } else {
       this.combinedRegex = null;
+    }
+
+    if (stringRegexParts.length > 0) {
+      try {
+        this.combinedStringRegex = new RegExp(stringRegexParts.join("|"));
+      } catch {
+        this.combinedStringRegex = null;
+      }
+    } else {
+      this.combinedStringRegex = null;
     }
   }
 
@@ -167,23 +193,39 @@ export class Detector {
     };
   }
 
-  detectBoolean(code: string): boolean {
+  detectBoolean(code: string, options: DetectFastOptions = {}): boolean {
     this.assertInitialized();
     this.validateInput(code);
 
-    const processedCode = this.preprocess(code);
+    const shouldSkipPreprocess = options.skipPreprocess === true;
+    const processedCode = shouldSkipPreprocess ? code : this.preprocess(code);
+
+    const hasStringMatch = this.checkStrings(processedCode);
+    if (hasStringMatch) return true;
 
     const shouldCheckPatterns = this.shouldRunPatternDetection(processedCode);
-    if (shouldCheckPatterns && this.checkPatterns(processedCode)) return true;
+    if (shouldCheckPatterns) {
+      return this.checkPatterns(processedCode);
+    }
 
-    return this.checkStrings(processedCode);
+    return false;
   }
 
-  detectFast(code: string): DetectionResult {
+  detectFast(code: string, options: DetectFastOptions = {}): DetectionResult {
     this.assertInitialized();
     this.validateInput(code);
 
-    const processedCode = this.preprocess(code);
+    const shouldSkipPreprocess = options.skipPreprocess === true;
+    const processedCode = shouldSkipPreprocess ? code : this.preprocess(code);
+
+    const stringMatch = this.findFirstStringMatch(processedCode);
+    if (stringMatch) {
+      return {
+        hasMatch: true,
+        mode: "fast",
+        firstMatch: stringMatch,
+      };
+    }
 
     const shouldCheckPatterns = this.shouldRunPatternDetection(processedCode);
     if (shouldCheckPatterns) {
@@ -197,26 +239,27 @@ export class Detector {
       }
     }
 
-    const stringMatch = this.findFirstStringMatch(processedCode);
-    if (stringMatch) {
-      return {
-        hasMatch: true,
-        mode: "fast",
-        firstMatch: stringMatch,
-      };
-    }
-
     return {
       hasMatch: false,
       mode: "fast",
     };
   }
 
-  detectDetailed(code: string): DetectionResult {
+  detectDetailed(code: string, options: DetectFastOptions = {}): DetectionResult {
     this.assertInitialized();
     this.validateInput(code);
 
-    const processedCode = this.preprocess(code);
+    const shouldSkipPreprocess = options.skipPreprocess === true;
+    const processedCode = shouldSkipPreprocess ? code : this.preprocess(code);
+
+    const stringMatch = this.findFirstStringMatch(processedCode);
+    if (stringMatch) {
+      return {
+        hasMatch: true,
+        mode: "detailed",
+        firstMatch: stringMatch,
+      };
+    }
 
     const shouldCheckPatterns = this.shouldRunPatternDetection(processedCode);
     if (shouldCheckPatterns) {
@@ -230,30 +273,25 @@ export class Detector {
       }
     }
 
-    const stringMatch = this.findFirstStringMatch(processedCode);
-    if (stringMatch) {
-      return {
-        hasMatch: true,
-        mode: "detailed",
-        firstMatch: stringMatch,
-      };
-    }
-
     return {
       hasMatch: false,
       mode: "detailed",
     };
   }
 
-  detect(code: string, mode: DetectionMode = "fast"): DetectionResult {
+  detect(
+    code: string,
+    mode: DetectionMode = "fast",
+    options: DetectFastOptions = {},
+  ): DetectionResult {
     switch (mode) {
       case "boolean":
-        const hasMatch = this.detectBoolean(code);
+        const hasMatch = this.detectBoolean(code, options);
         return { hasMatch, mode: "boolean" };
       case "fast":
-        return this.detectFast(code);
+        return this.detectFast(code, options);
       case "detailed":
-        return this.detectDetailed(code);
+        return this.detectDetailed(code, options);
     }
   }
 
@@ -318,12 +356,13 @@ export class Detector {
   }
 
   private findAllStringMatches(code: string): DetectionMatch[] {
-    const indicesWithMeta = this.allStringPatterns.flatMap(({ pattern, featureName }) =>
-      this.findAllValidIndices(code, pattern, featureName).map((index) => ({
-        featureName,
-        pattern,
-        index,
-      })),
+    const indicesWithMeta = this.allStringPatterns.flatMap(
+      ({ pattern, featureName }) =>
+        this.findAllValidIndices(code, pattern, featureName).map((index) => ({
+          featureName,
+          pattern,
+          index,
+        })),
     );
 
     return indicesWithMeta
@@ -366,9 +405,18 @@ export class Detector {
       const notFound = index === -1;
       if (notFound) break;
 
-      const candidateMatch = this.buildDetectionMatch(featureName, pattern, index);
+      const candidateMatch = this.buildDetectionMatch(
+        featureName,
+        pattern,
+        index,
+      );
       if (candidateMatch) {
-        const isValid = runBrakePipeline(this.brakeStages, candidateMatch, code, excludes);
+        const isValid = runBrakePipeline(
+          this.brakeStages,
+          candidateMatch,
+          code,
+          excludes,
+        );
         if (isValid) {
           indices.push(index);
         }
@@ -380,9 +428,8 @@ export class Detector {
   }
 
   private checkStrings(code: string): boolean {
-    return Object.values(this.featureStrings).some((patterns) =>
-      patterns.some((pattern) => code.indexOf(pattern) !== -1),
-    );
+    if (!this.combinedStringRegex) return false;
+    return this.combinedStringRegex.test(code);
   }
 
   private checkPatterns(code: string): boolean {
@@ -394,56 +441,77 @@ export class Detector {
   }
 
   private findFirstStringMatch(code: string): DetectionMatch | null {
-    let earliestMatch: DetectionMatch | null = null;
-    let earliestIndex = Infinity;
+    if (!this.combinedStringRegex) return null;
 
-    for (let i = 0; i < this.allStringPatterns.length; i++) {
-      const { pattern, featureName } = this.allStringPatterns[i];
-      const index = code.indexOf(pattern);
+    const regex = new RegExp(this.combinedStringRegex.source, "g");
+    let match: RegExpExecArray | null;
 
-      const notFound = index === -1;
-      if (notFound) continue;
+    while ((match = regex.exec(code)) !== null) {
+      const groupIndex = match.slice(1).findIndex((g) => g !== undefined);
+      const noGroupFound = groupIndex === -1;
+      if (noGroupFound) continue;
 
-      const notEarlier = index >= earliestIndex;
-      if (notEarlier) continue;
+      const patternInfo = this.stringPatternIndexToFeature.get(groupIndex);
+      if (!patternInfo) continue;
 
-      const candidateMatch = this.buildDetectionMatch(featureName, pattern, index);
+      const { pattern, featureName } = patternInfo;
+
+      const candidateMatch = this.buildDetectionMatch(
+        featureName,
+        pattern,
+        match.index,
+      );
       if (!candidateMatch) continue;
 
       const excludes = this.featureExcludes[featureName] || [];
-      const isValid = runBrakePipeline(this.brakeStages, candidateMatch, code, excludes);
+      const isValid = runBrakePipeline(
+        this.brakeStages,
+        candidateMatch,
+        code,
+        excludes,
+      );
       if (!isValid) continue;
 
-      earliestIndex = index;
-      earliestMatch = candidateMatch;
-
-      const isAtStart = index === 0;
-      if (isAtStart) return earliestMatch;
+      return candidateMatch;
     }
 
-    return earliestMatch;
+    return null;
   }
 
   private findFirstPatternMatch(code: string): DetectionMatch | null {
     if (!this.combinedRegex) return null;
 
-    const match = this.combinedRegex.exec(code);
-    if (!match) return null;
+    const regex = new RegExp(this.combinedRegex.source, "g");
+    let match: RegExpExecArray | null;
 
-    const groupIndex = match.slice(1).findIndex((g) => g !== undefined);
-    if (groupIndex === -1) return null;
+    while ((match = regex.exec(code)) !== null) {
+      const groupIndex = match.slice(1).findIndex((g) => g !== undefined);
+      const noGroupFound = groupIndex === -1;
+      if (noGroupFound) continue;
 
-    const featureName = this.patternIndexToFeature.get(groupIndex);
-    if (!featureName) return null;
+      const featureName = this.patternIndexToFeature.get(groupIndex);
+      if (!featureName) continue;
 
-    const candidateMatch = this.buildDetectionMatch(featureName, match[0], match.index);
-    if (!candidateMatch) return null;
+      const candidateMatch = this.buildDetectionMatch(
+        featureName,
+        match[0],
+        match.index,
+      );
+      if (!candidateMatch) continue;
 
-    const excludes = this.featureExcludes[featureName] || [];
-    const isValid = runBrakePipeline(this.brakeStages, candidateMatch, code, excludes);
-    if (!isValid) return null;
+      const excludes = this.featureExcludes[featureName] || [];
+      const isValid = runBrakePipeline(
+        this.brakeStages,
+        candidateMatch,
+        code,
+        excludes,
+      );
+      if (!isValid) continue;
 
-    return candidateMatch;
+      return candidateMatch;
+    }
+
+    return null;
   }
 
   private shouldRunPatternDetection(code: string): boolean {

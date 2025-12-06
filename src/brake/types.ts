@@ -2,7 +2,7 @@ import type { DetectionMatch } from "../types";
 
 export type BrakeChars = number | "line" | "full";
 
-export type ValidatorName = "exclude" | "context";
+export type ValidatorName = "exclude" | "context" | "comment" | "string";
 
 export interface ValidatorContext {
   context: string;
@@ -23,6 +23,10 @@ export interface BrakeStage {
   validators: ValidatorRef[];
 }
 
-export type BrakePresetName = "brakeFastReckless" | "fast" | "balanced" | "accurate";
+export type BrakePresetName =
+  | "brakeFastReckless"
+  | "fast"
+  | "balanced"
+  | "accurate";
 
 export type BrakeConfig = BrakePresetName | BrakeStage[];

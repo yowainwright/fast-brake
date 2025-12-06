@@ -98,6 +98,10 @@ export interface DetectionResult {
   error?: string;
 }
 
+export interface DetectFastOptions {
+  skipPreprocess?: boolean;
+}
+
 export interface PluginPattern {
   pattern: string;
   identifier?: string;

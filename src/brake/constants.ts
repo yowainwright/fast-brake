@@ -1,20 +1,20 @@
 import type { BrakeStage, BrakePresetName } from "./types";
 
 export const BRAKE_FAST_RECKLESS: BrakeStage[] = [
-  { chars: 0, validators: ["exclude"] },
+  { chars: 0, validators: ["exclude", "comment", "string"] },
 ];
 
 export const BRAKE_FAST: BrakeStage[] = [
-  { chars: 50, validators: ["exclude"] },
+  { chars: 50, validators: ["exclude", "comment", "string"] },
 ];
 
 export const BRAKE_BALANCED: BrakeStage[] = [
-  { chars: 50, validators: ["exclude"] },
+  { chars: 50, validators: ["exclude", "comment", "string"] },
   { chars: 100, validators: ["exclude", "context"] },
 ];
 
 export const BRAKE_ACCURATE: BrakeStage[] = [
-  { chars: 50, validators: ["exclude"] },
+  { chars: 50, validators: ["exclude", "comment", "string"] },
   { chars: 100, validators: ["exclude", "context"] },
   { chars: "line", validators: ["exclude", "context"] },
 ];

@@ -14,7 +14,9 @@ export function fastBrakeSync(
   const plugins = options.plugins ?? [];
   const hasPlugins = plugins.length > 0;
   if (!hasPlugins) {
-    throw new Error("fastBrakeSync requires at least one plugin. Pass plugins in options.");
+    throw new Error(
+      "fastBrakeSync requires at least one plugin. Pass plugins in options.",
+    );
   }
 
   detector.initializeSync(plugins[0]);
@@ -23,7 +25,9 @@ export function fastBrakeSync(
 
   const applyExtensions = (
     code: string,
-    firstMatch: NonNullable<ReturnType<typeof detector.detectFast>["firstMatch"]>,
+    firstMatch: NonNullable<
+      ReturnType<typeof detector.detectFast>["firstMatch"]
+    >,
   ): DetectedFeature => {
     const baseFeature: DetectedFeature = {
       name: firstMatch.name,

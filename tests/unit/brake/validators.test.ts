@@ -2,11 +2,18 @@ import { test, expect, describe } from "bun:test";
 import {
   excludeValidator,
   contextValidator,
+  commentValidator,
+  stringValidator,
   resolveValidator,
   getContext,
+  isInsideComment,
+  isInsideString,
   BUILT_IN_VALIDATORS,
 } from "../../../src/brake/validators";
-import type { ValidatorContext, BrakeValidator } from "../../../src/brake/types";
+import type {
+  ValidatorContext,
+  BrakeValidator,
+} from "../../../src/brake/types";
 
 describe("excludeValidator", () => {
   test("should return true when no excludes provided", () => {
@@ -81,6 +88,98 @@ describe("BUILT_IN_VALIDATORS", () => {
 
   test("should contain context validator", () => {
     expect(BUILT_IN_VALIDATORS.context).toBe(contextValidator);
+  });
+
+  test("should contain comment validator", () => {
+    expect(BUILT_IN_VALIDATORS.comment).toBe(commentValidator);
+  });
+
+  test("should contain string validator", () => {
+    expect(BUILT_IN_VALIDATORS.string).toBe(stringValidator);
+  });
+});
+
+describe("isInsideComment", () => {
+  test("should return false for code outside comments", () => {
+    const code = "const x = 1;";
+    const result = isInsideComment(code, 6);
+    expect(result).toBe(false);
+  });
+
+  test("should return true for code inside line comment", () => {
+    const code = "// const x = 1;";
+    const result = isInsideComment(code, 6);
+    expect(result).toBe(true);
+  });
+
+  test("should return true for code inside block comment", () => {
+    const code = "/* const x = 1; */";
+    const result = isInsideComment(code, 6);
+    expect(result).toBe(true);
+  });
+
+  test("should return false after block comment closes", () => {
+    const code = "/* comment */ const x = 1;";
+    const result = isInsideComment(code, 20);
+    expect(result).toBe(false);
+  });
+
+  test("should handle multiline block comments", () => {
+    const code = "/*\n * comment\n */ const x = 1;";
+    const insideComment = isInsideComment(code, 10);
+    const outsideComment = isInsideComment(code, 25);
+    expect(insideComment).toBe(true);
+    expect(outsideComment).toBe(false);
+  });
+
+  test("should return false for // inside string", () => {
+    const code = 'const url = "http://example.com";';
+    const result = isInsideComment(code, 20);
+    expect(result).toBe(false);
+  });
+});
+
+describe("isInsideString", () => {
+  test("should return false for code outside strings", () => {
+    const code = "const x = 1;";
+    const result = isInsideString(code, 6);
+    expect(result).toBe(false);
+  });
+
+  test("should return true for code inside double quotes", () => {
+    const code = 'const x = "hello";';
+    const result = isInsideString(code, 13);
+    expect(result).toBe(true);
+  });
+
+  test("should return true for code inside single quotes", () => {
+    const code = "const x = 'hello';";
+    const result = isInsideString(code, 13);
+    expect(result).toBe(true);
+  });
+
+  test("should return true for code inside template literal", () => {
+    const code = "const x = `hello`;";
+    const result = isInsideString(code, 13);
+    expect(result).toBe(true);
+  });
+
+  test("should return false after string closes", () => {
+    const code = 'const x = "hi"; const y = 1;';
+    const result = isInsideString(code, 22);
+    expect(result).toBe(false);
+  });
+
+  test("should handle escaped quotes", () => {
+    const code = 'const x = "say \\"hello\\"";';
+    const insideString = isInsideString(code, 18);
+    expect(insideString).toBe(true);
+  });
+
+  test("should handle mixed quote types", () => {
+    const code = `const x = "it's fine";`;
+    const result = isInsideString(code, 15);
+    expect(result).toBe(true);
   });
 });
 

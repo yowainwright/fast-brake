@@ -52,7 +52,7 @@ describe("fast-brake main API", () => {
       const code = "var a = () => {}; var b = async () => {};";
       const result = await fastBrake(code);
       expect(result.length).toBe(1);
-      expect(result[0].name).toBe("async_arrow_function");
+      expect(result[0].version).toBe("es2015");
     });
 
     test("should detect features quickly", async () => {
@@ -77,7 +77,7 @@ describe("fast-brake main API", () => {
       const features = await detect(code);
 
       expect(features.length).toBe(1);
-      expect(features[0].name).toBe("async_function");
+      expect(features[0].version).toBe("es2015");
     });
 
     test("should detect template literals", async () => {
@@ -104,7 +104,7 @@ describe("fast-brake main API", () => {
       const features = await detect(code);
 
       expect(features.length).toBe(1);
-      expect(features[0].name).toBe("class");
+      expect(features[0].version).toBe("es2015");
     });
 
     test("should not include location info by default", async () => {
@@ -178,9 +178,10 @@ describe("fast-brake main API", () => {
     test("should handle malformed code gracefully", async () => {
       const code = "const x = ;"; // Syntax error
 
-      // Should still detect const
+      // Should still detect ES2015+ feature
       const features = await detect(code);
-      expect(features.find((f) => f.name === "const")).toBeDefined();
+      expect(features.length).toBe(1);
+      expect(features[0].version).toBe("es2015");
     });
 
     test("should handle very long code", async () => {

@@ -55,7 +55,7 @@ describe("Detector", () => {
       const result = detector.detectFast(code);
 
       expect(result.hasMatch).toBe(true);
-      expect(result.firstMatch?.name).toBe("async_function");
+      expect(result.firstMatch?.rule).toBe("es2017");
     });
   });
 
@@ -180,7 +180,8 @@ describe("Detector", () => {
 
   describe("detectAll", () => {
     test("should return all matches in code", () => {
-      const code = "const fn = () => {}; const str = `template`; async function test() {}";
+      const code =
+        "const fn = () => {}; const str = `template`; async function test() {}";
       const matches = detector.detectAll(code);
 
       expect(matches.length).toBeGreaterThan(1);
@@ -222,12 +223,13 @@ describe("Detector", () => {
       expect(arrowMatches.length).toBe(1);
     });
 
-    test("should skip preprocessing when disabled", () => {
+    test("should skip preprocessing when disabled but still filter string matches", () => {
       const code = 'const str = "=>"; const fn = () => {};';
       const matches = detector.detectAll(code, { preprocess: false });
 
+      // The => inside the string is filtered out by the string validator
       const arrowMatches = matches.filter((m) => m.name === "arrow_functions");
-      expect(arrowMatches.length).toBe(2);
+      expect(arrowMatches.length).toBe(1);
     });
   });
 

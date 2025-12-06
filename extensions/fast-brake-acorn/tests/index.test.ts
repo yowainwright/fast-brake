@@ -1,8 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import {
-  acornExtension,
-  createAcornExtension,
-} from "../src/index";
+import { acornExtension, createAcornExtension } from "../src/index";
 import type { ExtensionInput } from "fast-brake";
 
 describe("acornExtension", () => {
