@@ -3,9 +3,22 @@ import { parse as acornParse } from "acorn";
 import { Detector } from "../../src/detector";
 import { safePreprocessor } from "../../src/plugins/jscomments";
 
-type EcmaVersion = 5 | 2015 | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024;
+type EcmaVersion =
+  | 5
+  | 2015
+  | 2016
+  | 2017
+  | 2018
+  | 2019
+  | 2020
+  | 2021
+  | 2022
+  | 2023
+  | 2024;
 
-const ES_VERSIONS: EcmaVersion[] = [5, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
+const ES_VERSIONS: EcmaVersion[] = [
+  5, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,
+];
 
 function acornCanParse(code: string, ecmaVersion: EcmaVersion): boolean {
   try {
@@ -59,7 +72,7 @@ const TEST_PACKAGES = {
     fastBrakeDetects: true,
     description: "tslib ES6 build",
   },
-  "ramda": {
+  ramda: {
     url: "https://unpkg.com/ramda@0.30.1/dist/ramda.js",
     fastBrakeDetects: true,
     description: "ramda (modern build)",
@@ -68,7 +81,7 @@ const TEST_PACKAGES = {
 
 const CODE_SAMPLES = {
   es5: {
-    code: 'var x = 5; function test() { return x; }',
+    code: "var x = 5; function test() { return x; }",
     minVersion: 5,
     fastBrakeDetects: false,
     description: "ES5 - var and function",
@@ -173,12 +186,14 @@ const CODE_SAMPLES = {
 
 describe("E2E: Parser Parity Tests", () => {
   describe("Code Samples - Acorn Baseline Verification", () => {
-    Object.entries(CODE_SAMPLES).forEach(([, { code, minVersion, description }]) => {
-      test(`${description} - acorn parses at ES${minVersion}`, () => {
-        const acornMin = getMinimumEsVersion(code);
-        expect(acornMin).toBe(minVersion);
-      });
-    });
+    Object.entries(CODE_SAMPLES).forEach(
+      ([, { code, minVersion, description }]) => {
+        test(`${description} - acorn parses at ES${minVersion}`, () => {
+          const acornMin = getMinimumEsVersion(code);
+          expect(acornMin).toBe(minVersion);
+        });
+      },
+    );
   });
 
   describe("Code Samples - fast-brake Detection", () => {
@@ -190,12 +205,14 @@ describe("E2E: Parser Parity Tests", () => {
       expect(detector.isInitialized()).toBe(true);
     });
 
-    Object.entries(CODE_SAMPLES).forEach(([, { code, fastBrakeDetects, description }]) => {
-      test(`${description} - fast-brake detection`, () => {
-        const result = detector.detectFast(code);
-        expect(result.hasMatch).toBe(fastBrakeDetects);
-      });
-    });
+    Object.entries(CODE_SAMPLES).forEach(
+      ([, { code, fastBrakeDetects, description }]) => {
+        test(`${description} - fast-brake detection`, () => {
+          const result = detector.detectFast(code);
+          expect(result.hasMatch).toBe(fastBrakeDetects);
+        });
+      },
+    );
   });
 
   describe("Real Packages - ES Version Detection", () => {
@@ -206,15 +223,19 @@ describe("E2E: Parser Parity Tests", () => {
       await detector.initialize();
     });
 
-    Object.entries(TEST_PACKAGES).forEach(([, { url, fastBrakeDetects, description }]) => {
-      test(`${description} - fast-brake detection`, async () => {
-        const code = await fetchCode(url);
-        const preprocessed = safePreprocessor(code);
-        const result = detector.detectFast(preprocessed, { skipPreprocess: true });
+    Object.entries(TEST_PACKAGES).forEach(
+      ([, { url, fastBrakeDetects, description }]) => {
+        test(`${description} - fast-brake detection`, async () => {
+          const code = await fetchCode(url);
+          const preprocessed = safePreprocessor(code);
+          const result = detector.detectFast(preprocessed, {
+            skipPreprocess: true,
+          });
 
-        expect(result.hasMatch).toBe(fastBrakeDetects);
-      });
-    });
+          expect(result.hasMatch).toBe(fastBrakeDetects);
+        });
+      },
+    );
   });
 
   describe("ES5 Compatibility Check", () => {
@@ -226,7 +247,7 @@ describe("E2E: Parser Parity Tests", () => {
     });
 
     test("ES5 code passes both acorn ES5 and fast-brake check", () => {
-      const es5Code = 'var x = 5; function add(a, b) { return a + b; }';
+      const es5Code = "var x = 5; function add(a, b) { return a + b; }";
 
       const acornParsesEs5 = acornCanParse(es5Code, 5);
       const fastBrakeResult = detector.check(es5Code, { target: "es5" });
@@ -290,7 +311,7 @@ describe("E2E: Parser Parity Tests", () => {
     });
 
     test("ES5 code - acorn ES5 script parses, fast-brake passes check", () => {
-      const es5Code = 'var x = 5; function add(a, b) { return a + b; }';
+      const es5Code = "var x = 5; function add(a, b) { return a + b; }";
 
       const acornPasses = acornCanParseScript(es5Code, 5);
       const fbResult = detector.check(es5Code, { target: "es5" });

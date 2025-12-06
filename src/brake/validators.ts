@@ -118,8 +118,11 @@ export function isInsideComment(code: string, index: number): boolean {
 export const commentValidator: BrakeValidator = {
   name: "comment",
   validate: ({ code, match }) => {
-    if (!match || match.index === undefined) return true;
-    const insideComment = isInsideComment(code, match.index);
+    if (!code) return true;
+    if (!match) return true;
+    const matchIndex = match.index;
+    if (matchIndex === undefined) return true;
+    const insideComment = isInsideComment(code, matchIndex);
     return !insideComment;
   },
 };
@@ -132,8 +135,11 @@ export function isInsideString(code: string, index: number): boolean {
 export const stringValidator: BrakeValidator = {
   name: "string",
   validate: ({ code, match }) => {
-    if (!match || match.index === undefined) return true;
-    const insideString = isInsideString(code, match.index);
+    if (!code) return true;
+    if (!match) return true;
+    const matchIndex = match.index;
+    if (matchIndex === undefined) return true;
+    const insideString = isInsideString(code, matchIndex);
     return !insideString;
   },
 };

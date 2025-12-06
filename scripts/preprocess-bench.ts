@@ -21,19 +21,25 @@ async function main() {
 
   // Warmup all code paths
   for (let i = 0; i < warmup; i++) {
-    try { acornParse(code, { ecmaVersion: 2020, sourceType: "module" }); } catch {}
+    try {
+      acornParse(code, { ecmaVersion: 2020, sourceType: "module" });
+    } catch {}
     safePreprocessor(code);
     detector.detectFast(code);
     detector.detectFast(preprocessed, { skipPreprocess: true });
     detector.detectBoolean(preprocessed, { skipPreprocess: true });
   }
 
-  console.log(`Warmup: ${warmup} iterations, Benchmark: ${iterations} iterations\n`);
+  console.log(
+    `Warmup: ${warmup} iterations, Benchmark: ${iterations} iterations\n`,
+  );
 
   // Benchmark acorn
   const acornStart = performance.now();
   for (let i = 0; i < iterations; i++) {
-    try { acornParse(code, { ecmaVersion: 2020, sourceType: "module" }); } catch {}
+    try {
+      acornParse(code, { ecmaVersion: 2020, sourceType: "module" });
+    } catch {}
   }
   const acornTime = (performance.now() - acornStart) / iterations;
 
@@ -66,18 +72,38 @@ async function main() {
   const boolTime = (performance.now() - boolStart) / iterations;
 
   console.log("--- Results ---");
-  console.log(`acorn parse:                    ${(acornTime * 1000).toFixed(0)}μs`);
-  console.log(`safePreprocessor:               ${(safeTime * 1000).toFixed(0)}μs`);
-  console.log(`detectFast (default):           ${(detectTime * 1000).toFixed(0)}μs`);
-  console.log(`detectFast (skipPreprocess):    ${(skipTime * 1000).toFixed(1)}μs`);
-  console.log(`detectBoolean (skipPreprocess): ${(boolTime * 1000).toFixed(1)}μs`);
+  console.log(
+    `acorn parse:                    ${(acornTime * 1000).toFixed(0)}μs`,
+  );
+  console.log(
+    `safePreprocessor:               ${(safeTime * 1000).toFixed(0)}μs`,
+  );
+  console.log(
+    `detectFast (default):           ${(detectTime * 1000).toFixed(0)}μs`,
+  );
+  console.log(
+    `detectFast (skipPreprocess):    ${(skipTime * 1000).toFixed(1)}μs`,
+  );
+  console.log(
+    `detectBoolean (skipPreprocess): ${(boolTime * 1000).toFixed(1)}μs`,
+  );
 
   console.log("\n--- Performance vs Acorn ---");
-  console.log(`acorn:                          ${(acornTime * 1000).toFixed(0)}μs (baseline)`);
-  console.log(`fast-brake default:             ${(detectTime * 1000).toFixed(0)}μs (${(acornTime / detectTime).toFixed(1)}x faster)`);
-  console.log(`fast-brake skip:                ${(skipTime * 1000).toFixed(1)}μs (${(acornTime / skipTime).toFixed(0)}x faster)`);
-  console.log(`fast-brake boolean+skip:        ${(boolTime * 1000).toFixed(1)}μs (${(acornTime / boolTime).toFixed(0)}x faster)`);
-  console.log(`preprocess + boolean+skip:      ${((safeTime + boolTime) * 1000).toFixed(0)}μs (${(acornTime / (safeTime + boolTime)).toFixed(1)}x faster)`);
+  console.log(
+    `acorn:                          ${(acornTime * 1000).toFixed(0)}μs (baseline)`,
+  );
+  console.log(
+    `fast-brake default:             ${(detectTime * 1000).toFixed(0)}μs (${(acornTime / detectTime).toFixed(1)}x faster)`,
+  );
+  console.log(
+    `fast-brake skip:                ${(skipTime * 1000).toFixed(1)}μs (${(acornTime / skipTime).toFixed(0)}x faster)`,
+  );
+  console.log(
+    `fast-brake boolean+skip:        ${(boolTime * 1000).toFixed(1)}μs (${(acornTime / boolTime).toFixed(0)}x faster)`,
+  );
+  console.log(
+    `preprocess + boolean+skip:      ${((safeTime + boolTime) * 1000).toFixed(0)}μs (${(acornTime / (safeTime + boolTime)).toFixed(1)}x faster)`,
+  );
 }
 
 main();

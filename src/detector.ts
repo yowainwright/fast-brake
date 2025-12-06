@@ -39,7 +39,10 @@ export class Detector {
     [];
   private combinedRegex: RegExp | null = null;
   private combinedStringRegex: RegExp | null = null;
-  private stringPatternIndexToFeature: Map<number, { pattern: string; featureName: string }> = new Map();
+  private stringPatternIndexToFeature: Map<
+    number,
+    { pattern: string; featureName: string }
+  > = new Map();
   private patternIndexToFeature: Map<number, string> = new Map();
   private brakeStages: BrakeStage[];
 
@@ -120,7 +123,10 @@ export class Detector {
           this.allStringPatterns.push({ pattern, featureName: matchName });
           const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           stringRegexParts.push(`(${escaped})`);
-          this.stringPatternIndexToFeature.set(stringPatternIndex, { pattern, featureName: matchName });
+          this.stringPatternIndexToFeature.set(stringPatternIndex, {
+            pattern,
+            featureName: matchName,
+          });
           stringPatternIndex++;
         });
       }
@@ -245,7 +251,10 @@ export class Detector {
     };
   }
 
-  detectDetailed(code: string, options: DetectFastOptions = {}): DetectionResult {
+  detectDetailed(
+    code: string,
+    options: DetectFastOptions = {},
+  ): DetectionResult {
     this.assertInitialized();
     this.validateInput(code);
 

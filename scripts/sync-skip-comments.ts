@@ -13,7 +13,10 @@ import { join } from "path";
 
 const ROOT = join(import.meta.dir, "..");
 const VALIDATORS_PATH = join(ROOT, "src/brake/validators.ts");
-const SKIP_COMMENTS_PATH = join(ROOT, "preprocessors/skip-comments/src/index.ts");
+const SKIP_COMMENTS_PATH = join(
+  ROOT,
+  "preprocessors/skip-comments/src/index.ts",
+);
 
 function extractGetContextAtIndex(source: string): string {
   const typeDefMatch = source.match(/type ContextType = [^;]+;/);
@@ -45,7 +48,9 @@ function updateSkipComments(extracted: string): void {
     throw new Error("Could not find ContextType in skip-comments");
   }
 
-  const exportStart = skipCommentsSource.indexOf("\n/**\n * Checks if the given index is inside any type of comment");
+  const exportStart = skipCommentsSource.indexOf(
+    "\n/**\n * Checks if the given index is inside any type of comment",
+  );
   if (exportStart === -1) {
     throw new Error("Could not find isInsideComment export in skip-comments");
   }
