@@ -61,6 +61,19 @@ const SIDEBAR = [
     ],
   },
   {
+    title: "Preprocessors",
+    items: [
+      {
+        title: "Learn the Preprocessor System",
+        href: resolveDocsUrl("preprocessors"),
+      },
+      {
+        title: "Skip Comments",
+        href: resolveDocsUrl("preprocessors/skip-comments"),
+      },
+    ],
+  },
+  {
     title: "Guides",
     items: [
       {

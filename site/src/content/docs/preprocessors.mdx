@@ -1,0 +1,149 @@
+---
+title: Preprocessor System
+description: "Transform and filter code before detection with preprocessors"
+---
+
+## Overview
+
+Preprocessors in Fast Brake transform code before detection runs. They're useful for stripping comments, normalizing code, or applying custom transformations to improve detection accuracy and performance.
+
+## How Preprocessors Work
+
+Preprocessors are functions that take code as input and return transformed code:
+
+```typescript
+type Preprocessor = (code: string) => string;
+```
+
+They run in sequence before any detection happens:
+
+```
+Input Code → Preprocessor 1 → Preprocessor 2 → ... → Detection
+```
+
+## Using Preprocessors
+
+### With detect()
+
+```javascript
+import { detect } from 'fast-brake';
+
+const result = await detect(code, {
+  preprocessors: [myPreprocessor]
+});
+```
+
+### With check()
+
+```javascript
+import { check } from 'fast-brake';
+
+const isCompatible = await check(code, {
+  target: 'es5',
+  preprocessors: [stripComments]
+});
+```
+
+### With the Factory Pattern
+
+```javascript
+import { fastBrake } from 'fast-brake';
+
+const fb = await fastBrake({
+  plugins: [myPlugin],
+  preprocessors: [myPreprocessor]
+});
+
+const features = await fb.detect(code);
+```
+
+## Built-in Preprocessors
+
+### Skip Comments (`@fast-brake/skip-comments`)
+
+The `@fast-brake/skip-comments` package provides utilities for efficiently skipping comments and string literals during detection without preprocessing the entire file.
+
+```javascript
+import { shouldSkipMatch, isInsideComment, isInsideString } from '@fast-brake/skip-comments';
+
+// Check if a match position should be skipped
+const result = shouldSkipMatch(code, matchIndex);
+if (result.skip) {
+  console.log(`Skipping: inside ${result.reason}`); // 'comment' or 'string'
+}
+
+// Individual checks
+const inComment = isInsideComment(code, index);
+const inString = isInsideString(code, index);
+```
+
+See the [Skip Comments documentation](/docs/preprocessors/skip-comments) for detailed usage.
+
+## Creating Custom Preprocessors
+
+Preprocessors are simple functions. Here are some examples:
+
+### Strip Console Logs
+
+```javascript
+const stripConsoleLogs = (code) => {
+  return code.replace(/console\.(log|warn|error|info)\([^)]*\);?/g, '');
+};
+```
+
+### Normalize Whitespace
+
+```javascript
+const normalizeWhitespace = (code) => {
+  return code.replace(/\s+/g, ' ').trim();
+};
+```
+
+### Remove TypeScript Types (Simple)
+
+```javascript
+const stripTypeAnnotations = (code) => {
+  // Remove simple type annotations like `: string`, `: number`
+  return code.replace(/:\s*(string|number|boolean|any|void|never)\b/g, '');
+};
+```
+
+## Chaining Preprocessors
+
+Preprocessors run in order, so you can compose them:
+
+```javascript
+const result = await detect(code, {
+  preprocessors: [
+    stripConsoleLogs,
+    normalizeWhitespace,
+    customTransform
+  ]
+});
+```
+
+The output of each preprocessor becomes the input for the next.
+
+## Performance Considerations
+
+1. **Only use when needed**: Preprocessors add overhead. Skip them for already-minified code.
+2. **Order matters**: Put fast/filtering preprocessors first to reduce work for later ones.
+3. **Avoid heavy transforms**: Keep preprocessors lightweight for best performance.
+
+```javascript
+// Fast Brake is fastest without preprocessing
+const result = await detect(minifiedCode);
+
+// Only preprocess when analyzing source files with comments
+const result = await detect(sourceCode, {
+  preprocessors: [stripComments]
+});
+```
+
+## Preprocessors vs Plugins vs Extensions
+
+| Component | When it runs | Purpose |
+|-----------|--------------|---------|
+| **Preprocessors** | Before detection | Transform input code |
+| **Plugins** | During detection | Define what patterns to detect |
+| **Extensions** | After detection | Enrich results with metadata |

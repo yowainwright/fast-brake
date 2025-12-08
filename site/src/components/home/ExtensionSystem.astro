@@ -24,12 +24,12 @@ import { MapPin, Zap } from 'lucide-react';
     <ExtensionSpotlight client:load className="mb-12" />
 
     <!-- Built-in Extensions -->
-    <div class="bg-base-100 rounded-2xl border border-base-content/10 p-6 lg:p-8 mb-12">
+    <div class="bg-gradient-to-br from-base-100 via-base-100 to-orange-500/5 rounded-2xl border border-base-content/10 p-6 lg:p-8 mb-12">
       <h3 class="text-xl font-bold mb-6 font-outfit">Built-in Extensions</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="flex items-start space-x-3">
-          <div class="flex-shrink-0 w-10 h-10 bg-orange-500 bg-opacity-20 rounded-lg flex items-center justify-center">
-            <MapPin className="w-5 h-5 text-current" />
+        <div class="flex items-start space-x-3 group">
+          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-orange-500/20 to-orange-600/30 rounded-lg flex items-center justify-center border border-orange-500/30 shadow-md shadow-orange-500/10 group-hover:shadow-orange-500/20 group-hover:border-orange-500/50 transition-all duration-300">
+            <MapPin className="w-5 h-5 text-orange-500 drop-shadow-sm" />
           </div>
           <div>
             <h4 class="font-semibold">LOC Extension</h4>
@@ -39,9 +39,9 @@ import { MapPin, Zap } from 'lucide-react';
           </div>
         </div>
 
-        <div class="flex items-start space-x-3">
-          <div class="flex-shrink-0 w-10 h-10 bg-red-500 bg-opacity-20 rounded-lg flex items-center justify-center">
-            <Zap className="w-5 h-5 text-current" />
+        <div class="flex items-start space-x-3 group">
+          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-red-500/20 to-red-600/30 rounded-lg flex items-center justify-center border border-red-500/30 shadow-md shadow-red-500/10 group-hover:shadow-red-500/20 group-hover:border-red-500/50 transition-all duration-300">
+            <Zap className="w-5 h-5 text-red-500 drop-shadow-sm" />
           </div>
           <div>
             <h4 class="font-semibold">Throw Extension</h4>

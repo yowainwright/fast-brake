@@ -1,0 +1,40 @@
+---
+import { MessageSquareOff } from 'lucide-react';
+---
+
+<div class="pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="text-center mb-12 lg:mb-16">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight font-outfit">
+        <span class="bg-clip-text text-transparent" style="background: linear-gradient(90deg, rgba(255, 69, 0, 1) 2%, rgba(255, 140, 0, 1) 55%, rgba(255, 165, 0, 1) 100%); -webkit-background-clip: text;">
+          Preprocessor
+        </span> Support
+      </h2>
+
+      <p class="mt-4 sm:mt-6 text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+        Transform and filter code before detection with preprocessors. Strip comments, normalize code,
+        or apply custom transformations to improve detection accuracy and performance.
+      </p>
+    </div>
+
+    <!-- Built-in Preprocessors -->
+    <div class="bg-gradient-to-br from-base-100 via-base-100 to-orange-500/5 rounded-2xl border border-base-content/10 p-6 lg:p-8 mb-12">
+      <h3 class="text-xl font-bold mb-6 font-outfit">Built-in Preprocessors</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="flex items-start space-x-3 group">
+          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-cyan-600/30 rounded-lg flex items-center justify-center border border-cyan-500/30 shadow-md shadow-cyan-500/10 group-hover:shadow-cyan-500/20 group-hover:border-cyan-500/50 transition-all duration-300">
+            <MessageSquareOff className="w-5 h-5 text-cyan-500 drop-shadow-sm" />
+          </div>
+          <div>
+            <h4 class="font-semibold">Skip Comments</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Efficiently skips comments and string literals during detection
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

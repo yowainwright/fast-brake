@@ -217,8 +217,8 @@ function CodeBlock({
         {title}
       </h3>
 
-      <pre className="text-sm overflow-x-auto relative z-10">
-        <code className="language-typescript">
+      <pre className="text-sm overflow-x-auto relative z-10 -mx-6 lg:-mx-8 px-6 lg:px-8">
+        <code className="language-typescript block">
           {codeLines.map((line, i) => {
             const lineNum = i + 1;
             const isHighlighted =
@@ -231,10 +231,10 @@ function CodeBlock({
               <div
                 key={i}
                 className={`
-                  transition-all duration-500 ease-out font-mono
+                  transition-all duration-500 ease-out font-mono -mx-6 lg:-mx-8 px-6 lg:px-8
                   ${
                     isHighlighted
-                      ? "bg-orange-500/20 border-l-4 border-orange-500 pl-3 -ml-1"
+                      ? "bg-orange-500/15 border-x border-orange-500/50 py-0.5"
                       : isEmpty
                         ? ""
                         : "opacity-50"

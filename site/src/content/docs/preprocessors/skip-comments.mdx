@@ -1,0 +1,171 @@
+---
+title: Skip Comments
+description: "Fast detection of whether code positions are inside comments or strings"
+---
+
+## Overview
+
+The `@fast-brake/skip-comments` package provides utilities for efficiently checking if a position in JavaScript code is inside a comment or string literal—without preprocessing the entire file.
+
+This is significantly faster than stripping all comments/strings when you only need to check a few positions (e.g., validating regex matches).
+
+## Installation
+
+```bash
+bun add @fast-brake/skip-comments
+# or
+npm install @fast-brake/skip-comments
+```
+
+## API Reference
+
+### shouldSkipMatch(code, index)
+
+Checks if a match at the given index should be skipped because it's inside a comment or string literal.
+
+```typescript
+function shouldSkipMatch(code: string, index: number): SkipCheckResult;
+
+interface SkipCheckResult {
+  skip: boolean;
+  reason?: 'comment' | 'string';
+}
+```
+
+**Example:**
+
+```javascript
+import { shouldSkipMatch } from '@fast-brake/skip-comments';
+
+const code = '// arrow => function\nconst fn = () => {};';
+
+// Check a position inside the comment
+const result1 = shouldSkipMatch(code, 10);
+// { skip: true, reason: 'comment' }
+
+// Check a position in actual code
+const result2 = shouldSkipMatch(code, 35);
+// { skip: false }
+```
+
+### isInsideComment(code, index)
+
+Checks if the given index is inside any type of comment (line or block).
+
+```typescript
+function isInsideComment(code: string, index: number): boolean;
+```
+
+**Example:**
+
+```javascript
+import { isInsideComment } from '@fast-brake/skip-comments';
+
+const code = '// this is a comment\nconst x = 1;';
+
+isInsideComment(code, 5);   // true (inside // comment)
+isInsideComment(code, 25);  // false (inside code)
+```
+
+### isInsideString(code, index)
+
+Checks if the given index is inside a string literal (single quotes, double quotes, or template literals).
+
+```typescript
+function isInsideString(code: string, index: number): boolean;
+```
+
+**Example:**
+
+```javascript
+import { isInsideString } from '@fast-brake/skip-comments';
+
+const code = 'const x = "hello => world";';
+
+isInsideString(code, 15);  // true (inside string)
+isInsideString(code, 5);   // false (inside code)
+```
+
+### isInsideCommentOrString(code, index)
+
+Convenience function that combines both checks.
+
+```typescript
+function isInsideCommentOrString(code: string, index: number): boolean;
+```
+
+**Example:**
+
+```javascript
+import { isInsideCommentOrString } from '@fast-brake/skip-comments';
+
+const code = '// comment\nconst x = "string";';
+
+isInsideCommentOrString(code, 5);   // true (comment)
+isInsideCommentOrString(code, 22);  // true (string)
+isInsideCommentOrString(code, 15);  // false (code)
+```
+
+## Use Cases
+
+### Validating Regex Matches
+
+When Fast Brake finds a pattern match, you can verify it's not inside a comment or string:
+
+```javascript
+import { shouldSkipMatch } from '@fast-brake/skip-comments';
+
+function validateMatches(code, matches) {
+  return matches.filter(match => {
+    const result = shouldSkipMatch(code, match.index);
+    return !result.skip;
+  });
+}
+```
+
+### Filtering False Positives
+
+```javascript
+import { isInsideComment, isInsideString } from '@fast-brake/skip-comments';
+
+// Find all arrow functions, excluding those in comments/strings
+const arrowPattern = /=>/g;
+const realArrows = [];
+let match;
+
+while ((match = arrowPattern.exec(code)) !== null) {
+  if (!isInsideComment(code, match.index) && !isInsideString(code, match.index)) {
+    realArrows.push(match);
+  }
+}
+```
+
+## How It Works
+
+The package uses a state machine that scans code from a position backward (up to 5000 characters) to determine the current context. It properly handles:
+
+- Single-line comments (`//`)
+- Block comments (`/* */`)
+- Single-quoted strings (`'...'`)
+- Double-quoted strings (`"..."`)
+- Template literals (`` `...` ``)
+- Escape sequences (`\"`, `\'`, etc.)
+- Nested contexts (e.g., `//` inside a string is not a comment)
+
+## Performance
+
+This approach is faster than full preprocessing when:
+- You only need to check a few positions
+- The code is large
+- You're validating existing matches
+
+For heavy usage with many checks, consider preprocessing the entire file once instead.
+
+```javascript
+// Good: Few checks on large file
+const code = readLargeFile();
+const isValid = !shouldSkipMatch(code, matchIndex).skip;
+
+// Consider alternatives: Many checks
+// If checking hundreds of positions, full preprocessing may be faster
+```

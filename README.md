@@ -400,6 +400,39 @@ import detectPlugin from "fast-brake/src/plugins/detect";
 const plugin = detectPlugin;
 ```
 
+## Preprocessors
+
+Preprocessors transform code before detection runs. They're useful for stripping comments, normalizing code, or applying custom transformations.
+
+### Built-in Preprocessors
+
+#### Skip Comments (`@fast-brake/skip-comments`)
+
+Efficiently skips comments and string literals during detection:
+
+```javascript
+import { skipComments } from "@fast-brake/skip-comments";
+
+const result = await detect(code, {
+  preprocessors: [skipComments],
+});
+```
+
+### Custom Preprocessors
+
+Create your own preprocessors with simple functions:
+
+```javascript
+const myPreprocessor = (code) => {
+  // Transform code before detection
+  return code.replace(/console\.log\([^)]*\);?/g, "");
+};
+
+const result = await detect(code, {
+  preprocessors: [myPreprocessor],
+});
+```
+
 ## Extensions
 
 Fast Brake supports extensions that provide metadata and examples for enhanced detection capabilities.
@@ -650,14 +683,14 @@ File size: 0.9 KB
 
 File size: 0.9 KB
 
-| Parser                  | Time (ms) | Ops/sec | Relative | Accuracy    |
-| ----------------------- | --------- | ------- | -------- | ----------- |
-| fast-brake              | 0.001     | 839,395 | 1.0x     | es2015      |
-| fast-brake (preprocess) | 0.018     | 56,805  | 0.1x     | es2015      |
-| meriyah                 | 0.023     | 43,862  | 0.1x     | parsed      |
-| espree                  | 0.048     | 20,999  | 0.0x     | parsed      |
-| acorn                   | 0.048     | 20,845  | 0.0x     | parsed      |
-| @babel/parser           | 0.057     | 17,639  | 0.0x     | parsed      |
+| Parser                  | Time (ms) | Ops/sec | Relative | Accuracy |
+| ----------------------- | --------- | ------- | -------- | -------- |
+| fast-brake              | 0.001     | 839,395 | 1.0x     | es2015   |
+| fast-brake (preprocess) | 0.018     | 56,805  | 0.1x     | es2015   |
+| meriyah                 | 0.023     | 43,862  | 0.1x     | parsed   |
+| espree                  | 0.048     | 20,999  | 0.0x     | parsed   |
+| acorn                   | 0.048     | 20,845  | 0.0x     | parsed   |
+| @babel/parser           | 0.057     | 17,639  | 0.0x     | parsed   |
 
 ### Large File (100x)
 
@@ -698,6 +731,7 @@ The benchmarks show two modes:
 Most fast-brake use cases involve analyzing minified/bundled code where comments have already been stripped during the build process. Preprocessing (comment stripping) adds overhead and is only necessary when analyzing raw source files that still contain JavaScript comments.
 
 Enable preprocessing only when:
+
 - Analyzing unminified source files with comments
 - Running on code that hasn't been through a bundler
 
