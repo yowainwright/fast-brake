@@ -1,6 +1,6 @@
 # Fast Brake
 
-**Fast braking match detection!** Fast brake enables a plugins and extension based schema to detect matches using JavaScript very fast. This is useful for detecting ECMAscript api features, Telemetry or other spec pattern matches you'd like to spec with a focus on speed.
+**A fast detection library for JavaScript.** Fast Brake uses pattern matching to detect ECMAScript features, telemetry, and other patterns 6-19x faster than full parsers. Zero runtime dependencies.
 
 ## Installation
 
@@ -62,20 +62,18 @@ This is nice for:
 
 ## Features
 
-- **Fast** - Process files faster for match a spec faster than full AST parsing (in JavaScript at lest)
+- **Fast** - Detection is 6-19x faster than full parsers, 500k+ ops/sec
 - **Zero Runtime Dependencies** - Lightweight and secure
-- **Pattern Matching** - Optimized string, regex-based detection
+- **Pattern Matching** - Optimized string and regex-based detection
 - **ES5 to ES2025** - Comprehensive feature coverage (40+ features)
-- **Programmatic API** - Simple, intuitive interface
-- **Performance First** - Optimized for speed
-- **Plugin enabled** - Mix and match plugins with a basic api
-- **Simple interface** - Clean and straightforward API
+- **Plugin Architecture** - Mix and match plugins for your use case
+- **Simple API** - Clean and straightforward interface with TypeScript support
 
 ## Why this was made?
 
 Pre-2025, detecting issues that can cause es issues fast in bundles, dependencies is a necessity for CI/CD. In 2025, with Telemetry, Privacy Policies, and AI, it's important to know what you have going on in your files. This is why fast-brake was built!
 
-Initially, I was inspired by [acorn.js](), then [meriyah]() (amazing tools). I submitted a pull request so I could implement plugins using meriyah. [name]() provided inside into another direction which led me to making fast-brake—which is built on a very simple api to enable an architecture based on failing fast.
+As a long time user of [acorn.js](https://github.com/acornjs/acorn), I was also inspired by [meriyah](https://github.com/meriyah/meriyah). I submitted a pull request to implement plugins using meriyah, which led me in a different direction—building fast-brake with a simple API focused on failing fast.
 
 ## Pattern-Based Detection
 
@@ -620,106 +618,96 @@ console.log(locExtension);
 
 <!-- BENCHMARK_START -->
 
-### ES5 (Legacy)
-
-File size: 0.4 KB
-
-| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
-| ------------------------ | --------- | ------- | -------- | ------------- |
-| fast-brake (detect)      | 0.009     | 110,509 | 1.0x     | none          |
-| fast-brake (browserlist) | 0.009     | 107,418 | 1.0x     | browser check |
-| fast-brake (es2015 only) | 0.010     | 103,786 | 0.9x     | es2015 check  |
-| fast-brake               | 0.010     | 102,154 | 0.9x     | none          |
-| fast-brake (es5 only)    | 0.016     | 60,722  | 0.5x     | es5 check     |
-| meriyah                  | 0.020     | 50,081  | 0.5x     | parsed        |
-| cherow                   | 0.022     | 45,132  | 0.4x     | parsed        |
-| esprima                  | 0.029     | 34,307  | 0.3x     | parsed        |
-| acorn                    | 0.034     | 29,149  | 0.3x     | parsed        |
-| espree                   | 0.040     | 25,202  | 0.2x     | parsed        |
-| @babel/parser            | 0.060     | 16,778  | 0.2x     | parsed        |
-
 ### ES2015 (Modern)
 
 File size: 0.7 KB
 
-| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
-| ------------------------ | --------- | ------- | -------- | ------------- |
-| fast-brake               | 0.004     | 225,519 | 1.0x     | none          |
-| fast-brake (detect)      | 0.005     | 191,799 | 0.9x     | none          |
-| fast-brake (es5 only)    | 0.014     | 71,126  | 0.3x     | es5 check     |
-| fast-brake (browserlist) | 0.016     | 61,496  | 0.3x     | browser check |
-| fast-brake (es2015 only) | 0.018     | 55,386  | 0.2x     | es2015 check  |
-| cherow                   | 0.019     | 53,240  | 0.2x     | parsed        |
-| meriyah                  | 0.020     | 51,039  | 0.2x     | parsed        |
-| acorn                    | 0.047     | 21,317  | 0.1x     | parsed        |
-| @babel/parser            | 0.056     | 17,905  | 0.1x     | parsed        |
-| espree                   | 0.056     | 17,848  | 0.1x     | parsed        |
-| esprima                  | -         | -       | -        | parse error   |
+| Parser                  | Time (ms) | Ops/sec | Relative | Accuracy    |
+| ----------------------- | --------- | ------- | -------- | ----------- |
+| fast-brake              | 0.003     | 360,702 | 1.0x     | es2015      |
+| fast-brake (preprocess) | 0.008     | 126,127 | 0.3x     | es2015      |
+| meriyah                 | 0.017     | 59,162  | 0.2x     | parsed      |
+| cherow                  | 0.020     | 49,214  | 0.1x     | parsed      |
+| esprima                 | 0.036     | 28,141  | 0.1x     | parse error |
+| acorn                   | 0.060     | 16,641  | 0.0x     | parse error |
+| espree                  | 0.066     | 15,209  | 0.0x     | parse error |
+| @babel/parser           | 0.074     | 13,424  | 0.0x     | parsed      |
 
-### ES2022 (Latest)
+### ES2022
 
-File size: 1.2 KB
+File size: 0.9 KB
 
-| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
-| ------------------------ | --------- | ------- | -------- | ------------- |
-| fast-brake               | 0.002     | 589,507 | 1.0x     | none          |
-| fast-brake (detect)      | 0.004     | 242,608 | 0.4x     | none          |
-| fast-brake (es2015 only) | 0.007     | 143,859 | 0.2x     | es2015 check  |
-| fast-brake (es5 only)    | 0.009     | 108,805 | 0.2x     | es5 check     |
-| fast-brake (browserlist) | 0.009     | 105,517 | 0.2x     | browser check |
-| meriyah                  | 0.020     | 50,117  | 0.1x     | parsed        |
-| acorn                    | 0.037     | 27,354  | 0.0x     | parsed        |
-| espree                   | 0.042     | 23,809  | 0.0x     | parsed        |
-| @babel/parser            | 0.045     | 22,266  | 0.0x     | parsed        |
-| esprima                  | -         | -       | -        | parse error   |
-| cherow                   | -         | -       | -        | parse error   |
+| Parser                  | Time (ms) | Ops/sec | Relative | Accuracy    |
+| ----------------------- | --------- | ------- | -------- | ----------- |
+| fast-brake              | 0.003     | 385,344 | 1.0x     | es2015      |
+| fast-brake (preprocess) | 0.008     | 120,483 | 0.3x     | es2015      |
+| meriyah                 | 0.021     | 47,003  | 0.1x     | parsed      |
+| acorn                   | 0.033     | 29,975  | 0.1x     | parse error |
+| espree                  | 0.042     | 23,556  | 0.1x     | parse error |
+| @babel/parser           | 0.055     | 18,033  | 0.0x     | parsed      |
+
+### ES2024 (Latest)
+
+File size: 0.9 KB
+
+| Parser                  | Time (ms) | Ops/sec | Relative | Accuracy    |
+| ----------------------- | --------- | ------- | -------- | ----------- |
+| fast-brake              | 0.001     | 839,395 | 1.0x     | es2015      |
+| fast-brake (preprocess) | 0.018     | 56,805  | 0.1x     | es2015      |
+| meriyah                 | 0.023     | 43,862  | 0.1x     | parsed      |
+| espree                  | 0.048     | 20,999  | 0.0x     | parsed      |
+| acorn                   | 0.048     | 20,845  | 0.0x     | parsed      |
+| @babel/parser           | 0.057     | 17,639  | 0.0x     | parsed      |
 
 ### Large File (100x)
 
-File size: 69.4 KB
+File size: 71.9 KB
 
-| Parser                   | Time (ms) | Ops/sec | Relative | Accuracy      |
-| ------------------------ | --------- | ------- | -------- | ------------- |
-| fast-brake               | 0.001     | 696,419 | 1.0x     | none          |
-| fast-brake (detect)      | 0.005     | 209,121 | 0.3x     | none          |
-| fast-brake (es5 only)    | 0.010     | 98,251  | 0.1x     | es5 check     |
-| fast-brake (browserlist) | 0.682     | 1,467   | 0.0x     | browser check |
-| fast-brake (es2015 only) | 0.989     | 1,011   | 0.0x     | es2015 check  |
-| cherow                   | 1.019     | 981     | 0.0x     | parsed        |
-| meriyah                  | 1.083     | 923     | 0.0x     | parsed        |
-| @babel/parser            | -         | -       | -        | parse error   |
-| acorn                    | -         | -       | -        | parse error   |
-| esprima                  | -         | -       | -        | parse error   |
-| espree                   | -         | -       | -        | parse error   |
+| Parser                  | Time (ms) | Ops/sec | Relative | Accuracy    |
+| ----------------------- | --------- | ------- | -------- | ----------- |
+| fast-brake              | 0.002     | 518,269 | 1.0x     | es2015      |
+| esprima                 | 0.032     | 30,963  | 0.1x     | parse error |
+| acorn                   | 0.062     | 16,219  | 0.0x     | parse error |
+| @babel/parser           | 0.090     | 11,088  | 0.0x     | parse error |
+| espree                  | 0.118     | 8,511   | 0.0x     | parse error |
+| fast-brake (preprocess) | 0.489     | 2,043   | 0.0x     | es2015      |
+| cherow                  | 0.982     | 1,018   | 0.0x     | parsed      |
+| meriyah                 | 1.306     | 766     | 0.0x     | parsed      |
 
 <!-- BENCHMARK_END -->
 
 ### Performance Highlights
 
-Based on the latest benchmarks:
+Based on the latest benchmarks (December 2025):
 
-- **~600,000 operations per second** for standard ES2015/ES2022 code
-- **33x faster** than @babel/parser for ES feature detection
-- **12x faster** than meriyah (the fastest full parser)
-- **Optimized for real-world use** - even faster on large files (665k ops/sec)
-- **Native performance** - leverages V8/JSC optimized string operations
+- **~500,000+ operations per second** for standard ES2015-ES2024 code
+- **28x faster** than @babel/parser on average
+- **~47x faster** than @babel/parser on ES2024 code (839k vs 17k ops/sec)
+- **Scales with file size** - 518k ops/sec on 72KB files
 - **Zero overhead** - no AST generation or unnecessary allocations
 
-### When to use Quick vs Full mode
+### About Preprocessing
 
-**Quick Mode** (`{ quick: true }`):
+The benchmarks show two modes:
 
-- **Up to 7x faster** than full mode
-- Perfect for **build tools** and **hot reloading**
-- **Pattern-based detection** without tokenizer validation
-- Use when **speed is critical**
+- **fast-brake** - Default mode, no preprocessing (recommended for most use cases)
+- **fast-brake (preprocess)** - With comment stripping enabled
 
-**Full Mode** (default):
+**Why preprocessing is usually not needed:**
 
-- **High accuracy** with tokenizer validation
-- **Still faster** than AST parsers
-- **Recommended** for most use cases
-- Use for **linting**, **CI/CD**, and **production builds**
+Most fast-brake use cases involve analyzing minified/bundled code where comments have already been stripped during the build process. Preprocessing (comment stripping) adds overhead and is only necessary when analyzing raw source files that still contain JavaScript comments.
+
+Enable preprocessing only when:
+- Analyzing unminified source files with comments
+- Running on code that hasn't been through a bundler
+
+```javascript
+// Default (no preprocessing) - fastest
+detector.detectFast(code, { skipPreprocess: true });
+
+// With preprocessing (for unminified source with comments)
+detector.detectFast(code);
+```
 
 ## Browser Support
 

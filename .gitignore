@@ -117,3 +117,5 @@ e2e/results/
 .astro
 .kiro
 utils/benchmarker/results/
+.idea/
+.idea

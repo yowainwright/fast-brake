@@ -1,0 +1,89 @@
+---
+title: JSComments Plugin
+description: "JavaScript comment stripping for accurate feature detection"
+---
+
+The jscomments plugin provides comment stripping functionality that removes JavaScript comments while preserving line numbers for accurate feature detection.
+
+## Features
+
+- Strips single-line comments (`//`)
+- Strips multi-line block comments (`/* */`)
+- Strips JSDoc comments (`/** */`)
+- Preserves line numbers by replacing comments with newlines
+- Handles edge cases like strings and template literals containing comment-like content
+
+## Usage
+
+### As a Preprocessor
+
+```typescript
+import { stripComments } from "fast-brake/plugins/jscomments";
+import { Detector } from "fast-brake";
+
+const detector = new Detector();
+await detector.initialize();
+
+const code = `
+// This is a comment
+const x = () => 123; // arrow function
+`;
+
+const cleaned = stripComments(code);
+const result = detector.detectFast(cleaned);
+```
+
+### Safe Preprocessor (Recommended)
+
+The `safePreprocessor` strips both comments AND string contents to prevent false positives:
+
+```typescript
+import { safePreprocessor } from "fast-brake/plugins/jscomments";
+
+const code = `
+const str = "image_123"; // Would trigger numeric separator detection
+const exp = "**"; // Would trigger exponentiation detection
+`;
+
+const cleaned = safePreprocessor(code);
+// String contents are blanked, preventing false positives
+```
+
+### With Default Plugins
+
+The jscomments preprocessor is included by default in the `esversion` and `browserlist` plugins via `defaultPreprocessors`.
+
+## API
+
+### `safePreprocessor(code: string): string`
+
+Strips both comments AND string contents. Recommended for most use cases.
+
+### `stripComments(code: string, blankStrings?: boolean): string`
+
+Strips JavaScript comments from code. Set `blankStrings` to `true` to also blank string contents.
+
+### `stripCommentsAndStrings(code: string): string`
+
+Alias for `stripComments(code, true)`.
+
+## When to Use
+
+Use preprocessing when:
+- Analyzing unminified source files with comments
+- Code hasn't been through a bundler
+- You need to avoid false positives from comment content
+
+Skip preprocessing when:
+- Analyzing minified/bundled code (comments already stripped)
+- Maximum performance is required
+- Working with build tool output
+
+## Performance
+
+Without preprocessing, fast-brake achieves 500k+ ops/sec. With preprocessing enabled, performance is reduced but still faster than full parsers.
+
+| Mode | Ops/sec | Use Case |
+|------|---------|----------|
+| No preprocessing | 360k-839k | Minified/bundled code |
+| With preprocessing | 56k-126k | Unminified source files |

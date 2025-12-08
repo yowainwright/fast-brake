@@ -23,49 +23,49 @@ const benchmarkData: BenchmarkResult[] = [
   {
     parser: "fast-brake",
     method: "Pattern matching",
-    timeMs: 0.002,
-    opsPerSec: 552385,
+    timeMs: 0.003,
+    opsPerSec: 360702,
     relative: 1.0,
     accuracy: "es2015",
   },
   {
-    parser: "fast-brake (detect)",
-    method: "Auto-detection",
-    timeMs: 0.007,
-    opsPerSec: 139003,
-    relative: 0.252,
+    parser: "fast-brake (preprocess)",
+    method: "With comment stripping",
+    timeMs: 0.008,
+    opsPerSec: 126127,
+    relative: 0.35,
     accuracy: "es2015",
   },
   {
     parser: "meriyah",
     method: "Fast ES parser",
-    timeMs: 0.021,
-    opsPerSec: 47350,
-    relative: 0.086,
+    timeMs: 0.017,
+    opsPerSec: 59162,
+    relative: 0.164,
     accuracy: "parsed",
   },
   {
-    parser: "esprima",
-    method: "ECMAScript parser",
-    timeMs: 0.026,
-    opsPerSec: 37952,
-    relative: 0.069,
-    accuracy: "parse error",
+    parser: "cherow",
+    method: "ES parser",
+    timeMs: 0.02,
+    opsPerSec: 49214,
+    relative: 0.136,
+    accuracy: "parsed",
   },
   {
     parser: "acorn",
     method: "Lightweight parser",
-    timeMs: 0.054,
-    opsPerSec: 18598,
-    relative: 0.034,
+    timeMs: 0.06,
+    opsPerSec: 16641,
+    relative: 0.046,
     accuracy: "parse error",
   },
   {
     parser: "@babel/parser",
     method: "Full AST parser",
-    timeMs: 0.059,
-    opsPerSec: 16919,
-    relative: 0.031,
+    timeMs: 0.074,
+    opsPerSec: 13424,
+    relative: 0.037,
     accuracy: "parsed",
   },
 ];
@@ -93,8 +93,8 @@ export function BenchmarkDataTable() {
       <div className="flex-1">
         <Table>
           <TableCaption>
-            *Benchmarked on 2025-08-31 with ES2015 test files on MacBook Pro M4.
-            All tests run on identical hardware with warm cache.
+            *Benchmarked on 2025-12-06 with ES2015 test files on MacBook Pro M4.
+            Preprocessing is only needed for unminified source with comments.
           </TableCaption>
           <TableHeader>
             <TableRow>

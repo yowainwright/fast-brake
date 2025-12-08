@@ -1,6 +1,9 @@
 #!/usr/bin/env bun
-import { detect, Detector } from "fast-brake";
-import { createESVersionPlugin } from "fast-brake/plugins/esversion";
+import { Detector, fastBrakeSync, setPluginLogLevel } from "fast-brake";
+import {
+  createESVersionPlugin,
+  esAll,
+} from "fast-brake/plugins/esversion";
 import { createBrowserlistPlugin } from "fast-brake/plugins/browserlist";
 import { detectPlugin } from "fast-brake/plugins/detect";
 import * as babel from "@babel/parser";
@@ -14,6 +17,8 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import Table from "cli-table3";
 import pc from "picocolors";
+
+setPluginLogLevel("silent");
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -97,75 +102,30 @@ function loadTestCases(): TestCase[] {
   return cases;
 }
 
+const detector = new Detector();
+detector.initializeSync(esAll);
+
 const parsers = {
   "fast-brake": {
-    parse: async (code: string) => await detect(code),
+    parse: (code: string) => detector.detectFast(code, { skipPreprocess: true }),
     description: "Pattern matching",
-    validate: async (code: string) => {
-      const features = await detect(code);
-      return {
-        features: features.length,
-        version: features[0]?.version || "none",
-      };
-    },
-  },
-  "fast-brake (es5 only)": {
-    parse: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(createESVersionPlugin("es5"));
-      return detector.detectFast(code);
-    },
-    description: "Single ES5 plugin",
-    validate: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(createESVersionPlugin("es5"));
-      const result = detector.detectFast(code);
-      return { features: result.hasMatch ? 1 : 0, version: "es5 check" };
-    },
-  },
-  "fast-brake (es2015 only)": {
-    parse: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(createESVersionPlugin("es2015"));
-      return detector.detectFast(code);
-    },
-    description: "Single ES2015 plugin",
-    validate: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(createESVersionPlugin("es2015"));
-      const result = detector.detectFast(code);
-      return { features: result.hasMatch ? 1 : 0, version: "es2015 check" };
-    },
-  },
-  "fast-brake (detect)": {
-    parse: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(detectPlugin);
-      return detector.detectFast(code);
-    },
-    description: "Detect minimum ES version",
-    validate: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(detectPlugin);
-      const result = detector.detectFast(code);
+    validate: (code: string) => {
+      const result = detector.detectFast(code, { skipPreprocess: true });
       return {
         features: result.hasMatch ? 1 : 0,
         version: result.firstMatch?.rule || "none",
       };
     },
   },
-  "fast-brake (browserlist)": {
-    parse: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(createBrowserlistPlugin("defaults"));
-      return detector.detectFast(code);
-    },
-    description: "Browserlist defaults",
-    validate: async (code: string) => {
-      const detector = new Detector();
-      await detector.initialize(createBrowserlistPlugin("defaults"));
+  "fast-brake (preprocess)": {
+    parse: (code: string) => detector.detectFast(code),
+    description: "With comment stripping",
+    validate: (code: string) => {
       const result = detector.detectFast(code);
-      return { features: result.hasMatch ? 1 : 0, version: "browser check" };
+      return {
+        features: result.hasMatch ? 1 : 0,
+        version: result.firstMatch?.rule || "none",
+      };
     },
   },
   "@babel/parser": {
