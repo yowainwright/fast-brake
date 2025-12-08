@@ -1,9 +1,6 @@
 #!/usr/bin/env bun
 import { Detector, fastBrakeSync, setPluginLogLevel } from "fast-brake";
-import {
-  createESVersionPlugin,
-  esAll,
-} from "fast-brake/plugins/esversion";
+import { createESVersionPlugin, esAll } from "fast-brake/plugins/esversion";
 import { createBrowserlistPlugin } from "fast-brake/plugins/browserlist";
 import { detectPlugin } from "fast-brake/plugins/detect";
 import * as babel from "@babel/parser";
@@ -107,7 +104,8 @@ detector.initializeSync(esAll);
 
 const parsers = {
   "fast-brake": {
-    parse: (code: string) => detector.detectFast(code, { skipPreprocess: true }),
+    parse: (code: string) =>
+      detector.detectFast(code, { skipPreprocess: true }),
     description: "Pattern matching",
     validate: (code: string) => {
       const result = detector.detectFast(code, { skipPreprocess: true });

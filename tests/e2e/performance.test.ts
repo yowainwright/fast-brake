@@ -71,7 +71,9 @@ describe("E2E: Performance Verification", () => {
         iterations,
       );
 
-      expect(avgTimeMs).toBeLessThan(PERFORMANCE_THRESHOLDS.smallFile.maxTimeMs);
+      expect(avgTimeMs).toBeLessThan(
+        PERFORMANCE_THRESHOLDS.smallFile.maxTimeMs,
+      );
       expect(opsPerSec).toBeGreaterThan(
         PERFORMANCE_THRESHOLDS.smallFile.minOpsPerSec,
       );
@@ -87,7 +89,9 @@ describe("E2E: Performance Verification", () => {
         iterations,
       );
 
-      expect(avgTimeMs).toBeLessThan(PERFORMANCE_THRESHOLDS.smallFile.maxTimeMs);
+      expect(avgTimeMs).toBeLessThan(
+        PERFORMANCE_THRESHOLDS.smallFile.maxTimeMs,
+      );
       expect(opsPerSec).toBeGreaterThan(
         PERFORMANCE_THRESHOLDS.smallFile.minOpsPerSec,
       );
@@ -103,7 +107,9 @@ describe("E2E: Performance Verification", () => {
         iterations,
       );
 
-      expect(avgTimeMs).toBeLessThan(PERFORMANCE_THRESHOLDS.smallFile.maxTimeMs);
+      expect(avgTimeMs).toBeLessThan(
+        PERFORMANCE_THRESHOLDS.smallFile.maxTimeMs,
+      );
       expect(opsPerSec).toBeGreaterThan(
         PERFORMANCE_THRESHOLDS.smallFile.minOpsPerSec,
       );
@@ -122,7 +128,9 @@ describe("E2E: Performance Verification", () => {
         iterations,
       );
 
-      expect(avgTimeMs).toBeLessThan(PERFORMANCE_THRESHOLDS.largeFile.maxTimeMs);
+      expect(avgTimeMs).toBeLessThan(
+        PERFORMANCE_THRESHOLDS.largeFile.maxTimeMs,
+      );
       expect(opsPerSec).toBeGreaterThan(
         PERFORMANCE_THRESHOLDS.largeFile.minOpsPerSec,
       );
