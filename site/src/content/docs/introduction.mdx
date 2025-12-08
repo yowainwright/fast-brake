@@ -20,35 +20,17 @@ description: "Pattern detection with zero runtime dependencies. Analyzes JavaScr
 
 ## What is fast-brake?
 
-**fast-brake** is a pattern detection library that analyzes JavaScript code to identify text patterns using a plugin-based architecture. It can detect ECMAScript features, telemetry tracking, security patterns, or any custom patterns you define. Unlike traditional tools that rely on slow AST parsers, fast-brake uses **high-performance pattern matching** that is significantly faster.
+**fast-brake** is a detection library that analyzes JavaScript code to identify patterns using a plugin-based architecture. It can detect ECMAScript features, telemetry tracking, security patterns, or any custom patterns you define. Instead of AST parsing, fast-brake uses pattern matching—which is faster when detection is the goal.
 
-## Why is fast-brake Game-Changing?
+## Why fast-brake?
 
 ### The Problem
 
-Modern JavaScript development involves detecting various patterns - ES compatibility, telemetry tracking, security issues, and more. Traditional approaches have significant limitations:
+When detection is the goal—finding ES compatibility issues, SDK usage, analytics calls—full AST parsing may not be the right tool. AST parsers are designed for code transformation and deep analysis. But if you just need to know "does this code use optional chaining?" or "is there a tracking call?", building a complete syntax tree is unnecessary work.
 
-- **AST Parsers are Slow**: Tools like Babel parser can take 100ms+ to process 1000 files
-- **Build Tool Bottlenecks**: Pattern detection becomes a performance bottleneck
-- **Limited Flexibility**: Most tools focus on single use cases
-- **Complex Setup**: Heavy dependencies and complex configuration requirements
+### The Solution
 
-```javascript
-// Traditional approach - slow and heavy
-import { parse } from '@babel/parser';
-import traverse from '@babel/traverse';
-
-const ast = parse(code); // Expensive parsing
-traverse(ast, {
-  ArrowFunctionExpression(path) {
-    // Complex AST traversal
-  }
-});
-```
-
-### The fast-brake Solution
-
-fast-brake revolutionizes pattern detection with **optimized pattern matching**:
+fast-brake uses pattern matching for detection:
 
 - **High-performance regex patterns** - Carefully crafted patterns for any text matching
 - **Single-pass scanning** - Processes code once for all patterns
@@ -72,50 +54,50 @@ const patterns = await detect(code);
 
 ## Performance Comparison
 
-### Plugin Configuration Performance
-
-Choose the right plugin configuration for your needs:
-
-| Plugin Configuration | Time (ms) | Ops/sec | vs Single ES5 | Features Detected |
-|---------------------|-----------|---------|---------------|-------------------|
-| **Telemetry Detection** | **0.202** | **4,951** | **2.03x** | 2 |
-| Single ES5 | 0.410 | 2,439 | 1.00x | 244 |
-| All ES Versions | 0.427 | 2,343 | 0.96x | 244 |
-| All + Browser Compat | 0.665 | 1,504 | 0.62x | 244 |
-| Kitchen Sink (All) | 0.926 | 1,080 | 0.44x | 246 |
-
-*Benchmarked on Apple M4, 2025-08-22*
-
 ### Parser Comparison - ES2015 Files
 
 | Parser | Time (ms) | Ops/sec | Relative Speed |
 |--------|-----------|---------|----------------|
-| **fast-brake (es2015 only)** | **0.001** | **1,063,499** | **85.2x** |
-| **fast-brake (all ES)** | **0.001** | **980,954** | **78.6x** |
-| **fast-brake** | **0.080** | **12,488** | **1.0x** |
-| cherow | 0.017 | 59,309 | 4.7x |
-| meriyah | 0.019 | 51,507 | 4.1x |
-| esprima | 0.026 | 38,728 | 3.1x |
-| @babel/parser | 0.058 | 17,231 | 1.4x |
+| **fast-brake** | **0.003** | **360,702** | **1.0x** |
+| **fast-brake (preprocess)** | **0.008** | **126,127** | **0.35x** |
+| meriyah | 0.017 | 59,162 | 0.16x |
+| cherow | 0.020 | 49,214 | 0.14x |
+| acorn | 0.060 | 16,641 | 0.05x |
+| @babel/parser | 0.074 | 13,424 | 0.04x |
 
-### Parser Comparison - ES5 Files  
+### Parser Comparison - ES2024 Files
 
 | Parser | Time (ms) | Ops/sec | Relative Speed |
 |--------|-----------|---------|----------------|
-| **fast-brake (all + browser)** | **0.001** | **771,109** | **44.1x** |
-| **fast-brake (es2015 only)** | **0.001** | **731,797** | **41.8x** |
-| **fast-brake (all ES)** | **0.002** | **631,048** | **36.1x** |
-| **fast-brake** | **0.057** | **17,503** | **1.0x** |
-| meriyah | 0.015 | 66,758 | 3.8x |
-| cherow | 0.017 | 57,947 | 3.3x |
-| esprima | 0.021 | 48,011 | 2.7x |
-| @babel/parser | 0.050 | 20,179 | 1.2x |
+| **fast-brake** | **0.001** | **839,395** | **1.0x** |
+| **fast-brake (preprocess)** | **0.018** | **56,805** | **0.07x** |
+| meriyah | 0.023 | 43,862 | 0.05x |
+| acorn | 0.048 | 20,845 | 0.02x |
+| @babel/parser | 0.057 | 17,639 | 0.02x |
 
-*All benchmarks run on Apple M4, 2025-08-29*
+### Large File Performance (72KB)
+
+| Parser | Time (ms) | Ops/sec | Relative Speed |
+|--------|-----------|---------|----------------|
+| **fast-brake** | **0.002** | **518,269** | **1.0x** |
+| esprima | 0.032 | 30,963 | 0.06x |
+| @babel/parser | 0.090 | 11,088 | 0.02x |
+| fast-brake (preprocess) | 0.489 | 2,043 | 0.004x |
+
+*Benchmarked on Apple M4, December 2025*
+
+### About Preprocessing
+
+fast-brake offers two modes:
+
+- **Default (no preprocessing)**: Maximum speed for minified/bundled code
+- **With preprocessing**: Comment stripping for unminified source files
+
+Preprocessing is usually unnecessary because most fast-brake use cases involve analyzing minified or bundled code where comments have already been stripped during the build process. Only enable preprocessing when analyzing raw source files with JavaScript comments.
 
 ## Key Benefits
 
-- ** Lightning Fast**: Up to 85x faster with targeted plugins, 3-4x faster than parsers in general use
+- **Fast**: Detection is 6-19x faster than full parsers, 500k+ ops/sec
 - ** Zero Dependencies**: Lightweight with no runtime dependencies
 - ** Pattern Matching**: Optimized regex-based detection without AST overhead
 - ** Plugin Architecture**: Load only the detection rules you need

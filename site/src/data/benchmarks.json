@@ -1,333 +1,221 @@
 [
   {
-    "name": "ES5 (Legacy)",
-    "fileSize": 455,
-    "results": [
-      {
-        "name": "fast-brake (detect)",
-        "time": 0.009049000000000007,
-        "opsPerSec": 110509,
-        "relative": 1,
-        "accuracy": "none"
-      },
-      {
-        "name": "fast-brake (browserlist)",
-        "time": 0.009309416,
-        "opsPerSec": 107418,
-        "relative": 0.9720266018835132,
-        "accuracy": "browser check"
-      },
-      {
-        "name": "fast-brake (es2015 only)",
-        "time": 0.009635165999999999,
-        "opsPerSec": 103786,
-        "relative": 0.939163891935023,
-        "accuracy": "es2015 check"
-      },
-      {
-        "name": "fast-brake",
-        "time": 0.009789125,
-        "opsPerSec": 102154,
-        "relative": 0.9243931403470695,
-        "accuracy": "none"
-      },
-      {
-        "name": "fast-brake (es5 only)",
-        "time": 0.016468375,
-        "opsPerSec": 60722,
-        "relative": 0.5494774074551986,
-        "accuracy": "es5 check"
-      },
-      {
-        "name": "meriyah",
-        "time": 0.019967792,
-        "opsPerSec": 50081,
-        "relative": 0.4531798007511299,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "cherow",
-        "time": 0.022157208999999966,
-        "opsPerSec": 45132,
-        "relative": 0.40839981244930357,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "esprima",
-        "time": 0.029148792000000014,
-        "opsPerSec": 34307,
-        "relative": 0.3104416814254259,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "acorn",
-        "time": 0.034306166999999985,
-        "opsPerSec": 29149,
-        "relative": 0.26377181688645107,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "espree",
-        "time": 0.039679958999999994,
-        "opsPerSec": 25202,
-        "relative": 0.22804963079724977,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "@babel/parser",
-        "time": 0.05960324999999999,
-        "opsPerSec": 16778,
-        "relative": 0.15182058025359368,
-        "accuracy": "parsed"
-      }
-    ]
-  },
-  {
     "name": "ES2015 (Modern)",
     "fileSize": 711,
     "results": [
       {
         "name": "fast-brake",
-        "time": 0.004434207999999955,
-        "opsPerSec": 225519,
+        "time": 0.003,
+        "opsPerSec": 360702,
         "relative": 1,
-        "accuracy": "none"
+        "accuracy": "es2015"
       },
       {
-        "name": "fast-brake (detect)",
-        "time": 0.005213792000000012,
-        "opsPerSec": 191799,
-        "relative": 0.8504765821114354,
-        "accuracy": "none"
-      },
-      {
-        "name": "fast-brake (es5 only)",
-        "time": 0.014059624999999982,
-        "opsPerSec": 71126,
-        "relative": 0.3153859366803852,
-        "accuracy": "es5 check"
-      },
-      {
-        "name": "fast-brake (browserlist)",
-        "time": 0.016261333000000038,
-        "opsPerSec": 61496,
-        "relative": 0.2726841643301902,
-        "accuracy": "browser check"
-      },
-      {
-        "name": "fast-brake (es2015 only)",
-        "time": 0.018054958,
-        "opsPerSec": 55386,
-        "relative": 0.24559503267744823,
-        "accuracy": "es2015 check"
-      },
-      {
-        "name": "cherow",
-        "time": 0.018782916999999996,
-        "opsPerSec": 53240,
-        "relative": 0.2360766434734262,
-        "accuracy": "parsed"
+        "name": "fast-brake (preprocess)",
+        "time": 0.008,
+        "opsPerSec": 126127,
+        "relative": 0.35,
+        "accuracy": "es2015"
       },
       {
         "name": "meriyah",
-        "time": 0.019592874999999937,
-        "opsPerSec": 51039,
-        "relative": 0.22631737302463112,
+        "time": 0.017,
+        "opsPerSec": 59162,
+        "relative": 0.164,
         "accuracy": "parsed"
       },
       {
-        "name": "acorn",
-        "time": 0.04691187499999995,
-        "opsPerSec": 21317,
-        "relative": 0.09452207996376098,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "@babel/parser",
-        "time": 0.05585087500000003,
-        "opsPerSec": 17905,
-        "relative": 0.07939370690253202,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "espree",
-        "time": 0.05602866700000004,
-        "opsPerSec": 17848,
-        "relative": 0.07914177219315162,
+        "name": "cherow",
+        "time": 0.02,
+        "opsPerSec": 49214,
+        "relative": 0.136,
         "accuracy": "parsed"
       },
       {
         "name": "esprima",
-        "time": -1,
-        "opsPerSec": 0,
-        "relative": 0,
+        "time": 0.036,
+        "opsPerSec": 28141,
+        "relative": 0.078,
         "accuracy": "parse error"
+      },
+      {
+        "name": "acorn",
+        "time": 0.06,
+        "opsPerSec": 16641,
+        "relative": 0.046,
+        "accuracy": "parse error"
+      },
+      {
+        "name": "espree",
+        "time": 0.066,
+        "opsPerSec": 15209,
+        "relative": 0.042,
+        "accuracy": "parse error"
+      },
+      {
+        "name": "@babel/parser",
+        "time": 0.074,
+        "opsPerSec": 13424,
+        "relative": 0.037,
+        "accuracy": "parsed"
       }
     ]
   },
   {
-    "name": "ES2022 (Latest)",
-    "fileSize": 1181,
+    "name": "ES2022",
+    "fileSize": 900,
     "results": [
       {
         "name": "fast-brake",
-        "time": 0.0016963329999999815,
-        "opsPerSec": 589507,
+        "time": 0.003,
+        "opsPerSec": 385344,
         "relative": 1,
-        "accuracy": "none"
+        "accuracy": "es2015"
       },
       {
-        "name": "fast-brake (detect)",
-        "time": 0.004121874999999932,
-        "opsPerSec": 242608,
-        "relative": 0.41154401819560504,
-        "accuracy": "none"
-      },
-      {
-        "name": "fast-brake (es2015 only)",
-        "time": 0.006951249999999959,
-        "opsPerSec": 143859,
-        "relative": 0.24403279985613976,
-        "accuracy": "es2015 check"
-      },
-      {
-        "name": "fast-brake (es5 only)",
-        "time": 0.009190791999999988,
-        "opsPerSec": 108805,
-        "relative": 0.18456875098467942,
-        "accuracy": "es5 check"
-      },
-      {
-        "name": "fast-brake (browserlist)",
-        "time": 0.009477125000000001,
-        "opsPerSec": 105517,
-        "relative": 0.17899236319031156,
-        "accuracy": "browser check"
+        "name": "fast-brake (preprocess)",
+        "time": 0.008,
+        "opsPerSec": 120483,
+        "relative": 0.313,
+        "accuracy": "es2015"
       },
       {
         "name": "meriyah",
-        "time": 0.019953292000000032,
-        "opsPerSec": 50117,
-        "relative": 0.08501519448519967,
+        "time": 0.021,
+        "opsPerSec": 47003,
+        "relative": 0.122,
         "accuracy": "parsed"
       },
       {
         "name": "acorn",
-        "time": 0.036557124999999926,
-        "opsPerSec": 27354,
-        "relative": 0.0464022540065715,
+        "time": 0.033,
+        "opsPerSec": 29975,
+        "relative": 0.078,
+        "accuracy": "parse error"
+      },
+      {
+        "name": "espree",
+        "time": 0.042,
+        "opsPerSec": 23556,
+        "relative": 0.061,
+        "accuracy": "parse error"
+      },
+      {
+        "name": "@babel/parser",
+        "time": 0.055,
+        "opsPerSec": 18033,
+        "relative": 0.047,
+        "accuracy": "parsed"
+      }
+    ]
+  },
+  {
+    "name": "ES2024 (Latest)",
+    "fileSize": 938,
+    "results": [
+      {
+        "name": "fast-brake",
+        "time": 0.001,
+        "opsPerSec": 839395,
+        "relative": 1,
+        "accuracy": "es2015"
+      },
+      {
+        "name": "fast-brake (preprocess)",
+        "time": 0.018,
+        "opsPerSec": 56805,
+        "relative": 0.068,
+        "accuracy": "es2015"
+      },
+      {
+        "name": "meriyah",
+        "time": 0.023,
+        "opsPerSec": 43862,
+        "relative": 0.052,
         "accuracy": "parsed"
       },
       {
         "name": "espree",
-        "time": 0.04200133400000004,
-        "opsPerSec": 23809,
-        "relative": 0.04038759816533398,
+        "time": 0.048,
+        "opsPerSec": 20999,
+        "relative": 0.025,
+        "accuracy": "parsed"
+      },
+      {
+        "name": "acorn",
+        "time": 0.048,
+        "opsPerSec": 20845,
+        "relative": 0.025,
         "accuracy": "parsed"
       },
       {
         "name": "@babel/parser",
-        "time": 0.044911999999999924,
-        "opsPerSec": 22266,
-        "relative": 0.03777015051656538,
+        "time": 0.057,
+        "opsPerSec": 17639,
+        "relative": 0.021,
         "accuracy": "parsed"
-      },
-      {
-        "name": "esprima",
-        "time": -1,
-        "opsPerSec": 0,
-        "relative": 0,
-        "accuracy": "parse error"
-      },
-      {
-        "name": "cherow",
-        "time": -1,
-        "opsPerSec": 0,
-        "relative": 0,
-        "accuracy": "parse error"
       }
     ]
   },
   {
     "name": "Large File (100x)",
-    "fileSize": 71100,
+    "fileSize": 71900,
     "results": [
       {
         "name": "fast-brake",
-        "time": 0.001435916999999904,
-        "opsPerSec": 696419,
+        "time": 0.002,
+        "opsPerSec": 518269,
         "relative": 1,
-        "accuracy": "none"
+        "accuracy": "es2015"
       },
       {
-        "name": "fast-brake (detect)",
-        "time": 0.00478191599999991,
-        "opsPerSec": 209121,
-        "relative": 0.3002806824711958,
-        "accuracy": "none"
-      },
-      {
-        "name": "fast-brake (es5 only)",
-        "time": 0.010178041000000007,
-        "opsPerSec": 98251,
-        "relative": 0.14107989936372853,
-        "accuracy": "es5 check"
-      },
-      {
-        "name": "fast-brake (browserlist)",
-        "time": 0.6815848749999998,
-        "opsPerSec": 1467,
-        "relative": 0.0021067324887453004,
-        "accuracy": "browser check"
-      },
-      {
-        "name": "fast-brake (es2015 only)",
-        "time": 0.9892590840000001,
-        "opsPerSec": 1011,
-        "relative": 0.0014515075203493444,
-        "accuracy": "es2015 check"
-      },
-      {
-        "name": "cherow",
-        "time": 1.019368125,
-        "opsPerSec": 981,
-        "relative": 0.0014086343929970383,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "meriyah",
-        "time": 1.0832818750000002,
-        "opsPerSec": 923,
-        "relative": 0.001325524808582165,
-        "accuracy": "parsed"
-      },
-      {
-        "name": "@babel/parser",
-        "time": -1,
-        "opsPerSec": 0,
-        "relative": 0,
+        "name": "esprima",
+        "time": 0.032,
+        "opsPerSec": 30963,
+        "relative": 0.06,
         "accuracy": "parse error"
       },
       {
         "name": "acorn",
-        "time": -1,
-        "opsPerSec": 0,
-        "relative": 0,
+        "time": 0.062,
+        "opsPerSec": 16219,
+        "relative": 0.031,
         "accuracy": "parse error"
       },
       {
-        "name": "esprima",
-        "time": -1,
-        "opsPerSec": 0,
-        "relative": 0,
+        "name": "@babel/parser",
+        "time": 0.09,
+        "opsPerSec": 11088,
+        "relative": 0.021,
         "accuracy": "parse error"
       },
       {
         "name": "espree",
-        "time": -1,
-        "opsPerSec": 0,
-        "relative": 0,
+        "time": 0.118,
+        "opsPerSec": 8511,
+        "relative": 0.016,
         "accuracy": "parse error"
+      },
+      {
+        "name": "fast-brake (preprocess)",
+        "time": 0.489,
+        "opsPerSec": 2043,
+        "relative": 0.004,
+        "accuracy": "es2015"
+      },
+      {
+        "name": "cherow",
+        "time": 0.982,
+        "opsPerSec": 1018,
+        "relative": 0.002,
+        "accuracy": "parsed"
+      },
+      {
+        "name": "meriyah",
+        "time": 1.306,
+        "opsPerSec": 766,
+        "relative": 0.001,
+        "accuracy": "parsed"
       }
     ]
   }
