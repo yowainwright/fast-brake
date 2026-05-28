@@ -224,7 +224,7 @@
     "release-it": "19.0.4",
     "strip-comments": "^2.0.1",
     "strip-literal": "^3.1.0",
-    "turbo": "2.5.5",
+    "turbo": "2.9.14",
     "typescript": "5.8.3"
   },
   "release-it": {
